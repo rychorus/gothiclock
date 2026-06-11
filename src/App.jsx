@@ -1,11 +1,7 @@
 import { useEffect } from "react";
 
-const LEGACY_SCRIPTS = [
-  "/js/core.js",
-  "/js/solution.js",
-  "/js/plate-ui.js",
-  "/js/app-controller.js",
-];
+const BASE_URL = import.meta.env.BASE_URL;
+const LEGACY_SCRIPTS = ["js/core.js", "js/solution.js", "js/plate-ui.js", "js/app-controller.js"];
 
 const PLATE_TEMPLATE_HTML = `
   <article class="plate-column">
@@ -68,6 +64,10 @@ function loadScript(src) {
   });
 }
 
+function withBaseUrl(path) {
+  return new URL(path, window.location.origin + BASE_URL).toString();
+}
+
 function getIsLocalhost() {
   return (
     window.location.hostname === "localhost" ||
@@ -121,7 +121,7 @@ function App() {
       ensurePlateTemplate();
 
       for (const src of LEGACY_SCRIPTS) {
-        await loadScript(src);
+        await loadScript(withBaseUrl(src));
       }
 
       if (isDisposed) {
@@ -145,7 +145,7 @@ function App() {
         window.addEventListener(
           "load",
           () => {
-            navigator.serviceWorker.register("/sw.js").catch((error) => {
+            navigator.serviceWorker.register(withBaseUrl("sw.js")).catch((error) => {
               console.error("Service worker registration failed", error);
             });
           },
