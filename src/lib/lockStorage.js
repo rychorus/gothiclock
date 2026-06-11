@@ -78,6 +78,7 @@ export function renameSavedLock(lockId, nextName) {
     return {
       ...lock,
       name: trimmedName,
+      isDraft: false,
       savedAt: new Date().toISOString(),
     };
   });
@@ -94,10 +95,5 @@ export function syncFinalLockProgress(state) {
     return;
   }
 
-  const existingLock = getSavedLockById(state.currentSaveId);
-  if (!existingLock) {
-    return;
-  }
-
-  persistCurrentLock(state, { isDraft: false });
+  persistCurrentLock(state, { isDraft: true });
 }

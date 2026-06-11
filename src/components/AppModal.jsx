@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { copyTextToClipboard } from "../lib/clipboard";
 import { Modal } from "./Modal";
-import { SavedLocksDialog } from "./SavedLocksDialog";
 import { SolutionSequence } from "./SolutionSequence";
 
-function LockNameForm({ initialValue, onSubmit }) {
+function LockNameForm({ initialValue, onSubmit, onCancel }) {
   const [value, setValue] = useState(initialValue);
 
   return (
@@ -12,6 +11,7 @@ function LockNameForm({ initialValue, onSubmit }) {
       <span className="modal-field-label">Lock name</span>
       <input className="modal-input" type="text" value={value} onChange={(event) => setValue(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit(value)} />
       <div className="modal-actions">
+        <button type="button" className="action-button secondary" onClick={onCancel}>Cancel</button>
         <button type="button" className="action-button primary" onClick={() => onSubmit(value)}>Save</button>
       </div>
     </label>
@@ -25,12 +25,8 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
     setDidCopyPowershell(false);
   }, [modal]);
 
-  if (modal.type === "load-locks") {
-    return <Modal title="Load lock" onClose={app.closeModal}><SavedLocksDialog savedLocks={savedLocks} onLoad={app.loadSavedLock} onRename={(lockId) => app.setModal({ type: "rename-saved", lockId })} onDelete={(lockId) => app.setModal({ type: "delete-saved", lockId })} /></Modal>;
-  }
-
   if (modal.type === "save-current") {
-    return <Modal title="Save lock" onClose={app.closeModal}><LockNameForm initialValue={modal.value} onSubmit={(value) => app.persistWithName(value, false)} /></Modal>;
+    return <Modal title="Save lock" onClose={app.closeModal}><LockNameForm initialValue={modal.value} onSubmit={(value) => app.persistWithName(value, false)} onCancel={app.closeModal} /></Modal>;
   }
 
   if (modal.type === "rename-saved") {
@@ -40,7 +36,7 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
     }
 
     const initialValue = savedLock.name.replace(/^Draft - /, "") || "Untitled lock";
-    return <Modal title="Rename lock" onClose={app.closeModal}><LockNameForm initialValue={initialValue} onSubmit={(value) => app.renameLock(modal.lockId, value)} /></Modal>;
+    return <Modal title="Rename lock" onClose={app.closeModal}><LockNameForm initialValue={initialValue} onSubmit={(value) => app.renameLock(modal.lockId, value)} onCancel={app.closeModal} /></Modal>;
   }
 
   if (modal.type === "delete-saved") {

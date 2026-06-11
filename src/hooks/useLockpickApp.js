@@ -13,12 +13,13 @@ export function useLockpickApp() {
 
   useEffect(() => {
     document.body.classList.toggle("is-menu-mode", appState.mode === "menu");
+    document.body.classList.toggle("is-load-mode", appState.mode === "load");
     document.body.classList.toggle("is-linking-mode", appState.mode === "linking");
     document.body.classList.toggle("is-solution-mode", appState.mode === "solution" || appState.mode === "ready_to_solve");
   }, [appState.mode]);
 
   useEffect(() => {
-    if (appState.mode === "linking" || appState.mode === "ready_to_solve") {
+    if (appState.mode === "linking" || appState.mode === "ready_to_solve" || appState.mode === "solution") {
       const lockId = persistCurrentLock(appState, { isDraft: true });
       if (lockId && lockId !== appState.currentSaveId) {
         setAppState((current) => (current.currentSaveId === lockId ? current : { ...current, currentSaveId: lockId }));
@@ -59,7 +60,8 @@ export function useLockpickApp() {
   }
 
   function openLoadLockDialog() {
-    setModal({ type: "load-locks" });
+    closeModal();
+    setAppState((current) => ({ ...current, mode: "load", currentTask: null }));
   }
 
   function loadSavedLock(lockId) {

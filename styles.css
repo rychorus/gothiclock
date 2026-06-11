@@ -159,6 +159,12 @@ button {
   border-top: 1px solid var(--divider);
 }
 
+.controls-card--load-screen {
+  padding-top: 0.95rem;
+  align-content: start;
+  min-height: 0;
+}
+
 .controls-heading {
   display: flex;
   justify-content: center;
@@ -244,8 +250,22 @@ body.is-solution-mode .hero-title {
   letter-spacing: 0.04em;
 }
 
+body.is-load-mode .hero-title {
+  color: var(--text);
+  font-size: 1.2rem;
+  letter-spacing: 0.08em;
+}
+
 body.is-menu-mode .controls-card {
   padding-top: 0.15rem;
+}
+
+body.is-load-mode .panel {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+body.is-load-mode .controls-card--load-screen {
+  border-top: 1px solid var(--divider);
 }
 
 .count-picker,
@@ -817,11 +837,18 @@ body.is-menu-mode .controls-card {
 
 .footer-actions[data-mode="linking"] {
   flex-wrap: nowrap;
+  margin-top: auto;
+  padding-top: 0.35rem;
 }
 
 .footer-actions[data-mode="linking"] .action-button {
   min-width: 0;
   flex: 1 1 0;
+}
+
+body.is-linking-mode .panel {
+  gap: 0.35rem;
+  padding-bottom: 0.3rem;
 }
 
 .footer-actions[data-mode="solution"],
@@ -1009,6 +1036,10 @@ body.is-menu-mode .controls-card {
   flex-direction: column;
 }
 
+.modal-card--allow-overflow {
+  overflow: visible;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -1027,6 +1058,10 @@ body.is-menu-mode .controls-card {
   overflow: auto;
   min-height: 0;
   flex: 1 1 auto;
+}
+
+.modal-body--allow-overflow {
+  overflow: visible;
 }
 
 .modal-actions {
@@ -1111,6 +1146,7 @@ body.is-menu-mode .controls-card {
   font-size: 0.82rem;
   cursor: pointer;
   user-select: none;
+  justify-self: end;
 }
 
 .saved-lock-filter input {
@@ -1156,6 +1192,14 @@ body.is-menu-mode .controls-card {
   gap: 0.55rem;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   overflow: visible;
+  align-content: start;
+}
+
+.saved-lock-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0 0.2rem;
 }
 
 .saved-lock-item {

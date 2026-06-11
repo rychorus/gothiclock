@@ -3,6 +3,7 @@ import { MAX_PLATES, MIN_PLATES } from "../lib/lockData";
 import { MaterialIcon } from "../lib/icons";
 import { AppModal } from "./AppModal";
 import { PlateColumn } from "./PlateColumn";
+import { SavedLocksDialog } from "./SavedLocksDialog";
 import { SolutionSequence } from "./SolutionSequence";
 
 function renderHeroTitle(mode) {
@@ -12,6 +13,10 @@ function renderHeroTitle(mode) {
 
   if (mode === "solution" || mode === "ready_to_solve") {
     return "Solution Mode";
+  }
+
+  if (mode === "load") {
+    return "Load Lock";
   }
 
   return null;
@@ -72,6 +77,15 @@ export function LockpickAppView({ app, appVersion }) {
                 <button className="action-button secondary" type="button" onClick={app.openLoadLockDialog}>Load lock</button>
               </div>
             </section>
+          ) : appState.mode === "load" ? (
+            <section className="controls-card controls-card--load-screen" aria-live="polite">
+              <SavedLocksDialog
+                savedLocks={savedLocks}
+                onLoad={app.loadSavedLock}
+                onRename={(lockId) => app.setModal({ type: "rename-saved", lockId })}
+                onDelete={(lockId) => app.setModal({ type: "delete-saved", lockId })}
+              />
+            </section>
           ) : appState.mode === "setup" ? (
             <section className="controls-card" aria-live="polite">
               <div className="controls-heading"><p className="controls-title">Plate count</p></div>
@@ -88,7 +102,7 @@ export function LockpickAppView({ app, appVersion }) {
             </section>
           ) : null}
 
-          <section className={`lock-stage${appState.mode === "solution" || appState.mode === "ready_to_solve" ? " is-solution-compact" : ""}${appState.mode === "linking" ? " has-stage-controls has-bottom-instruction" : ""}`} hidden={appState.mode === "menu"}>
+          <section className={`lock-stage${appState.mode === "solution" || appState.mode === "ready_to_solve" ? " is-solution-compact" : ""}${appState.mode === "linking" ? " has-stage-controls has-bottom-instruction" : ""}`} hidden={appState.mode === "menu" || appState.mode === "load"}>
             {stageInstruction ? <div className={`stage-instruction${appState.mode === "setup" ? " is-setup-mode" : ""}${appState.mode === "linking" ? " is-linking-mode" : ""}`} aria-live="polite">{stageInstruction}</div> : null}
             <button className="stage-start-over" type="button" hidden={appState.mode !== "linking"} onClick={actions.startOver}>Start over</button>
             <button className="stage-reset" type="button" hidden={appState.mode === "setup" || appState.mode === "solution" || appState.mode === "ready_to_solve"} onClick={actions.resetPlates}>Reset</button>
@@ -135,7 +149,7 @@ export function LockpickAppView({ app, appVersion }) {
             </section>
           ) : null}
 
-          <div className="footer-actions" hidden={appState.mode === "menu"} data-mode={appState.mode} data-count={appState.mode === "solution" || appState.mode === "linking" || appState.mode === "ready_to_solve" ? "2" : "1"}>
+          <div className="footer-actions" hidden={appState.mode === "menu" || appState.mode === "load"} data-mode={appState.mode} data-count={appState.mode === "solution" || appState.mode === "linking" || appState.mode === "ready_to_solve" ? "2" : "1"}>
             {appState.mode === "setup" ? <button className="action-button primary" type="button" disabled={appState.offsets.every((offset) => offset === 0)} onClick={actions.startLinkingMode}>Start Linking</button> : null}
             {appState.mode === "linking" ? (
               <>

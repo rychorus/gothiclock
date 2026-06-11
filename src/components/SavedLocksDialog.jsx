@@ -1,6 +1,61 @@
 import { useState } from "react";
 import { MaterialIcon } from "../lib/icons";
 
+function getRelativeDayLabel(savedAt) {
+  const date = new Date(savedAt);
+  const now = new Date();
+  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const savedDayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayDiff = Math.round((dayStart - savedDayStart) / 86400000);
+
+  if (dayDiff <= 0) {
+    return "Today";
+  }
+
+  if (dayDiff === 1) {
+    return "Yesterday";
+  }
+
+  if (dayDiff < 7) {
+    return `${dayDiff} days ago`;
+  }
+
+  return date.toLocaleDateString();
+}
+
+function getRelativeTimeLabel(savedAt) {
+  const diffMs = Math.max(0, Date.now() - new Date(savedAt).getTime());
+  const diffMinutes = Math.floor(diffMs / 60000);
+
+  if (diffMinutes < 1) {
+    return "Just now";
+  }
+
+  if (diffMinutes === 1) {
+    return "1 minute ago";
+  }
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes} minutes ago`;
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours === 1) {
+    return "1 hour ago";
+  }
+
+  if (diffHours < 24) {
+    return `${diffHours} hours ago`;
+  }
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) {
+    return "1 day ago";
+  }
+
+  return `${diffDays} days ago`;
+}
+
 export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }) {
   const [showDrafts, setShowDrafts] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -10,16 +65,23 @@ export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }) {
   return (
     <>
       <label className="saved-lock-filter">
+        <span>Show drafts</span>
         <input type="checkbox" checked={showDrafts} onChange={(event) => setShowDrafts(event.target.checked)} />
         <span className="saved-lock-filter-switch" aria-hidden="true"></span>
-        <span>Show drafts</span>
       </label>
 
       <div className="saved-lock-list" onClick={() => setOpenMenuId(null)}>
         {!visibleLocks.length ? (
-          <p className="modal-empty">
-            {savedLocks.length ? "No completed locks yet. Turn on drafts to see in-progress locks." : "No saved locks yet."}
-          </p>
+          <div className="saved-lock-empty">
+            <p className="modal-empty">
+              {savedLocks.length ? "No completed locks yet." : "No saved locks yet."}
+            </p>
+            {savedLocks.length ? (
+              <button className="action-button secondary compact" type="button" onClick={() => setShowDrafts(true)}>
+                See drafts
+              </button>
+            ) : null}
+          </div>
         ) : (
           visibleLocks.map((lock) => (
             <div className="saved-lock-item" key={lock.id}>
@@ -28,7 +90,7 @@ export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }) {
                   <span className="saved-lock-name">{lock.name}</span>
                   {lock.isDraft ? <span className="saved-lock-badge">Draft</span> : null}
                 </span>
-                <span className="saved-lock-meta">{lock.plateCount} plates · {new Date(lock.savedAt).toLocaleString()}</span>
+                <span className="saved-lock-meta">{lock.plateCount} plates · {getRelativeDayLabel(lock.savedAt)} · {getRelativeTimeLabel(lock.savedAt)}</span>
               </button>
 
               <div className="saved-lock-tools" onClick={(event) => event.stopPropagation()}>
