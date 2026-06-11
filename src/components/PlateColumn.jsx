@@ -73,8 +73,12 @@ export function PlateColumn({
       nextClasses.push("show-status");
     }
 
+    if (offset === 0) {
+      nextClasses.push("is-aligned");
+    }
+
     return nextClasses.join(" ");
-  }, [currentSolutionMove, currentTask, index, isKnown, mode, selection]);
+  }, [currentSolutionMove, currentTask, index, isKnown, mode, offset, selection]);
 
   function measureStepSize() {
     if (!holeRef.current || !stackRef.current) {
