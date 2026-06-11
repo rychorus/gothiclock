@@ -354,7 +354,8 @@ body.is-menu-mode .controls-card {
   --plate-width: clamp(1.75rem, 5.4vw, 2.45rem);
   --hole-size: clamp(0.44rem, 1.25vw, 0.62rem);
   --hole-gap: clamp(0.3rem, 0.66vh, 0.46rem);
-  padding-top: 0.72rem;
+  padding-top: 0.28rem;
+  padding-bottom: 0.12rem;
 }
 
 .stage-instruction {
@@ -835,14 +836,15 @@ body.is-menu-mode .controls-card {
 }
 
 .bottom-panel {
-  padding: 0.2rem 0 0;
+  padding: 0;
   display: grid;
   gap: 0.25rem;
   border-top: 1px solid var(--divider);
 }
 
 .bottom-panel-heading {
-  margin-bottom: 0.1rem;
+  margin-top: -0.52rem;
+  margin-bottom: 0.05rem;
   display: flex;
   width: 100%;
   justify-content: center;

@@ -178,12 +178,7 @@ export function finishLinkCapture(state) {
   const nextState = { ...state, links };
 
   if (getUnknownPlates(links).length === 0) {
-    return {
-      ...nextState,
-      mode: "ready_to_solve",
-      currentTask: null,
-      solution: buildSolutionPlan(nextState, getSolutionStartOffsets(nextState)),
-    };
+    return enterSolutionMode(nextState);
   }
 
   return beginNextLinkTask(nextState);

@@ -1,4 +1,4 @@
-import { STORAGE_KEY, buildSavedLockRecord, createLockId, isTrivialCenteredLock } from "./lockData";
+import { STORAGE_KEY, buildSavedLockRecord, cloneOffsets, createLockId, isTrivialCenteredLock } from "./lockData";
 
 function getStorage() {
   return window.localStorage;
@@ -42,19 +42,25 @@ export function getDefaultLockName() {
   return `Lock ${nextNumber}`;
 }
 
+function stripLegacyDraftPrefix(name) {
+  return name?.replace(/^Draft - /, "") || "";
+}
+
 export function persistCurrentLock(state, { isDraft, nameOverride } = {}) {
-  if (!state.linkingStartOffsets || (!isDraft && isTrivialCenteredLock(state))) {
+  const normalizedState = state.linkingStartOffsets || !state.solution?.startOffsets
+    ? state
+    : { ...state, linkingStartOffsets: cloneOffsets(state.solution.startOffsets) };
+
+  if (!normalizedState.linkingStartOffsets || (!isDraft && isTrivialCenteredLock(normalizedState))) {
     return null;
   }
 
-  const existingLock = getSavedLockById(state.currentSaveId);
-  const fallbackName = isDraft
-    ? existingLock?.name || `Draft - ${getDefaultLockName()}`
-    : existingLock?.name?.replace(/^Draft - /, "") || getDefaultLockName();
+  const existingLock = getSavedLockById(normalizedState.currentSaveId);
+  const fallbackName = stripLegacyDraftPrefix(existingLock?.name) || getDefaultLockName();
   const name = nameOverride?.trim() || fallbackName;
-  const lockId = state.currentSaveId || createLockId();
+  const lockId = normalizedState.currentSaveId || createLockId();
 
-  upsertSavedLock(buildSavedLockRecord(state, { id: lockId, name, isDraft }));
+  upsertSavedLock(buildSavedLockRecord(normalizedState, { id: lockId, name, isDraft }));
   return lockId;
 }
 
@@ -71,7 +77,7 @@ export function renameSavedLock(lockId, nextName) {
 
     return {
       ...lock,
-      name: lock.isDraft ? `Draft - ${trimmedName}` : trimmedName,
+      name: trimmedName,
       savedAt: new Date().toISOString(),
     };
   });
@@ -89,7 +95,7 @@ export function syncFinalLockProgress(state) {
   }
 
   const existingLock = getSavedLockById(state.currentSaveId);
-  if (!existingLock || existingLock.isDraft) {
+  if (!existingLock) {
     return;
   }
 

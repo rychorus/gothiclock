@@ -47,13 +47,13 @@ export function useLockpickApp() {
   }
 
   function saveCurrentLock() {
-    if (!appState.linkingStartOffsets || selectors.isTrivialCenteredLock()) {
+    if (!appState.linkingStartOffsets && !appState.solution?.startOffsets) {
       return;
     }
 
     const existingLock = getSavedLockById(appState.currentSaveId);
     const fallbackName = existingLock?.isDraft
-      ? existingLock.name.replace(/^Draft - /, "") || getDefaultLockName()
+      ? existingLock.name || getDefaultLockName()
       : existingLock?.name || getDefaultLockName();
     setModal({ type: "save-current", value: fallbackName });
   }

@@ -23,10 +23,6 @@ function getStageInstruction(appState, currentSolutionChunk) {
     return appState.currentTask.phase === "step2" ? `What moved with plate ${driver}?` : `Move plate ${driver} ${appState.currentTask.direction ?? "up"}`;
   }
 
-  if (appState.mode === "solution") {
-    return currentSolutionChunk ? currentSolutionChunk.label : "";
-  }
-
   return appState.mode === "setup" ? "Plates setup" : "";
 }
 
@@ -93,7 +89,7 @@ export function LockpickAppView({ app, appVersion }) {
           ) : null}
 
           <section className={`lock-stage${appState.mode === "solution" || appState.mode === "ready_to_solve" ? " is-solution-compact" : ""}${appState.mode === "linking" ? " has-stage-controls has-bottom-instruction" : ""}`} hidden={appState.mode === "menu"}>
-            <div className={`stage-instruction${appState.mode === "setup" ? " is-setup-mode" : ""}${appState.mode === "linking" ? " is-linking-mode" : ""}`} aria-live="polite">{stageInstruction}</div>
+            {stageInstruction ? <div className={`stage-instruction${appState.mode === "setup" ? " is-setup-mode" : ""}${appState.mode === "linking" ? " is-linking-mode" : ""}`} aria-live="polite">{stageInstruction}</div> : null}
             <button className="stage-start-over" type="button" hidden={appState.mode !== "linking"} onClick={actions.startOver}>Start over</button>
             <button className="stage-reset" type="button" hidden={appState.mode === "setup" || appState.mode === "solution" || appState.mode === "ready_to_solve"} onClick={actions.resetPlates}>Reset</button>
             <div className="plates-row" aria-label="Lock plates">
@@ -128,12 +124,8 @@ export function LockpickAppView({ app, appVersion }) {
                 <div className="solution-menu-wrap">
                   <button className="solution-toggle-icon" type="button" aria-label="Solution actions" aria-expanded={isSolutionMenuOpen} onClick={() => setIsSolutionMenuOpen((current) => !current)}><MaterialIcon name="more_vert" /></button>
                   <div className="saved-lock-menu solution-toggle-menu" hidden={!isSolutionMenuOpen}>
-                    <button className="saved-lock-menu-item" type="button" onClick={() => { setIsSolutionMenuOpen(false); app.setModal({ type: "solution-steps" }); }}>
-                      <MaterialIcon name="open_in_full" />
-                      <span>Open in full</span>
-                    </button>
                     <button className="saved-lock-menu-item" type="button" onClick={() => { setIsSolutionMenuOpen(false); app.setModal({ type: "powershell" }); }}>
-                      <MaterialIcon name="save" />
+                      <MaterialIcon name="code" />
                       <span>Generate powershell code</span>
                     </button>
                   </div>
@@ -148,8 +140,8 @@ export function LockpickAppView({ app, appVersion }) {
             {appState.mode === "linking" ? (
               <>
                 <button className="action-button secondary" type="button" onClick={actions.stepBackLinking}><span className="action-button-row"><span className="action-icon is-left" aria-hidden="true"></span><span>{isAtLinkingStart ? "Back to setup" : "Back"}</span></span></button>
-                <button className={`action-button ${unknownPlates.length === 1 ? "solve" : "primary"}`} type="button" onClick={appState.currentTask?.phase === "step2" ? actions.finishLinkCapture : actions.advanceFromStep1}>
-                  {unknownPlates.length === 1 ? (
+                <button className={`action-button ${unknownPlates.length === 1 && appState.currentTask?.phase === "step2" ? "solve" : "primary"}`} type="button" onClick={appState.currentTask?.phase === "step2" ? actions.finishLinkCapture : actions.advanceFromStep1}>
+                  {unknownPlates.length === 1 && appState.currentTask?.phase === "step2" ? (
                     "Solve"
                   ) : noOtherPlateMoved ? (
                     <>

@@ -27,6 +27,7 @@ export function buildSolutionChunks(moves, startOffsets, links) {
   const chunks = [
     {
       id: "reset",
+      type: "reset",
       label: "R",
       keys: ["R"],
       keyGroups: [{ key: "R", count: 1 }],
@@ -57,12 +58,22 @@ export function buildSolutionChunks(moves, startOffsets, links) {
 
     chunks.push({
       id: `move-${index}`,
+      type: "move",
       label: formatKeyGroups(groupConsecutiveKeys(keys)),
       keys,
       keyGroups: groupConsecutiveKeys(keys),
       offsets: cloneOffsets(offsets),
       move,
     });
+  });
+
+  chunks.push({
+    id: "solved",
+    type: "solved",
+    label: "Solved",
+    keys: [],
+    keyGroups: [{ key: "Solved", count: 1 }],
+    offsets: cloneOffsets(offsets),
   });
 
   return chunks;
@@ -127,7 +138,10 @@ export function buildSolutionPlan({ plateCount, links }, startOffsets) {
 
   return {
     moves: null,
-    chunks: [{ id: "reset", label: "R", keys: ["R"], keyGroups: [{ key: "R", count: 1 }], offsets: start }],
+    chunks: [
+      { id: "reset", type: "reset", label: "R", keys: ["R"], keyGroups: [{ key: "R", count: 1 }], offsets: start },
+      { id: "solved", type: "solved", label: "Solved", keys: [], keyGroups: [{ key: "Solved", count: 1 }], offsets: start },
+    ],
     index: 0,
     startOffsets: start,
   };

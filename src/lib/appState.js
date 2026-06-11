@@ -89,9 +89,16 @@ export function setSolutionStep(state, index) {
   }
 
   const clampedIndex = Math.max(0, Math.min(index, state.solution.chunks.length - 1));
+  const selectedChunk = state.solution.chunks[clampedIndex];
+  const displayOffsets = clampedIndex === 0
+    ? cloneOffsets(state.solution.startOffsets || state.solution.chunks[0].offsets)
+    : selectedChunk.type === "solved"
+      ? cloneOffsets(selectedChunk.offsets)
+      : cloneOffsets(state.solution.chunks[clampedIndex - 1].offsets);
+
   return {
     ...state,
-    offsets: cloneOffsets(state.solution.chunks[clampedIndex].offsets),
+    offsets: displayOffsets,
     solution: {
       ...state.solution,
       index: clampedIndex,

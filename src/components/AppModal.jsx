@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { copyTextToClipboard } from "../lib/clipboard";
 import { Modal } from "./Modal";
 import { SavedLocksDialog } from "./SavedLocksDialog";
@@ -19,6 +19,12 @@ function LockNameForm({ initialValue, onSubmit }) {
 }
 
 export function AppModal({ app, modal, savedLocks, solutionChunks, currentSolutionIndex, powershellCode }) {
+  const [didCopyPowershell, setDidCopyPowershell] = useState(false);
+
+  useEffect(() => {
+    setDidCopyPowershell(false);
+  }, [modal]);
+
   if (modal.type === "load-locks") {
     return <Modal title="Load lock" onClose={app.closeModal}><SavedLocksDialog savedLocks={savedLocks} onLoad={app.loadSavedLock} onRename={(lockId) => app.setModal({ type: "rename-saved", lockId })} onDelete={(lockId) => app.setModal({ type: "delete-saved", lockId })} /></Modal>;
   }
@@ -33,7 +39,7 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
       return null;
     }
 
-    const initialValue = savedLock.isDraft ? savedLock.name.replace(/^Draft - /, "") || "Untitled lock" : savedLock.name;
+    const initialValue = savedLock.name.replace(/^Draft - /, "") || "Untitled lock";
     return <Modal title="Rename lock" onClose={app.closeModal}><LockNameForm initialValue={initialValue} onSubmit={(value) => app.renameLock(modal.lockId, value)} /></Modal>;
   }
 
@@ -56,14 +62,13 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
         title="Powershell code"
         onClose={app.closeModal}
         actions={[
-          { label: "Close", className: "secondary", onClick: app.closeModal },
           {
-            label: "Copy",
+            label: didCopyPowershell ? "Copied to clipboard" : "Copy",
             className: "primary",
             onClick: async () => {
               const copied = await copyTextToClipboard(powershellCode);
               if (copied) {
-                app.closeModal();
+                setDidCopyPowershell(true);
               }
             },
           },
