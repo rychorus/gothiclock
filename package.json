@@ -8,7 +8,8 @@
     "start": "vite",
     "start:lan": "vite --host 0.0.0.0 --port 8080",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "./scripts/deploy-pages.sh"
   },
   "dependencies": {
     "react": "^18.3.1",
