@@ -1,0 +1,25 @@
+{
+  "name": "Gothic Lockpick Solver",
+  "short_name": "Lockpick",
+  "description": "A lightweight Gothic lockpick helper for linking plates and replaying the solve sequence.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#15110e",
+  "theme_color": "#15110e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
