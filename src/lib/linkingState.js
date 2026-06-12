@@ -2,6 +2,7 @@ import {
   CENTER_INDEX,
   clampOffset,
   cloneOffsets,
+  createEmptyLinkDeltas,
   createEmptyLinks,
   createIdentityLink,
   chooseNextDriver,
@@ -27,6 +28,27 @@ function cloneLinkTask(task) {
   };
 }
 
+function rebaseOffsets(offsets, snapshotOffsets, currentOffsets) {
+  if (!offsets) {
+    return null;
+  }
+
+  return offsets.map((value, index) => value + (currentOffsets[index] - snapshotOffsets[index]));
+}
+
+function rebaseDeferredTask(task, snapshotOffsets, currentOffsets) {
+  const clonedTask = cloneLinkTask(task);
+  if (!clonedTask) {
+    return null;
+  }
+
+  return {
+    ...clonedTask,
+    startOffsets: rebaseOffsets(clonedTask.startOffsets, snapshotOffsets, currentOffsets),
+    baseOffsets: rebaseOffsets(clonedTask.baseOffsets, snapshotOffsets, currentOffsets),
+  };
+}
+
 function getStep2Selection(task, offsets, index) {
   const actualDelta = offsets[index] - task.baseOffsets[index];
   if (actualDelta !== 0) {
@@ -36,6 +58,39 @@ function getStep2Selection(task, offsets, index) {
   return task.attempts?.[index] || 0;
 }
 
+function hasBlockedSelection(task, offsets) {
+  return offsets.some((offset, index) => (
+    index !== task.driver
+    && (task.attempts?.[index] || 0) !== 0
+    && offset === task.baseOffsets[index]
+  ));
+}
+
+function getDriverMovedOffset(task) {
+  return clampOffset(task.startOffsets[task.driver] + task.delta);
+}
+
+function syncStep2DriverState(state) {
+  if (state.mode !== "linking" || state.currentTask?.phase !== "step2") {
+    return state;
+  }
+
+  const task = cloneLinkTask(state.currentTask);
+  const offsets = cloneOffsets(state.offsets);
+  const driverOffset = hasBlockedSelection(task, offsets)
+    ? task.startOffsets[task.driver]
+    : getDriverMovedOffset(task);
+
+  offsets[task.driver] = driverOffset;
+  task.baseOffsets[task.driver] = driverOffset;
+
+  return {
+    ...state,
+    offsets,
+    currentTask: task,
+  };
+}
+
 function applyKnownBlockedLinks(state) {
   if (state.mode !== "linking" || state.currentTask?.phase !== "step2") {
     return state;
@@ -43,6 +98,14 @@ function applyKnownBlockedLinks(state) {
 
   const task = cloneLinkTask(state.currentTask);
   const offsets = cloneOffsets(state.offsets);
+  if (hasBlockedSelection(task, offsets)) {
+    return {
+      ...state,
+      offsets,
+      currentTask: task,
+    };
+  }
+
   const processed = new Set();
   const pending = [];
 
@@ -125,13 +188,22 @@ function resumeDeferredBlockedTask(state) {
   }
 
   const deferredTask = deferredLinkTasks.pop();
-  return applyKnownBlockedLinks({
+  const currentOffsets = cloneOffsets(state.offsets);
+  const rebasedTask = rebaseDeferredTask(deferredTask.task, deferredTask.offsets, currentOffsets);
+
+  return {
     ...state,
     deferredLinkTasks,
-    offsets: cloneOffsets(deferredTask.offsets),
-    currentTask: cloneLinkTask(deferredTask.task),
+    offsets: currentOffsets,
+    currentTask: {
+      ...rebasedTask,
+      phase: "step1",
+      startOffsets: cloneOffsets(currentOffsets),
+      baseOffsets: null,
+      attempts: Array.from({ length: state.plateCount }, () => 0),
+    },
     mode: "linking",
-  });
+  };
 }
 
 function startLinkTaskForDriver(state, driver) {
@@ -168,6 +240,7 @@ export function startLinkingMode(state) {
       ...state,
       mode: "solution",
       links: createEmptyLinks(state.plateCount),
+      linkDeltas: createEmptyLinkDeltas(state.plateCount),
       linkingStartOffsets: cloneOffsets(state.offsets),
       currentTask: null,
     };
@@ -183,6 +256,7 @@ export function startLinkingMode(state) {
     deferredLinkTasks: [],
     mode: "linking",
     links: createEmptyLinks(state.plateCount),
+    linkDeltas: createEmptyLinkDeltas(state.plateCount),
     linkingStartOffsets: cloneOffsets(state.offsets),
     solution: null,
   });
@@ -196,7 +270,7 @@ export function stepBackLinking(state) {
   if (state.currentTask.phase === "step2") {
     return {
       ...state,
-      offsets: cloneOffsets(state.currentTask.baseOffsets),
+      offsets: cloneOffsets(state.currentTask.startOffsets),
       currentTask: {
         ...state.currentTask,
         phase: "step1",
@@ -223,13 +297,16 @@ export function stepBackLinking(state) {
       ...state,
       offsets: cloneOffsets(state.linkingStartOffsets || state.offsets),
       links: createEmptyLinks(state.plateCount),
+      linkDeltas: createEmptyLinkDeltas(state.plateCount),
       currentTask: null,
       mode: "setup",
     };
   }
 
   const links = [...state.links];
+  const linkDeltas = [...(state.linkDeltas || [])];
   links[previousKnownIndex] = null;
+  linkDeltas[previousKnownIndex] = null;
   let offsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
 
   for (let index = 0; index < links.length; index += 1) {
@@ -238,9 +315,15 @@ export function stepBackLinking(state) {
     }
 
     const normalizedLink = links[index];
-    const delta = normalizedLink[index] === 1
-      ? (normalizedLink.some((value, linkIndex) => linkIndex !== index && value === -1) ? 1 : -1)
-      : -1;
+    const delta = linkDeltas[index] ?? (
+      normalizedLink[index] === 1
+        ? (normalizedLink.some((value, linkIndex) => linkIndex !== index && value === -1) ? 1 : -1)
+        : -1
+    );
+    if (delta === 0) {
+      continue;
+    }
+
     const change = normalizedLink.map((value) => value * delta);
     offsets = offsets.map((value, offsetIndex) => value + change[offsetIndex]);
   }
@@ -248,6 +331,7 @@ export function stepBackLinking(state) {
   return beginNextLinkTask({
     ...state,
     links,
+    linkDeltas,
     offsets,
   });
 }
@@ -291,25 +375,51 @@ export function finishLinkCapture(state) {
     return state;
   }
 
-  const preparedState = applyKnownBlockedLinks(state);
+  const syncedState = syncStep2DriverState(state);
+  const driverBlocked = hasBlockedSelection(syncedState.currentTask, syncedState.offsets);
+  const preparedState = driverBlocked ? syncedState : applyKnownBlockedLinks(syncedState);
   const { driver, delta, baseOffsets, attempts = [] } = preparedState.currentTask;
-  const blockedUnknownPlates = preparedState.offsets
+  const finalOffsets = driverBlocked
+    ? cloneOffsets(preparedState.currentTask.startOffsets)
+    : cloneOffsets(preparedState.offsets);
+
+  const blockedSelections = preparedState.offsets
     .map((offset, index) => ({
       index,
       offset,
       attempted: attempts[index] || 0,
       known: Boolean(preparedState.links[index]),
     }))
-    .filter(({ index, offset, attempted, known }) => (
+    .filter(({ index, offset, attempted }) => (
       index !== driver
       && attempted !== 0
       && offset === baseOffsets[index]
-      && !known
-    ))
-    .map(({ index }) => index);
+    ));
 
-  if (blockedUnknownPlates.length) {
-    return beginDeferredBlockedTask(preparedState, blockedUnknownPlates[0]);
+  if (!driverBlocked) {
+    const blockedUnknownPlates = blockedSelections
+      .filter(({ known }) => !known)
+      .map(({ index }) => index);
+
+    if (blockedUnknownPlates.length) {
+      return beginDeferredBlockedTask(preparedState, blockedUnknownPlates[0]);
+    }
+  }
+
+  if (driverBlocked) {
+    const blockedUnknownPlates = blockedSelections
+      .filter(({ known }) => !known)
+      .map(({ index }) => index);
+
+    if (blockedUnknownPlates.length) {
+      return beginDeferredBlockedTask(
+        {
+          ...preparedState,
+          offsets: finalOffsets,
+        },
+        blockedUnknownPlates[0],
+      );
+    }
   }
 
   const normalizedLink = preparedState.offsets.map((offset, index) => {
@@ -323,8 +433,15 @@ export function finishLinkCapture(state) {
   });
 
   const links = [...preparedState.links];
+  const linkDeltas = [...(preparedState.linkDeltas || createEmptyLinkDeltas(preparedState.plateCount))];
   links[driver] = normalizedLink;
-  const nextState = { ...preparedState, links };
+  linkDeltas[driver] = driverBlocked ? 0 : delta;
+  const nextState = {
+    ...preparedState,
+    links,
+    linkDeltas,
+    offsets: finalOffsets,
+  };
 
   if ((preparedState.deferredLinkTasks || []).length) {
     return resumeDeferredBlockedTask(nextState);
@@ -367,7 +484,7 @@ export function updatePlateOffset(state, index, nextOffset, attemptedDirection =
     };
   }
 
-  return nextState;
+  return syncStep2DriverState(nextState);
 }
 
 export function recordPlateAttempt(state, index, attemptedDirection) {
@@ -377,11 +494,11 @@ export function recordPlateAttempt(state, index, attemptedDirection) {
 
   const attempts = [...state.currentTask.attempts];
   attempts[index] = attemptedDirection;
-  return {
+  return syncStep2DriverState({
     ...state,
     currentTask: {
       ...state.currentTask,
       attempts,
     },
-  };
+  });
 }

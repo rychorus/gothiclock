@@ -549,6 +549,25 @@ body.is-load-mode .controls-card--load-screen {
   background: rgba(227, 167, 77, 0.14);
 }
 
+.plate-column.is-testing-bounce-up .plate-body {
+  animation: testingBounceUp 320ms ease-out;
+}
+
+.plate-column.is-testing-bounce-down .plate-body {
+  animation: testingBounceDown 320ms ease-out;
+}
+
+.plate-column.is-testing-blocked .plate-body {
+  animation: testingBlockedShake 360ms ease-in-out;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
+    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
+    0 0 0 2px rgba(141, 198, 214, 0.82),
+    0 0 1rem rgba(141, 198, 214, 0.34),
+    0 10px 24px rgba(141, 198, 214, 0.22);
+}
+
 .plate-button {
   width: var(--plate-width);
   height: 2.25rem;
@@ -839,6 +858,26 @@ body.is-load-mode .controls-card--load-screen {
   border-top: 1px solid var(--divider);
 }
 
+@keyframes testingBounceUp {
+  0% { transform: translateY(0); }
+  35% { transform: translateY(calc((var(--hole-size) + var(--hole-gap)) * -0.45)); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes testingBounceDown {
+  0% { transform: translateY(0); }
+  35% { transform: translateY(calc((var(--hole-size) + var(--hole-gap)) * 0.45)); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes testingBlockedShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-0.22rem); }
+  40% { transform: translateX(0.22rem); }
+  60% { transform: translateX(-0.16rem); }
+  80% { transform: translateX(0.16rem); }
+}
+
 .footer-actions[data-mode="linking"] .action-button,
 .footer-actions[data-mode="linking"] .action-button-row {
   white-space: nowrap;
@@ -1007,6 +1046,9 @@ body.is-linking-mode .panel {
   min-width: 15.5rem;
   z-index: 5;
   right: 0;
+  background: #1a120d !important;
+  opacity: 1;
+  backdrop-filter: none;
 }
 
 .solution-dialog-list {
@@ -1272,12 +1314,14 @@ body.is-linking-mode .panel {
   min-width: 9.5rem;
   border-radius: 0.85rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(26, 18, 13, 0.98);
+  background: #1a120d;
   box-shadow: 0 0.9rem 1.8rem rgba(0, 0, 0, 0.3);
   padding: 0.25rem;
   display: grid;
   gap: 0.1rem;
   z-index: 2;
+  opacity: 1;
+  backdrop-filter: none;
 }
 
 .saved-lock-menu.is-upward {

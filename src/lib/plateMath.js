@@ -23,6 +23,13 @@ export function getOffsetBounds(state, index) {
     }
   }
 
+  if (state.mode === "testing") {
+    return {
+      min: clampOffset(state.offsets[index] - 1),
+      max: clampOffset(state.offsets[index] + 1),
+    };
+  }
+
   return { min: state.offsets[index], max: state.offsets[index] };
 }
 
@@ -31,6 +38,10 @@ export function canMove(state, index, direction) {
 
   if (state.mode === "linking" && state.currentTask?.phase === "step2" && index !== state.currentTask.driver) {
     return true;
+  }
+
+  if (state.mode === "testing") {
+    return Boolean(state.links[index]);
   }
 
   const bounds = getOffsetBounds(state, index);

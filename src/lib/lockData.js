@@ -1,4 +1,4 @@
-export const APP_VERSION = "v1.5.8";
+export const APP_VERSION = "v1.5.18";
 export const MIN_PLATES = 3;
 export const MAX_PLATES = 7;
 export const HOLE_COUNT = 7;
@@ -7,6 +7,10 @@ export const START_COUNT = 5;
 export const STORAGE_KEY = "gothic-lockpick.saved-locks";
 
 export function createEmptyLinks(count) {
+  return Array.from({ length: count }, () => null);
+}
+
+export function createEmptyLinkDeltas(count) {
   return Array.from({ length: count }, () => null);
 }
 
@@ -28,6 +32,10 @@ export function resizeLink(link, count) {
   }
 
   return Array.from({ length: count }, (_, index) => link[index] ?? 0);
+}
+
+export function resizeLinkDeltas(linkDeltas, count) {
+  return Array.from({ length: count }, (_, index) => linkDeltas?.[index] ?? null);
 }
 
 export function clampOffset(offset) {
@@ -83,6 +91,8 @@ export function createInitialAppState() {
     mode: "menu",
     linkingStartOffsets: null,
     links: createEmptyLinks(START_COUNT),
+    linkDeltas: createEmptyLinkDeltas(START_COUNT),
+    testingFeedback: null,
     currentTask: null,
     solution: null,
     currentSaveId: null,
@@ -110,5 +120,6 @@ export function buildSavedLockRecord(state, { id, name, isDraft }) {
     linkingStartOffsets: state.linkingStartOffsets ? cloneOffsets(state.linkingStartOffsets) : null,
     currentOffsets: cloneOffsets(state.offsets),
     links: state.links.map((link) => resizeLink(link, state.plateCount)),
+    linkDeltas: resizeLinkDeltas(state.linkDeltas, state.plateCount),
   };
 }

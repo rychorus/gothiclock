@@ -3,7 +3,7 @@ import { buildWasdSequence, buildSolutionCommandString } from "../lib/solution";
 import { canMove, getOffsetBounds, getStep2Selection, hasAnyStep2Selection } from "../lib/plateMath";
 import { createInitialAppState, getUnknownPlates, isTrivialCenteredLock } from "../lib/lockData";
 import { deleteSavedLock, getDefaultLockName, getSavedLockById, getSavedLocks, persistCurrentLock, renameSavedLock, syncFinalLockProgress } from "../lib/lockStorage";
-import { loadSavedLockState, setPlateCount, setSolutionStep, startNewLock, startOver } from "../lib/appState";
+import { applyTestingMove, enterTestingMode, loadSavedLockState, resetTestingMode, returnToSolutionView, setPlateCount, setSolutionStep, startNewLock, startOver } from "../lib/appState";
 import { advanceFromStep1, beginNextLinkTask, enterSolutionMode, finishLinkCapture, recordPlateAttempt, resetPlates, startLinkingMode, stepBackLinking, updatePlateOffset } from "../lib/linkingState";
 
 export function useLockpickApp() {
@@ -15,7 +15,7 @@ export function useLockpickApp() {
     document.body.classList.toggle("is-menu-mode", appState.mode === "menu");
     document.body.classList.toggle("is-load-mode", appState.mode === "load");
     document.body.classList.toggle("is-linking-mode", appState.mode === "linking");
-    document.body.classList.toggle("is-solution-mode", appState.mode === "solution" || appState.mode === "ready_to_solve");
+    document.body.classList.toggle("is-solution-mode", appState.mode === "solution" || appState.mode === "ready_to_solve" || appState.mode === "testing");
   }, [appState.mode]);
 
   useEffect(() => {
@@ -28,6 +28,22 @@ export function useLockpickApp() {
 
     syncFinalLockProgress(appState);
   }, [appState]);
+
+  useEffect(() => {
+    if (appState.mode !== "testing" || !appState.testingFeedback) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setAppState((current) => (
+        current.mode === "testing" && current.testingFeedback?.id === appState.testingFeedback.id
+          ? { ...current, testingFeedback: null }
+          : current
+      ));
+    }, 420);
+
+    return () => window.clearTimeout(timer);
+  }, [appState.mode, appState.testingFeedback]);
 
   const savedLocks = getSavedLocks();
   const currentSolutionChunk = appState.mode === "solution" ? appState.solution?.chunks?.[appState.solution?.index ?? 0] || null : null;
@@ -76,6 +92,12 @@ export function useLockpickApp() {
 
   function movePlate(index, direction) {
     const delta = direction === "up" ? -1 : 1;
+
+    if (appState.mode === "testing") {
+      setAppState((current) => applyTestingMove(current, index, delta));
+      return;
+    }
+
     const bounds = getOffsetBounds(appState, index);
     const nextOffset = appState.offsets[index] + delta;
 
@@ -88,6 +110,14 @@ export function useLockpickApp() {
   }
 
   function commitDrag(index, nextOffset, attemptedDirection) {
+    if (appState.mode === "testing") {
+      const delta = nextOffset - appState.offsets[index];
+      if (delta !== 0) {
+        setAppState((current) => applyTestingMove(current, index, Math.sign(delta)));
+      }
+      return;
+    }
+
     setAppState((current) => updatePlateOffset(current, index, nextOffset, attemptedDirection));
   }
 
@@ -112,6 +142,7 @@ export function useLockpickApp() {
     savedLocks,
     unknownPlates,
     currentSolutionChunk,
+    testingFeedback: appState.testingFeedback,
     powershellCode,
     wasdSequence: buildWasdSequence(appState.solution?.chunks),
     closeModal,
@@ -133,9 +164,12 @@ export function useLockpickApp() {
       advanceFromStep1: () => setAppState(advanceFromStep1),
       finishLinkCapture: () => setAppState(finishLinkCapture),
       enterSolutionMode: () => setAppState(enterSolutionMode),
+      enterTestingMode: () => setAppState(enterTestingMode),
+      returnToSolutionView: () => setAppState(returnToSolutionView),
       beginNextLinkTask: () => setAppState(beginNextLinkTask),
       returnToLinking: () => setAppState((current) => beginNextLinkTask({ ...current, mode: "linking" })),
       setSolutionStep: (index) => setAppState((current) => setSolutionStep(current, index)),
+      resetTestingMode: () => setAppState(resetTestingMode),
       goToMainMenu: () => {
         closeModal();
         setAppState((current) => ({ ...current, mode: "menu", currentTask: null }));

@@ -14,6 +14,7 @@ export function PlateColumn({
   mode,
   currentTask,
   currentSolutionMove,
+  testingFeedback,
   selection,
   isKnown,
   bounds,
@@ -56,6 +57,14 @@ export function PlateColumn({
       nextClasses.push("is-step2-selected");
     }
 
+    if (mode === "testing" && testingFeedback?.driver === index) {
+      nextClasses.push(testingFeedback.delta === -1 ? "is-testing-bounce-up" : "is-testing-bounce-down");
+    }
+
+    if (mode === "testing" && testingFeedback?.blockedPlates?.includes(index)) {
+      nextClasses.push("is-testing-blocked");
+    }
+
     if (mode === "linking" && isDriver) {
       nextClasses.push(currentTask.direction === "up" ? "is-prompt-up" : "is-prompt-down");
     }
@@ -78,7 +87,7 @@ export function PlateColumn({
     }
 
     return nextClasses.join(" ");
-  }, [currentSolutionMove, currentTask, index, isKnown, mode, offset, selection]);
+  }, [currentSolutionMove, currentTask, index, isKnown, mode, offset, selection, testingFeedback]);
 
   function measureStepSize() {
     if (!holeRef.current || !stackRef.current) {

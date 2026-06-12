@@ -11,6 +11,10 @@ function renderHeroTitle(mode) {
     return "Linking Mode";
   }
 
+  if (mode === "testing") {
+    return "Testing Mode";
+  }
+
   if (mode === "solution" || mode === "ready_to_solve") {
     return "Solution Mode";
   }
@@ -32,7 +36,7 @@ function getStageInstruction(appState, currentSolutionChunk) {
 }
 
 export function LockpickAppView({ app, appVersion }) {
-  const { appState, modal, savedLocks, unknownPlates, currentSolutionChunk, powershellCode, actions, selectors } = app;
+  const { appState, modal, savedLocks, unknownPlates, currentSolutionChunk, testingFeedback, powershellCode, actions, selectors } = app;
   const [isSolutionMenuOpen, setIsSolutionMenuOpen] = useState(false);
   const heroTitle = renderHeroTitle(appState.mode);
   const stageInstruction = getStageInstruction(appState, currentSolutionChunk);
@@ -61,7 +65,13 @@ export function LockpickAppView({ app, appVersion }) {
       <main className="app-shell">
         <section className="panel">
           <header className="hero">
-            <button className="hero-back" type="button" aria-label="Back to main menu" hidden={appState.mode === "menu"} onClick={actions.goToMainMenu}>
+            <button
+              className="hero-back"
+              type="button"
+              aria-label={appState.mode === "testing" ? "Back to solution mode" : "Back to main menu"}
+              hidden={appState.mode === "menu"}
+              onClick={appState.mode === "testing" ? actions.returnToSolutionView : actions.goToMainMenu}
+            >
               <span></span>
             </button>
             <p className="hero-title">
@@ -96,7 +106,7 @@ export function LockpickAppView({ app, appVersion }) {
                 })}
               </div>
             </section>
-          ) : (moves === null || moves?.length === 0) && appState.mode !== "linking" && appState.mode !== "ready_to_solve" ? (
+          ) : (moves === null || moves?.length === 0) && appState.mode !== "linking" && appState.mode !== "ready_to_solve" && appState.mode !== "testing" ? (
             <section className="controls-card" aria-live="polite">
               <p className="controls-copy">{moves === null ? "No solution found" : "The saved setup is already aligned at the center."}</p>
             </section>
@@ -105,7 +115,7 @@ export function LockpickAppView({ app, appVersion }) {
           <section className={`lock-stage${appState.mode === "solution" || appState.mode === "ready_to_solve" ? " is-solution-compact" : ""}${appState.mode === "linking" ? " has-stage-controls has-bottom-instruction" : ""}`} hidden={appState.mode === "menu" || appState.mode === "load"}>
             {stageInstruction ? <div className={`stage-instruction${appState.mode === "setup" ? " is-setup-mode" : ""}${appState.mode === "linking" ? " is-linking-mode" : ""}`} aria-live="polite">{stageInstruction}</div> : null}
             <button className="stage-start-over" type="button" hidden={appState.mode !== "linking"} onClick={actions.startOver}>Start over</button>
-            <button className="stage-reset" type="button" hidden={appState.mode === "setup" || appState.mode === "solution" || appState.mode === "ready_to_solve"} onClick={actions.resetPlates}>Reset</button>
+            <button className="stage-reset" type="button" hidden={appState.mode === "setup" || appState.mode === "solution" || appState.mode === "ready_to_solve"} onClick={appState.mode === "testing" ? actions.resetTestingMode : actions.resetPlates}>Reset</button>
             <div className="plates-row" aria-label="Lock plates">
               {appState.offsets.map((offset, index) => (
                 <PlateColumn
@@ -115,6 +125,7 @@ export function LockpickAppView({ app, appVersion }) {
                   mode={appState.mode}
                   currentTask={appState.currentTask}
                   currentSolutionMove={currentSolutionChunk?.move ?? null}
+                  testingFeedback={testingFeedback}
                   selection={selectors.getStep2Selection(index)}
                   isKnown={Boolean(appState.links[index])}
                   bounds={selectors.getOffsetBounds(index)}
@@ -138,6 +149,10 @@ export function LockpickAppView({ app, appVersion }) {
                 <div className="solution-menu-wrap">
                   <button className="solution-toggle-icon" type="button" aria-label="Solution actions" aria-expanded={isSolutionMenuOpen} onClick={() => setIsSolutionMenuOpen((current) => !current)}><MaterialIcon name="more_vert" /></button>
                   <div className="saved-lock-menu solution-toggle-menu" hidden={!isSolutionMenuOpen}>
+                    <button className="saved-lock-menu-item" type="button" onClick={() => { setIsSolutionMenuOpen(false); actions.enterTestingMode(); }}>
+                      <MaterialIcon name="restart_alt" />
+                      <span>Testing mode</span>
+                    </button>
                     <button className="saved-lock-menu-item" type="button" onClick={() => { setIsSolutionMenuOpen(false); app.setModal({ type: "powershell" }); }}>
                       <MaterialIcon name="code" />
                       <span>Generate powershell code</span>
@@ -179,6 +194,9 @@ export function LockpickAppView({ app, appVersion }) {
                 <button className="action-button secondary" type="button" onClick={actions.startOver}><span className="action-button-row"><MaterialIcon name="restart_alt" /><span>Start over</span></span></button>
                 <button className="action-button primary" type="button" disabled={!solutionChunks.length} onClick={app.saveCurrentLock}><span className="action-button-row"><MaterialIcon name="save" /><span>Save as</span></span></button>
               </>
+            ) : null}
+            {appState.mode === "testing" ? (
+              <button className="action-button primary" type="button" onClick={actions.returnToSolutionView}>Back to solution</button>
             ) : null}
           </div>
         </section>
