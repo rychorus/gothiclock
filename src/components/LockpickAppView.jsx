@@ -57,6 +57,9 @@ export function LockpickAppView({ app, appVersion }) {
   const noOtherPlateMoved = appState.currentTask?.phase === "step2" && !selectors.hasAnyStep2Selection();
   const isAtLinkingStart = !appState.links.some(Boolean) && appState.currentTask?.phase === "step1";
   const deferredDrivers = new Set((appState.deferredLinkTasks || []).map((task) => task.driver));
+  if (appState.currentTask?.wasDeferred) {
+    deferredDrivers.add(appState.currentTask.driver);
+  }
 
   useEffect(() => {
     if (appState.mode !== "import") {

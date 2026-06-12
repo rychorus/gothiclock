@@ -147,6 +147,7 @@ export function setPlateCount(state, count) {
         : null,
     currentTask: rebaseTask(state.currentTask),
     deferredLinkTasks: [],
+    linkTaskHistory: [],
     solution: state.solution,
   };
 
@@ -176,6 +177,7 @@ export function startOver(state) {
     linkingStartOffsets: null,
     currentTask: null,
     deferredLinkTasks: [],
+    linkTaskHistory: [],
     solution: null,
   };
 }
@@ -285,6 +287,7 @@ export function loadSavedLockState(state, savedLock) {
     mode: savedLock.isDraft ? "linking" : "solution",
     currentTask: null,
     deferredLinkTasks: [],
+    linkTaskHistory: [],
     currentSaveId: savedLock.id,
     solution: savedLock.isDraft ? null : buildSolutionPlan(savedLock, cloneOffsets(savedLock.linkingStartOffsets || savedLock.currentOffsets)),
     snapshotsByCount: {},

@@ -53,6 +53,17 @@ function dedupeIndices(indices) {
   return [...new Set(indices)].sort((a, b) => a - b);
 }
 
+function appendTaskHistory(state, task) {
+  if (!task) {
+    return state;
+  }
+
+  return {
+    ...state,
+    linkTaskHistory: [...(state.linkTaskHistory || []), cloneLinkTask(task)],
+  };
+}
+
 function getDeferredRequirements(state, deferredTask) {
   if (Array.isArray(deferredTask.blockedRequirements) && deferredTask.blockedRequirements.length) {
     return deferredTask.blockedRequirements;
@@ -232,7 +243,10 @@ function beginDeferredBlockedTask(state, blockedIndexes) {
   });
 
   return beginNextLinkTask({
-    ...state,
+    ...appendTaskHistory(state, {
+      ...state.currentTask,
+      wasDeferred: true,
+    }),
     currentTask: null,
     deferredLinkTasks: deferredTasks,
   }, {
@@ -264,6 +278,7 @@ function resumeDeferredBlockedTask(state, driver = null) {
     offsets: currentOffsets,
     currentTask: {
       ...rebasedTask,
+      wasDeferred: true,
       phase: "step1",
       startOffsets: cloneOffsets(currentOffsets),
       baseOffsets: null,
@@ -362,61 +377,33 @@ export function stepBackLinking(state) {
     };
   }
 
-  if ((state.deferredLinkTasks || []).length) {
-    return resumeDeferredBlockedTask({
-      ...state,
-      deferredLinkTasks: [...state.deferredLinkTasks],
-    });
-  }
-
-  const previousKnownIndex = [...state.links]
-    .map((link, index) => ({ link, index }))
-    .reverse()
-    .find(({ link }) => Boolean(link))
-    ?.index;
-
-  if (previousKnownIndex === undefined) {
+  const history = [...(state.linkTaskHistory || [])];
+  const previousTask = history.pop();
+  if (previousTask) {
     return {
       ...state,
-      offsets: cloneOffsets(state.linkingStartOffsets || state.offsets),
-      links: createEmptyLinks(state.plateCount),
-      linkDeltas: createEmptyLinkDeltas(state.plateCount),
-      currentTask: null,
-      mode: "setup",
+      linkTaskHistory: history,
+      offsets: cloneOffsets(previousTask.startOffsets || state.offsets),
+      currentTask: {
+        ...cloneLinkTask(previousTask),
+        phase: "step1",
+        startOffsets: cloneOffsets(previousTask.startOffsets || state.offsets),
+        baseOffsets: null,
+        attempts: Array.from({ length: state.plateCount }, () => 0),
+        wasDeferred: Boolean(previousTask.wasDeferred),
+      },
+      mode: "linking",
     };
   }
 
-  const links = [...state.links];
-  const linkDeltas = [...(state.linkDeltas || [])];
-  links[previousKnownIndex] = null;
-  linkDeltas[previousKnownIndex] = null;
-  let offsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
-
-  for (let index = 0; index < links.length; index += 1) {
-    if (!links[index]) {
-      continue;
-    }
-
-    const normalizedLink = links[index];
-    const delta = linkDeltas[index] ?? (
-      normalizedLink[index] === 1
-        ? (normalizedLink.some((value, linkIndex) => linkIndex !== index && value === -1) ? 1 : -1)
-        : -1
-    );
-    if (delta === 0) {
-      continue;
-    }
-
-    const change = normalizedLink.map((value) => value * delta);
-    offsets = offsets.map((value, offsetIndex) => value + change[offsetIndex]);
-  }
-
-  return beginNextLinkTask({
+  return {
     ...state,
-    links,
-    linkDeltas,
-    offsets,
-  });
+    offsets: cloneOffsets(state.linkingStartOffsets || state.offsets),
+    links: createEmptyLinks(state.plateCount),
+    linkDeltas: createEmptyLinkDeltas(state.plateCount),
+    currentTask: null,
+    mode: "setup",
+  };
 }
 
 export function resetPlates(state) {
@@ -509,7 +496,7 @@ export function finishLinkCapture(state) {
   }
 
   const nextState = {
-    ...committedState,
+    ...appendTaskHistory(committedState, preparedState.currentTask),
     deferredLinkTasks: pruneDeferredLinkTasks({
       ...committedState,
       links,

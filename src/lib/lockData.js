@@ -249,6 +249,7 @@ export function createInitialAppState() {
     currentTask: null,
     solution: null,
     deferredLinkTasks: [],
+    linkTaskHistory: [],
     currentSaveId: null,
     snapshotsByCount: {},
   };
