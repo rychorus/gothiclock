@@ -187,6 +187,10 @@ button {
   padding-top: 0.95rem;
   align-content: start;
   min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .controls-card--import-screen {
@@ -335,6 +339,9 @@ body.is-load-mode .panel {
 
 body.is-load-mode .controls-card--load-screen {
   border-top: 1px solid var(--divider);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
 }
 
 .count-picker,
@@ -1048,6 +1055,12 @@ body.is-setup-mode .count-picker {
   flex: 1 1 0;
 }
 
+.footer-actions[data-mode="solution"] .action-button.icon-only {
+  flex: 0 0 auto;
+  width: 3.05rem;
+  min-width: 3.05rem;
+}
+
 .bottom-panel {
   padding: 0;
   display: grid;
@@ -1310,6 +1323,11 @@ body.is-setup-mode .count-picker {
   transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
+.modal-text-button--small {
+  align-self: flex-start;
+  margin-top: 0.15rem;
+}
+
 .modal-text-button:hover,
 .modal-text-button:focus-visible {
   color: var(--text);
@@ -1324,6 +1342,19 @@ body.is-setup-mode .count-picker {
   padding-left: 1.2rem;
   display: grid;
   gap: 0.45rem;
+}
+
+.modal-note--compact {
+  font-size: 0.88rem;
+  line-height: 1.42;
+}
+
+.modal-note--share {
+  padding-bottom: 0.15rem;
+}
+
+.modal-field--share-url {
+  padding-bottom: 0.35rem;
 }
 
 .modal-keyword {
@@ -1342,6 +1373,22 @@ body.is-setup-mode .count-picker {
   display: flex;
   justify-content: flex-end;
   flex: 0 0 auto;
+}
+
+.modal-card--notation .modal-actions {
+  justify-content: stretch;
+}
+
+.modal-card--notation .modal-actions .action-button {
+  width: 100%;
+}
+
+.modal-card--share .modal-actions {
+  justify-content: stretch;
+}
+
+.modal-card--share .modal-actions .action-button {
+  width: 100%;
 }
 
 .modal-close {
@@ -1384,6 +1431,10 @@ body.is-setup-mode .count-picker {
   word-break: break-word;
   max-height: calc(1.55em * 6 + 1.8rem);
   overflow: auto;
+}
+
+.modal-code-block--spaced-top {
+  margin-top: 0.45rem;
 }
 
 @media (max-width: 640px) {
@@ -1476,11 +1527,72 @@ body.is-setup-mode .count-picker {
   align-content: start;
 }
 
+.controls-card--load-screen {
+  padding-top: 0.95rem;
+  align-content: start;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.controls-card--load-screen .saved-lock-filter {
+  flex: 0 0 auto;
+  margin-bottom: 0.7rem;
+}
+
+.controls-card--load-screen .saved-lock-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
 body.is-load-mode .controls-card--load-screen .saved-lock-list {
   /* Allow saved locks to scroll when the load dialog is tall */
-  max-height: min(60dvh, 40rem);
+  max-height: none;
+  min-height: 0;
+  height: auto;
   overflow: auto;
   padding-right: 0.25rem;
+}
+
+body.is-load-mode .panel {
+  overflow: hidden;
+}
+
+body.is-load-mode {
+  overflow: hidden;
+}
+
+body.is-load-mode .app-shell {
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body.is-load-mode .panel {
+  min-height: 0;
+  height: calc(100dvh - 1.3rem - env(safe-area-inset-bottom, 0px));
+}
+
+body.is-load-mode .controls-card--load-screen .saved-locks-dialog {
+  min-height: 0;
+  height: 100%;
+}
+
+.saved-locks-dialog .saved-lock-list {
+  flex: 1 1 auto;
+}
+
+body.is-load-mode .controls-card--load-screen {
+  height: 100%;
+  min-height: 0;
+}
+
+.saved-locks-dialog .saved-lock-list {
+  min-height: 0;
 }
 
 /* Temporarily disable plate transform animations during plate count changes */
@@ -1607,6 +1719,10 @@ body.is-resizing .plate-track {
 .saved-lock-menu.is-upward {
   top: auto;
   bottom: calc(100% + 0.2rem);
+}
+
+.saved-lock-tools {
+  position: relative;
 }
 
 .saved-lock-menu-item {
@@ -2070,6 +2186,21 @@ body.is-resizing .plate-track {
   .footer-actions[data-count="2"] .action-button {
     min-width: 0;
     flex: 1 1 0;
+  }
+
+  .footer-actions[data-count="3"] {
+    flex-wrap: nowrap;
+  }
+
+  .footer-actions[data-count="3"] .action-button {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+
+  .footer-actions[data-count="3"] .action-button.icon-only {
+    flex: 0 0 auto;
+    width: 3.05rem;
+    min-width: 3.05rem;
   }
 
   .footer-actions[data-mode="linking"] {

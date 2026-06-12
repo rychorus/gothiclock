@@ -78,6 +78,7 @@ function groupLocksByDay(locks) {
 export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }) {
   const [showDrafts, setShowDrafts] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [openMenuIsUpward, setOpenMenuIsUpward] = useState(false);
   const listRef = useRef(null);
 
   const visibleLocks = savedLocks
@@ -87,8 +88,28 @@ export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }) {
 
   useEffect(() => {
     if (!openMenuId) {
+      setOpenMenuIsUpward(false);
       return undefined;
     }
+
+    const frameId = window.requestAnimationFrame(() => {
+      const listElement = listRef.current;
+      const itemElement = listElement?.querySelector(`[data-lock-id="${openMenuId}"]`);
+      const menuElement = itemElement?.querySelector(".saved-lock-menu");
+
+      if (!listElement || !itemElement || !menuElement) {
+        setOpenMenuIsUpward(false);
+        return;
+      }
+
+      const listRect = listElement.getBoundingClientRect();
+      const itemRect = itemElement.getBoundingClientRect();
+      const menuHeight = menuElement.getBoundingClientRect().height;
+      const spaceBelow = listRect.bottom - itemRect.bottom;
+      const spaceAbove = itemRect.top - listRect.top;
+
+      setOpenMenuIsUpward(spaceBelow < menuHeight && spaceAbove > spaceBelow);
+    });
 
     function handlePointerDown(event) {
       if (!listRef.current?.contains(event.target)) {
@@ -97,7 +118,10 @@ export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }) {
     }
 
     document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
   }, [openMenuId]);
 
   return (
@@ -129,7 +153,7 @@ export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }) {
 
               <div className="saved-lock-section-list">
                 {group.items.map((lock) => (
-                  <div className="saved-lock-item" key={lock.id}>
+                  <div className="saved-lock-item" key={lock.id} data-lock-id={lock.id}>
                     <button className="saved-lock-main" type="button" onClick={() => onLoad(lock.id)}>
                       <span className="saved-lock-name-row">
                         <span className="saved-lock-name">{lock.name}</span>
@@ -147,7 +171,7 @@ export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }) {
                       >
                         <MaterialIcon name="more_vert" />
                       </button>
-                      <div className={`saved-lock-menu${openMenuId === lock.id ? "" : ""}`} hidden={openMenuId !== lock.id}>
+                      <div className={`saved-lock-menu${openMenuIsUpward && openMenuId === lock.id ? " is-upward" : ""}`} hidden={openMenuId !== lock.id}>
                         <button className="saved-lock-menu-item" type="button" onClick={() => onRename(lock.id)}>
                           <MaterialIcon name="edit" />
                           <span>Edit</span>

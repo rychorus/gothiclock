@@ -14,6 +14,7 @@ export function useLockpickApp() {
   const historyReadyRef = useRef(false);
   const historyKeyRef = useRef("");
   const restoringHistoryRef = useRef(false);
+  const appliedSharedNotationRef = useRef(false);
 
   function snapshotNavigation(nextAppState = appState, nextModal = modal) {
     return { appState: nextAppState, modal: nextModal };
@@ -21,6 +22,65 @@ export function useLockpickApp() {
 
   function getNavigationKey(nextAppState = appState, nextModal = modal) {
     return `${nextAppState.mode}|${nextModal.type || "none"}`;
+  }
+
+  function buildShareUrl(notationText) {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    const shareUrl = new URL(window.location.href);
+    shareUrl.search = "";
+    shareUrl.hash = "";
+
+    if (notationText) {
+      shareUrl.searchParams.set("notation", notationText);
+    }
+
+    return shareUrl.toString();
+  }
+
+  function applyNotationText(text, { showSolution = false } = {}) {
+    const parsed = parseNotationString(text);
+    const hasLinks = parsed.links.some(Boolean);
+    const allLinksKnown = parsed.links.every(Boolean);
+    const baseState = {
+      ...createInitialAppState(),
+      plateCount: parsed.plateCount,
+      offsets: parsed.offsets,
+      links: parsed.links,
+      linkDeltas: createEmptyLinkDeltas(parsed.plateCount),
+      linkingStartOffsets: parsed.offsets,
+      currentTask: null,
+      currentSaveId: null,
+      snapshotsByCount: {},
+      deferredLinkTasks: [],
+      mode: hasLinks ? "linking" : "setup",
+    };
+
+    if (!hasLinks) {
+      setAppState(() => baseState);
+      return;
+    }
+
+    if (allLinksKnown) {
+      if (showSolution) {
+        setAppState(() => enterSolutionMode(baseState));
+        return;
+      }
+
+      setAppState(() => ({
+        ...baseState,
+        mode: "ready_to_solve",
+        solution: buildSolutionPlan(baseState, parsed.offsets),
+      }));
+      return;
+    }
+
+    setAppState(() => beginNextLinkTask({
+      ...baseState,
+      solution: null,
+    }));
   }
 
   function replaceNavigationState(nextAppState = appState, nextModal = modal) {
@@ -58,7 +118,17 @@ export function useLockpickApp() {
     }
 
     if (appState.mode === "solution") {
-      setAppState((current) => ({ ...current, mode: "ready_to_solve" }));
+      setAppState((current) => beginNextLinkTask({
+        ...current,
+        mode: "linking",
+        currentTask: null,
+        solution: null,
+        links: createEmptyLinks(current.plateCount),
+        linkDeltas: createEmptyLinkDeltas(current.plateCount),
+        offsets: cloneOffsets(current.linkingStartOffsets || current.offsets),
+        deferredLinkTasks: [],
+        linkTaskHistory: [],
+      }));
       return;
     }
 
@@ -72,14 +142,47 @@ export function useLockpickApp() {
         ...current,
         mode: "setup",
         currentTask: null,
-        links: createEmptyLinks(current.plateCount),
-        linkDeltas: createEmptyLinkDeltas(current.plateCount),
-        offsets: cloneOffsets(current.linkingStartOffsets || current.offsets),
       }));
       return;
     }
 
     if (appState.mode === "load" || appState.mode === "import" || appState.mode === "setup") {
+      setAppState((current) => ({ ...current, mode: "menu", currentTask: null }));
+    }
+  }
+
+  function goBackHeader() {
+    if (appState.mode === "testing") {
+      setAppState(returnToSolutionView);
+      return;
+    }
+
+    if (appState.mode === "solution") {
+      setAppState((current) => beginNextLinkTask({
+        ...current,
+        mode: "linking",
+        currentTask: null,
+        solution: null,
+        links: createEmptyLinks(current.plateCount),
+        linkDeltas: createEmptyLinkDeltas(current.plateCount),
+        offsets: cloneOffsets(current.linkingStartOffsets || current.offsets),
+        deferredLinkTasks: [],
+        linkTaskHistory: [],
+      }));
+      return;
+    }
+
+    if (appState.mode === "ready_to_solve") {
+      setAppState((current) => beginNextLinkTask({ ...current, mode: "linking" }));
+      return;
+    }
+
+    if (appState.mode === "linking") {
+      setAppState((current) => ({ ...current, mode: "setup", currentTask: null }));
+      return;
+    }
+
+    if (appState.mode === "setup" || appState.mode === "load" || appState.mode === "import") {
       setAppState((current) => ({ ...current, mode: "menu", currentTask: null }));
     }
   }
@@ -114,6 +217,24 @@ export function useLockpickApp() {
   }, []);
 
   useEffect(() => {
+    if (appliedSharedNotationRef.current || typeof window === "undefined") {
+      return;
+    }
+
+    appliedSharedNotationRef.current = true;
+    const sharedNotation = new URL(window.location.href).searchParams.get("notation");
+    if (!sharedNotation) {
+      return;
+    }
+
+    try {
+      applyNotationText(sharedNotation, { showSolution: true });
+    } catch {
+      // Ignore malformed shared URLs and fall back to the normal initial screen.
+    }
+  }, []);
+
+  useEffect(() => {
     if (typeof window === "undefined" || !window.history?.pushState) {
       return;
     }
@@ -133,7 +254,10 @@ export function useLockpickApp() {
 
     if (historyKeyRef.current !== nextKey) {
       pushNavigationState(appState, modal);
+      return;
     }
+
+    replaceNavigationState(appState, modal);
   }, [appState, modal]);
 
   useEffect(() => {
@@ -174,7 +298,12 @@ export function useLockpickApp() {
   const powershellCode = `$myKeys = "${buildSolutionCommandString(appState.solution?.chunks)}"; $delayR = 1500; $delayAD = 500; $delayOthers = 100; Start-Sleep -Seconds 10; Add-Type -AssemblyName System.Windows.Forms; $myKeys.ToCharArray() | ForEach-Object { [System.Windows.Forms.SendKeys]::SendWait($_); if ($_ -match '^[R]$') { Start-Sleep -Milliseconds $delayR } elseif ($_ -match '^[AD]$') { Start-Sleep -Milliseconds $delayAD } else { Start-Sleep -Milliseconds $delayOthers } }`;
 
   function closeModal() {
-    goBackScreen();
+    if (typeof window !== "undefined" && window.history?.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    setModalState({ type: null });
   }
 
   function persistWithName(name, isDraft = false) {
@@ -207,41 +336,7 @@ export function useLockpickApp() {
   }
 
   function importNotation(text) {
-    const parsed = parseNotationString(text);
-    const hasLinks = parsed.links.some(Boolean);
-    const allLinksKnown = parsed.links.every(Boolean);
-    const baseState = {
-      ...createInitialAppState(),
-      plateCount: parsed.plateCount,
-      offsets: parsed.offsets,
-      links: parsed.links,
-      linkDeltas: createEmptyLinkDeltas(parsed.plateCount),
-      linkingStartOffsets: parsed.offsets,
-      currentTask: null,
-      currentSaveId: null,
-      snapshotsByCount: {},
-      deferredLinkTasks: [],
-      mode: hasLinks ? "linking" : "setup",
-    };
-
-    setAppState(() => {
-      if (!hasLinks) {
-        return baseState;
-      }
-
-      if (allLinksKnown) {
-        return {
-          ...baseState,
-          mode: "ready_to_solve",
-          solution: buildSolutionPlan(baseState, parsed.offsets),
-        };
-      }
-
-      return beginNextLinkTask({
-        ...baseState,
-        solution: null,
-      });
-    });
+    applyNotationText(text);
   }
 
   function loadSavedLock(lockId) {
@@ -308,6 +403,7 @@ export function useLockpickApp() {
     testingFeedback: appState.testingFeedback,
     powershellCode,
     notationText: buildNotationString(appState),
+    shareUrl: buildShareUrl(buildNotationString(appState)),
     wasdSequence: buildWasdSequence(appState.solution?.chunks),
     closeModal,
     openLoadLockDialog,
@@ -321,6 +417,7 @@ export function useLockpickApp() {
     setAppState,
     setModal,
     goBackScreen,
+    goBackHeader,
     actions: {
       startNewLock: () => setAppState(startNewLock),
       setPlateCount: (count) => {
@@ -343,7 +440,8 @@ export function useLockpickApp() {
       returnToLinking: goBackScreen,
       setSolutionStep: (index) => setAppState((current) => setSolutionStep(current, index)),
       resetTestingMode: () => setAppState(resetTestingMode),
-      goToMainMenu: goBackScreen,
+      goToMainMenu: () => setAppState(createInitialAppState),
+      goBackHeader,
       goBackScreen,
       goBack: goBackScreen,
       movePlate,

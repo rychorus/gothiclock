@@ -8,7 +8,7 @@ function getPowershellStartDelaySeconds(powershellCode) {
   return match ? Number.parseInt(match[1], 10) : 10;
 }
 
-function formatNotationForDisplay(notationText) {
+function formatNotationForDisplay(notationText, isExpanded) {
   const sections = String(notationText || "")
     .trim()
     .split(/\r?\n\s*\r?\n/)
@@ -17,6 +17,10 @@ function formatNotationForDisplay(notationText) {
 
   if (!sections.length) {
     return "";
+  }
+
+  if (!isExpanded) {
+    return sections.flatMap((section) => section.split(/\s+/).filter(Boolean)).join(" ");
   }
 
   return sections
@@ -39,15 +43,19 @@ function LockNameForm({ initialValue, onSubmit, onCancel }) {
   );
 }
 
-export function AppModal({ app, modal, savedLocks, solutionChunks, currentSolutionIndex, powershellCode }) {
+export function AppModal({ app, modal, savedLocks, solutionChunks, currentSolutionIndex, powershellCode, shareUrl }) {
   const [didCopyPowershell, setDidCopyPowershell] = useState(false);
   const [didCopyNotation, setDidCopyNotation] = useState(false);
+  const [didCopyShareUrl, setDidCopyShareUrl] = useState(false);
   const [showPowershellHelp, setShowPowershellHelp] = useState(false);
+  const [isNotationExpanded, setIsNotationExpanded] = useState(true);
 
   useEffect(() => {
     setDidCopyPowershell(false);
     setDidCopyNotation(false);
+    setDidCopyShareUrl(false);
     setShowPowershellHelp(false);
+    setIsNotationExpanded(true);
   }, [modal]);
 
   if (modal.type === "save-current") {
@@ -97,7 +105,8 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
           },
         ]}
       >
-        <pre className="modal-code-block">{powershellCode}</pre>
+        <p className="modal-note modal-note--compact">Let powershell auto-input the solution for you.</p>
+        <pre className="modal-code-block modal-code-block--spaced-top">{powershellCode}</pre>
         <div className="modal-inline-actions modal-inline-actions--after-code">
           <button type="button" className="modal-text-button" onClick={() => setShowPowershellHelp((current) => !current)}>
             {showPowershellHelp ? "Hide instructions" : "How to use"}
@@ -116,12 +125,13 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
   }
 
   if (modal.type === "notation") {
-    const displayNotation = formatNotationForDisplay(app.notationText);
+    const displayNotation = formatNotationForDisplay(app.notationText, isNotationExpanded);
 
     return (
       <Modal
         title="Notation"
         onClose={app.closeModal}
+        className="modal-card--notation"
         actions={[
           {
             label: didCopyNotation ? "Copied to clipboard" : "Copy",
@@ -136,6 +146,38 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
         ]}
       >
         <pre className="modal-code-block">{displayNotation}</pre>
+        <div className="modal-inline-actions modal-inline-actions--after-code">
+          <button type="button" className="modal-text-button modal-text-button--small" onClick={() => setIsNotationExpanded((current) => !current)}>
+            {isNotationExpanded ? "Shorten" : "Expand"}
+          </button>
+        </div>
+      </Modal>
+    );
+  }
+
+  if (modal.type === "share") {
+    return (
+      <Modal
+        title="Share solution"
+        onClose={app.closeModal}
+        className="modal-card--share"
+        actions={[
+          {
+            label: didCopyShareUrl ? "Link copied" : "Copy link",
+            className: "primary",
+            onClick: async () => {
+              const copied = await copyTextToClipboard(shareUrl);
+              if (copied) {
+                setDidCopyShareUrl(true);
+              }
+            },
+          },
+        ]}
+      >
+        <p className="modal-note modal-note--compact modal-note--share">Open this link to load the solution.</p>
+        <div className="modal-field modal-field--share-url">
+          <pre className="modal-code-block">{shareUrl}</pre>
+        </div>
       </Modal>
     );
   }

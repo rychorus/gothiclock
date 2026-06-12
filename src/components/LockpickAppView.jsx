@@ -82,6 +82,7 @@ export function LockpickAppView({ app, appVersion }) {
         solutionChunks={solutionChunks}
         currentSolutionIndex={appState.solution?.index ?? 0}
         powershellCode={powershellCode}
+        shareUrl={app.shareUrl}
       />
     ),
     [app, appState.solution?.index, modal, powershellCode, savedLocks, solutionChunks],
@@ -127,7 +128,7 @@ export function LockpickAppView({ app, appVersion }) {
               type="button"
               aria-label={appState.mode === "testing" ? "Back to solution mode" : appState.mode === "solution" ? "Back to ready to solve" : appState.mode === "ready_to_solve" ? "Back to linking" : appState.mode === "linking" ? "Back to plates setup" : "Back to main menu"}
               hidden={appState.mode === "menu"}
-              onClick={actions.goBackScreen}
+              onClick={actions.goBackHeader}
             >
               <span></span>
             </button>
@@ -277,7 +278,7 @@ export function LockpickAppView({ app, appVersion }) {
             </section>
           ) : null}
 
-          <div className="footer-actions" hidden={appState.mode === "menu" || appState.mode === "load" || appState.mode === "import"} data-mode={appState.mode} data-count={appState.mode === "solution" || appState.mode === "linking" || appState.mode === "ready_to_solve" ? "2" : "1"}>
+          <div className="footer-actions" hidden={appState.mode === "menu" || appState.mode === "load" || appState.mode === "import"} data-mode={appState.mode} data-count={appState.mode === "solution" ? "3" : appState.mode === "linking" || appState.mode === "ready_to_solve" ? "2" : "1"}>
             {appState.mode === "setup" ? <button className="action-button primary" type="button" disabled={appState.offsets.every((offset) => offset === 0)} onClick={actions.startLinkingMode}>Start Linking</button> : null}
             {appState.mode === "linking" ? (
               <>
@@ -302,8 +303,9 @@ export function LockpickAppView({ app, appVersion }) {
             ) : null}
             {appState.mode === "solution" ? (
               <>
-                <button className="action-button secondary" type="button" onClick={actions.startOver}><span className="action-button-row"><MaterialIcon name="restart_alt" /><span>Start over</span></span></button>
-                <button className="action-button primary" type="button" disabled={!solutionChunks.length} onClick={app.saveCurrentLock}><span className="action-button-row"><MaterialIcon name="save" /><span>Save as</span></span></button>
+                <button className="action-button secondary icon-only" type="button" aria-label="Menu" onClick={actions.goToMainMenu}><MaterialIcon name="home" /></button>
+                <button className="action-button primary" type="button" disabled={!solutionChunks.length} onClick={app.saveCurrentLock}><span className="action-button-row"><MaterialIcon name="save" /><span>Save</span></span></button>
+                <button className="action-button secondary icon-only" type="button" aria-label="Share solution" onClick={() => app.setModal({ type: "share" })}><MaterialIcon name="share" /></button>
               </>
             ) : null}
             {appState.mode === "testing" ? (
