@@ -64,8 +64,6 @@ export function LockpickAppView({ app, appVersion }) {
   if (appState.currentTask?.wasDeferred) {
     deferredDrivers.add(appState.currentTask.driver);
   }
-  const allUnknownCentered = unknownPlates.length > 0 && unknownPlates.every((index) => appState.offsets[index] === 0);
-
   useEffect(() => {
     if (appState.mode !== "import") {
       return;
@@ -280,10 +278,8 @@ export function LockpickAppView({ app, appVersion }) {
             {appState.mode === "linking" ? (
               <>
                 <button className="action-button secondary" type="button" onClick={actions.stepBackLinking}><span className="action-button-row"><span className="action-icon is-left" aria-hidden="true"></span><span>{isAtLinkingStart ? "Back to setup" : "Back"}</span></span></button>
-                <button className={`action-button ${allUnknownCentered && appState.currentTask?.phase === "step2" ? "solve" : "primary"}`} type="button" onClick={appState.currentTask?.phase === "step2" ? actions.finishLinkCapture : actions.advanceFromStep1}>
-                  {allUnknownCentered && appState.currentTask?.phase === "step2" ? (
-                    "Solve"
-                  ) : noOtherPlateMoved ? (
+                <button className="action-button primary" type="button" onClick={appState.currentTask?.phase === "step2" ? actions.finishLinkCapture : actions.advanceFromStep1}>
+                  {noOtherPlateMoved ? (
                     <>
                       <span className="action-button-row"><span>Next</span></span>
                       <span className="action-button-subtitle">nothing else moved</span>
