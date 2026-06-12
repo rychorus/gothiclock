@@ -42,7 +42,7 @@ export function PlateColumn({
       nextClasses.push("is-driver-focus");
     }
 
-    if (isKnown && mode === "linking") {
+    if (isKnown && mode === "linking" && !isDriver) {
       nextClasses.push("is-known");
     }
 

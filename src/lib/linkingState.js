@@ -64,6 +64,31 @@ function appendTaskHistory(state, task) {
   };
 }
 
+function rebuildOffsetsFromLinks(state, links, linkDeltas) {
+  let offsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
+
+  for (let index = 0; index < links.length; index += 1) {
+    if (!links[index]) {
+      continue;
+    }
+
+    const normalizedLink = links[index];
+    const delta = linkDeltas[index] ?? (
+      normalizedLink[index] === 1
+        ? (normalizedLink.some((value, linkIndex) => linkIndex !== index && value === -1) ? 1 : -1)
+        : -1
+    );
+    if (delta === 0) {
+      continue;
+    }
+
+    const change = normalizedLink.map((value) => value * delta);
+    offsets = offsets.map((value, offsetIndex) => value + change[offsetIndex]);
+  }
+
+  return offsets;
+}
+
 function getDeferredRequirements(state, deferredTask) {
   if (Array.isArray(deferredTask.blockedRequirements) && deferredTask.blockedRequirements.length) {
     return deferredTask.blockedRequirements;
@@ -243,10 +268,7 @@ function beginDeferredBlockedTask(state, blockedIndexes) {
   });
 
   return beginNextLinkTask({
-    ...appendTaskHistory(state, {
-      ...state.currentTask,
-      wasDeferred: true,
-    }),
+    ...state,
     currentTask: null,
     deferredLinkTasks: deferredTasks,
   }, {
@@ -380,10 +402,17 @@ export function stepBackLinking(state) {
   const history = [...(state.linkTaskHistory || [])];
   const previousTask = history.pop();
   if (previousTask) {
+    const links = [...state.links];
+    const linkDeltas = [...(state.linkDeltas || [])];
+    links[previousTask.driver] = null;
+    linkDeltas[previousTask.driver] = null;
+
     return {
       ...state,
       linkTaskHistory: history,
-      offsets: cloneOffsets(previousTask.startOffsets || state.offsets),
+      offsets: rebuildOffsetsFromLinks(state, links, linkDeltas),
+      links,
+      linkDeltas,
       currentTask: {
         ...cloneLinkTask(previousTask),
         phase: "step1",
