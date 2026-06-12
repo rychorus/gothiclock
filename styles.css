@@ -1076,19 +1076,50 @@ body.is-linking-mode .panel {
 
 .solution-toggle-menu {
   min-width: 15.5rem;
-  z-index: 5;
+  z-index: 1000;
   right: 0;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: #1a120d !important;
   background-color: #1a120d !important;
+  box-shadow: 0 0.9rem 1.8rem rgba(0, 0, 0, 0.3);
+  padding: 0.25rem;
+  display: grid;
+  gap: 0.1rem;
   opacity: 1 !important;
-  backdrop-filter: none;
-  background-clip: padding-box;
+  backdrop-filter: none !important;
+  background-clip: padding-box !important;
 }
 
 .solution-dialog-list {
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem;
+}
+
+/* Ensure dropdown/dialog surfaces are fully opaque and clickable on all devices */
+.solution-toggle-menu,
+.saved-lock-menu,
+.modal-card {
+  background: #1a120d !important;
+  background-color: #1a120d !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  background-clip: padding-box !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure solution dropdown items match the opaque saved-lock menu */
+.solution-toggle-menu .saved-lock-menu-item {
+  background: #1a120d !important;
+  color: var(--text) !important;
+  border-radius: 0.65rem !important;
+}
+
+/* Ensure wrapper doesn't block clicks and sits above other content */
+.solution-menu-wrap {
+  z-index: 10000;
+  pointer-events: auto;
 }
 
 .solution-dialog-list .solution-step {
@@ -1456,9 +1487,10 @@ body.is-resizing .plate-track {
   padding: 0.25rem;
   display: grid;
   gap: 0.1rem;
-  z-index: 2;
+  z-index: 1000;
   opacity: 1;
   backdrop-filter: none;
+  pointer-events: auto;
 }
 
 .saved-lock-menu.is-upward {
