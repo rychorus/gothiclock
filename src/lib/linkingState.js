@@ -437,32 +437,6 @@ export function finishLinkCapture(state) {
       && offset === baseOffsets[index]
     ));
 
-  if (!driverBlocked) {
-    const blockedUnknownPlates = blockedSelections
-      .filter(({ known }) => !known)
-      .map(({ index }) => index);
-
-    if (blockedUnknownPlates.length) {
-      return beginDeferredBlockedTask(preparedState, blockedUnknownPlates);
-    }
-  }
-
-  if (driverBlocked) {
-    const blockedUnknownPlates = blockedSelections
-      .filter(({ known }) => !known)
-      .map(({ index }) => index);
-
-    if (blockedUnknownPlates.length) {
-      return beginDeferredBlockedTask(
-        {
-          ...preparedState,
-          offsets: finalOffsets,
-        },
-        blockedUnknownPlates,
-      );
-    }
-  }
-
   const normalizedLink = preparedState.offsets.map((offset, index) => {
     if (index === driver) {
       return 1;
@@ -477,15 +451,27 @@ export function finishLinkCapture(state) {
   const linkDeltas = [...(preparedState.linkDeltas || createEmptyLinkDeltas(preparedState.plateCount))];
   links[driver] = normalizedLink;
   linkDeltas[driver] = driverBlocked ? 0 : delta;
-  const nextState = {
+  const committedState = {
     ...preparedState,
-    deferredLinkTasks: pruneDeferredLinkTasks({
-      ...preparedState,
-      links,
-    }).filter((deferredTask) => deferredTask.driver !== driver),
+    offsets: finalOffsets,
     links,
     linkDeltas,
-    offsets: finalOffsets,
+  };
+
+  const blockedUnknownPlates = blockedSelections
+    .filter(({ known }) => !known)
+    .map(({ index }) => index);
+
+  if (blockedUnknownPlates.length) {
+    return beginDeferredBlockedTask(committedState, blockedUnknownPlates);
+  }
+
+  const nextState = {
+    ...committedState,
+    deferredLinkTasks: pruneDeferredLinkTasks({
+      ...committedState,
+      links,
+    }).filter((deferredTask) => deferredTask.driver !== driver),
   };
 
   if ((preparedState.deferredLinkTasks || []).length) {
