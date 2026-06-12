@@ -1,4 +1,4 @@
-const CACHE_NAME = "gothic-lockpick-v1.5.7";
+const CACHE_NAME = "gothic-lockpick-v" + Date.now();
 const APP_ASSETS = [
   "./",
   "./index.html",
