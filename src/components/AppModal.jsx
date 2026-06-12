@@ -8,6 +8,22 @@ function getPowershellStartDelaySeconds(powershellCode) {
   return match ? Number.parseInt(match[1], 10) : 10;
 }
 
+function formatNotationForDisplay(notationText) {
+  const sections = String(notationText || "")
+    .trim()
+    .split(/\r?\n\s*\r?\n/)
+    .map((section) => section.trim())
+    .filter((section) => section.length > 0);
+
+  if (!sections.length) {
+    return "";
+  }
+
+  return sections
+    .map((section) => section.split(/\s+/).filter(Boolean).join("\n"))
+    .join("\n\n");
+}
+
 function LockNameForm({ initialValue, onSubmit, onCancel }) {
   const [value, setValue] = useState(initialValue);
 
@@ -100,6 +116,8 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
   }
 
   if (modal.type === "notation") {
+    const displayNotation = formatNotationForDisplay(app.notationText);
+
     return (
       <Modal
         title="Notation"
@@ -109,7 +127,7 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
             label: didCopyNotation ? "Copied to clipboard" : "Copy",
             className: "primary",
             onClick: async () => {
-              const copied = await copyTextToClipboard(app.notationText);
+              const copied = await copyTextToClipboard(displayNotation);
               if (copied) {
                 setDidCopyNotation(true);
               }
@@ -117,7 +135,7 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
           },
         ]}
       >
-        <pre className="modal-code-block">{app.notationText}</pre>
+        <pre className="modal-code-block">{displayNotation}</pre>
       </Modal>
     );
   }

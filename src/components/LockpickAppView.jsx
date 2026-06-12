@@ -162,7 +162,7 @@ export function LockpickAppView({ app, appVersion }) {
                     setImportText(event.target.value);
                     setImportError("");
                   }}
-                  placeholder={"P1=0 P2=0 P3=0\n\nP1>P2 P2>P3-"}
+                  placeholder={"P1=0 P2=0 P3=0\n\nP1>P2 P2>P3- P3>"}
                 />
               </label>
               {importError ? <p className="modal-note import-notation-error">{importError}</p> : null}

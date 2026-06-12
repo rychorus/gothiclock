@@ -1176,7 +1176,7 @@ body.is-linking-mode .panel {
 
 /* Ensure wrapper doesn't block clicks and sits above other content */
 .solution-menu-wrap {
-  z-index: 10000;
+  z-index: 12;
   pointer-events: auto;
 }
 
