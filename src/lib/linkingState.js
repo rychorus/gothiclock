@@ -533,6 +533,10 @@ export function finishLinkCapture(state) {
   };
 
   if (getUnknownPlates(links).length === 0) {
+    if ((nextState.deferredLinkTasks || []).length) {
+      return beginNextLinkTask(nextState);
+    }
+
     return enterSolutionMode(nextState);
   }
 

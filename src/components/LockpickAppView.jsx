@@ -275,8 +275,8 @@ export function LockpickAppView({ app, appVersion }) {
             {appState.mode === "linking" ? (
               <>
                 <button className="action-button secondary" type="button" onClick={actions.stepBackLinking}><span className="action-button-row"><span className="action-icon is-left" aria-hidden="true"></span><span>{isAtLinkingStart ? "Back to setup" : "Back"}</span></span></button>
-                <button className={`action-button ${unknownPlates.length === 1 && appState.currentTask?.phase === "step2" ? "solve" : "primary"}`} type="button" onClick={appState.currentTask?.phase === "step2" ? actions.finishLinkCapture : actions.advanceFromStep1}>
-                  {unknownPlates.length === 1 && appState.currentTask?.phase === "step2" ? (
+                <button className={`action-button ${unknownPlates.length === 1 && appState.currentTask?.phase === "step2" && !(appState.deferredLinkTasks || []).length ? "solve" : "primary"}`} type="button" onClick={appState.currentTask?.phase === "step2" ? actions.finishLinkCapture : actions.advanceFromStep1}>
+                  {unknownPlates.length === 1 && appState.currentTask?.phase === "step2" && !(appState.deferredLinkTasks || []).length ? (
                     "Solve"
                   ) : noOtherPlateMoved ? (
                     <>
