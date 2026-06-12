@@ -49,6 +49,24 @@ function rebaseDeferredTask(task, snapshotOffsets, currentOffsets) {
   };
 }
 
+function dedupeIndices(indices) {
+  return [...new Set(indices)].sort((a, b) => a - b);
+}
+
+function pruneDeferredLinkTasks(state) {
+  const unknownPlates = new Set(getUnknownPlates(state.links));
+
+  return (state.deferredLinkTasks || [])
+    .map((deferredTask) => ({
+      ...deferredTask,
+      driver: deferredTask.driver ?? deferredTask.task?.driver,
+      blockedBy: dedupeIndices(
+        (deferredTask.blockedBy || []).filter((index) => unknownPlates.has(index) && index !== (deferredTask.driver ?? deferredTask.task?.driver)),
+      ),
+    }))
+    .filter((deferredTask) => unknownPlates.has(deferredTask.driver));
+}
+
 function getStep2Selection(task, offsets, index) {
   const actualDelta = offsets[index] - task.baseOffsets[index];
   if (actualDelta !== 0) {
@@ -163,31 +181,42 @@ function applyKnownBlockedLinks(state) {
   };
 }
 
-function beginDeferredBlockedTask(state, blockedIndex) {
-  const deferredLinkTasks = [
-    ...(state.deferredLinkTasks || []),
-    {
-      task: cloneLinkTask(state.currentTask),
-      offsets: cloneOffsets(state.offsets),
-    },
-  ];
+function beginDeferredBlockedTask(state, blockedIndexes) {
+  const blockedBy = dedupeIndices(blockedIndexes.filter((index) => index !== state.currentTask.driver));
+  const currentDriver = state.currentTask.driver;
+  const deferredTasks = pruneDeferredLinkTasks(state).filter((deferredTask) => deferredTask.driver !== currentDriver);
 
-  return startLinkTaskForDriver(
-    {
-      ...state,
-      deferredLinkTasks,
-    },
-    blockedIndex,
-  );
+  deferredTasks.push({
+    driver: currentDriver,
+    blockedBy,
+    task: cloneLinkTask(state.currentTask),
+    offsets: cloneOffsets(state.offsets),
+  });
+
+  return beginNextLinkTask({
+    ...state,
+    currentTask: null,
+    deferredLinkTasks: deferredTasks,
+  }, {
+    excludeDrivers: [currentDriver],
+  });
 }
 
-function resumeDeferredBlockedTask(state) {
-  const deferredLinkTasks = [...(state.deferredLinkTasks || [])];
+function resumeDeferredBlockedTask(state, driver = null) {
+  const deferredLinkTasks = pruneDeferredLinkTasks(state);
   if (!deferredLinkTasks.length) {
     return state;
   }
 
-  const deferredTask = deferredLinkTasks.pop();
+  const deferredIndex = driver === null
+    ? deferredLinkTasks.length - 1
+    : deferredLinkTasks.findIndex((deferredTask) => deferredTask.driver === driver);
+
+  if (deferredIndex < 0) {
+    return state;
+  }
+
+  const [deferredTask] = deferredLinkTasks.splice(deferredIndex, 1);
   const currentOffsets = cloneOffsets(state.offsets);
   const rebasedTask = rebaseDeferredTask(deferredTask.task, deferredTask.offsets, currentOffsets);
 
@@ -221,15 +250,23 @@ function startLinkTaskForDriver(state, driver) {
   };
 }
 
-export function beginNextLinkTask(state) {
-  const driver = chooseNextDriver(state);
+export function beginNextLinkTask(state, options = {}) {
+  const normalizedState = {
+    ...state,
+    deferredLinkTasks: pruneDeferredLinkTasks(state),
+  };
+  const driver = chooseNextDriver(normalizedState, options.excludeDrivers || []);
 
   if (driver === null || driver === undefined) {
-    const links = state.links.map((link, index) => link || createIdentityLink(state.plateCount, index));
-    return enterSolutionMode({ ...state, links });
+    const links = normalizedState.links.map((link, index) => link || createIdentityLink(normalizedState.plateCount, index));
+    return enterSolutionMode({ ...normalizedState, links });
   }
 
-  return startLinkTaskForDriver(state, driver);
+  if (normalizedState.deferredLinkTasks.some((deferredTask) => deferredTask.driver === driver)) {
+    return resumeDeferredBlockedTask(normalizedState, driver);
+  }
+
+  return startLinkTaskForDriver(normalizedState, driver);
 }
 
 export function startLinkingMode(state) {
@@ -347,18 +384,6 @@ export function resetPlates(state) {
   };
 
   if (state.mode === "linking") {
-    // If a step2 task exists with recorded attempts, avoid re-selecting
-    // the same driver immediately after a reset to prevent repeated
-    // break-loop situations from the physical game reset.
-    if (state.currentTask?.phase === "step2" && state.currentTask.attempts?.some((a) => a !== 0)) {
-      const offsetsCopy = cloneOffsets(nextState.offsets);
-      offsetsCopy[state.currentTask.driver] = 0;
-      return beginNextLinkTask({
-        ...nextState,
-        offsets: offsetsCopy,
-      });
-    }
-
     return beginNextLinkTask(nextState);
   }
 
@@ -418,7 +443,7 @@ export function finishLinkCapture(state) {
       .map(({ index }) => index);
 
     if (blockedUnknownPlates.length) {
-      return beginDeferredBlockedTask(preparedState, blockedUnknownPlates[0]);
+      return beginDeferredBlockedTask(preparedState, blockedUnknownPlates);
     }
   }
 
@@ -433,7 +458,7 @@ export function finishLinkCapture(state) {
           ...preparedState,
           offsets: finalOffsets,
         },
-        blockedUnknownPlates[0],
+        blockedUnknownPlates,
       );
     }
   }
@@ -454,6 +479,10 @@ export function finishLinkCapture(state) {
   linkDeltas[driver] = driverBlocked ? 0 : delta;
   const nextState = {
     ...preparedState,
+    deferredLinkTasks: pruneDeferredLinkTasks({
+      ...preparedState,
+      links,
+    }).filter((deferredTask) => deferredTask.driver !== driver),
     links,
     linkDeltas,
     offsets: finalOffsets,

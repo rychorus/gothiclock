@@ -159,6 +159,20 @@ button {
   text-transform: uppercase;
 }
 
+.hero-menu-wrap {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+.hero-menu {
+  min-width: 11.5rem;
+  right: 0;
+}
+
 .controls-card {
   padding: 0.8rem 0 0;
   display: grid;
@@ -168,6 +182,12 @@ button {
 }
 
 .controls-card--load-screen {
+  padding-top: 0.95rem;
+  align-content: start;
+  min-height: 0;
+}
+
+.controls-card--import-screen {
   padding-top: 0.95rem;
   align-content: start;
   min-height: 0;
@@ -226,6 +246,38 @@ button {
   margin-top: 0.55rem;
 }
 
+.import-notation-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.import-notation-input {
+  width: 100%;
+  min-height: 11rem;
+  resize: vertical;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font: inherit;
+  padding: 0.75rem 0.85rem;
+  line-height: 1.45;
+}
+
+.import-notation-input:focus-visible {
+  outline: none;
+  border-color: rgba(227, 167, 77, 0.55);
+  background: rgba(227, 167, 77, 0.08);
+}
+
+.import-notation-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.import-notation-error {
+  text-align: center;
+}
+
 body.is-menu-mode .hero {
   padding-top: 0.7rem;
   padding-bottom: 1rem;
@@ -259,6 +311,12 @@ body.is-solution-mode .hero-title {
 }
 
 body.is-load-mode .hero-title {
+  color: var(--text);
+  font-size: 1.2rem;
+  letter-spacing: 0.08em;
+}
+
+body.is-import-mode .hero-title {
   color: var(--text);
   font-size: 1.2rem;
   letter-spacing: 0.08em;

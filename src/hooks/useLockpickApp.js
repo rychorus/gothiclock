@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { buildWasdSequence, buildSolutionCommandString } from "../lib/solution";
+import { buildNotationString, parseNotationString } from "../lib/notation";
 import { canMove, getOffsetBounds, getStep2Selection, hasAnyStep2Selection } from "../lib/plateMath";
-import { createInitialAppState, getUnknownPlates, isTrivialCenteredLock } from "../lib/lockData";
+import { createEmptyLinkDeltas, createInitialAppState, getUnknownPlates, isTrivialCenteredLock } from "../lib/lockData";
 import { deleteSavedLock, getDefaultLockName, getSavedLockById, getSavedLocks, persistCurrentLock, renameSavedLock, syncFinalLockProgress } from "../lib/lockStorage";
 import { applyTestingMove, enterTestingMode, loadSavedLockState, resetTestingMode, returnToSolutionView, setPlateCount, setSolutionStep, startNewLock, startOver } from "../lib/appState";
 import { advanceFromStep1, beginNextLinkTask, enterSolutionMode, finishLinkCapture, recordPlateAttempt, resetPlates, startLinkingMode, stepBackLinking, updatePlateOffset } from "../lib/linkingState";
@@ -14,6 +15,7 @@ export function useLockpickApp() {
   useEffect(() => {
     document.body.classList.toggle("is-menu-mode", appState.mode === "menu");
     document.body.classList.toggle("is-load-mode", appState.mode === "load");
+    document.body.classList.toggle("is-import-mode", appState.mode === "import");
     document.body.classList.toggle("is-linking-mode", appState.mode === "linking");
     document.body.classList.toggle("is-solution-mode", appState.mode === "solution" || appState.mode === "ready_to_solve" || appState.mode === "testing");
     document.body.classList.toggle("is-testing-mode", appState.mode === "testing");
@@ -86,6 +88,40 @@ export function useLockpickApp() {
     setAppState((current) => ({ ...current, mode: "load", currentTask: null }));
   }
 
+  function openImportNotationDialog() {
+    closeModal();
+    setAppState((current) => ({ ...current, mode: "import", currentTask: null }));
+  }
+
+  function importNotation(text) {
+    const parsed = parseNotationString(text);
+    const hasLinks = parsed.links.some(Boolean);
+    const baseState = {
+      ...createInitialAppState(),
+      plateCount: parsed.plateCount,
+      offsets: parsed.offsets,
+      links: parsed.links,
+      linkDeltas: createEmptyLinkDeltas(parsed.plateCount),
+      linkingStartOffsets: parsed.offsets,
+      currentTask: null,
+      currentSaveId: null,
+      snapshotsByCount: {},
+      deferredLinkTasks: [],
+      mode: hasLinks ? "linking" : "setup",
+    };
+
+    setAppState(() => (
+      hasLinks
+        ? beginNextLinkTask({
+            ...baseState,
+            solution: null,
+          })
+        : baseState
+    ));
+
+    closeModal();
+  }
+
   function loadSavedLock(lockId) {
     const savedLock = getSavedLockById(lockId);
     if (!savedLock) {
@@ -150,9 +186,12 @@ export function useLockpickApp() {
     currentSolutionChunk,
     testingFeedback: appState.testingFeedback,
     powershellCode,
+    notationText: buildNotationString(appState),
     wasdSequence: buildWasdSequence(appState.solution?.chunks),
     closeModal,
     openLoadLockDialog,
+    openImportNotationDialog,
+    importNotation,
     saveCurrentLock,
     loadSavedLock,
     renameLock,

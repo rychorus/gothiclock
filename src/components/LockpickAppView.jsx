@@ -19,6 +19,10 @@ function renderHeroTitle(mode) {
     return "Solution Mode";
   }
 
+  if (mode === "import") {
+    return "Import Notation";
+  }
+
   if (mode === "load") {
     return "Load Lock";
   }
@@ -39,7 +43,11 @@ function getStageInstruction(appState, currentSolutionChunk) {
 
 export function LockpickAppView({ app, appVersion }) {
   const { appState, modal, savedLocks, unknownPlates, currentSolutionChunk, testingFeedback, powershellCode, actions, selectors } = app;
+  const [importText, setImportText] = useState("");
+  const [importError, setImportError] = useState("");
+  const [isTopMenuOpen, setIsTopMenuOpen] = useState(false);
   const [isSolutionMenuOpen, setIsSolutionMenuOpen] = useState(false);
+  const topMenuRef = useRef(null);
   const solutionMenuRef = useRef(null);
   const heroTitle = renderHeroTitle(appState.mode);
   const stageInstruction = getStageInstruction(appState, currentSolutionChunk);
@@ -48,6 +56,15 @@ export function LockpickAppView({ app, appVersion }) {
   const moves = appState.solution?.moves;
   const noOtherPlateMoved = appState.currentTask?.phase === "step2" && !selectors.hasAnyStep2Selection();
   const isAtLinkingStart = !appState.links.some(Boolean) && appState.currentTask?.phase === "step1";
+
+  useEffect(() => {
+    if (appState.mode !== "import") {
+      return;
+    }
+
+    setImportText("");
+    setImportError("");
+  }, [appState.mode]);
 
   const modalNode = useMemo(
     () => (
@@ -62,6 +79,21 @@ export function LockpickAppView({ app, appVersion }) {
     ),
     [app, appState.solution?.index, modal, powershellCode, savedLocks, solutionChunks],
   );
+
+  useEffect(() => {
+    if (!isTopMenuOpen) {
+      return undefined;
+    }
+
+    function handlePointerDown(event) {
+      if (!topMenuRef.current?.contains(event.target)) {
+        setIsTopMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [isTopMenuOpen]);
 
   useEffect(() => {
     if (!isSolutionMenuOpen) {
@@ -95,7 +127,20 @@ export function LockpickAppView({ app, appVersion }) {
             <p className="hero-title">
               {heroTitle ? heroTitle : <><span className="hero-title-line">Gothic Remake</span>{" "}<span className="hero-title-line hero-title-line--accent">Lockpick Solver</span></>}
             </p>
-            <span className="app-version" aria-label="App version" title={`Current version: ${appVersion}`}>{appVersion}</span>
+            {appState.mode === "menu" ? (
+              <span className="app-version" aria-label="App version" title={`Current version: ${appVersion}`}>{appVersion}</span>
+            ) : (
+              <div ref={topMenuRef} className="hero-menu-wrap">
+                <button className="solution-toggle-icon hero-menu-toggle" type="button" aria-label="Screen menu" aria-expanded={isTopMenuOpen} onClick={() => setIsTopMenuOpen((current) => !current)}>
+                  <MaterialIcon name="more_vert" />
+                </button>
+                <div className="saved-lock-menu hero-menu" hidden={!isTopMenuOpen}>
+                  <button className="saved-lock-menu-item" type="button" onClick={() => { setIsTopMenuOpen(false); app.setModal({ type: "notation" }); }}>
+                    <span>Show notation</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </header>
 
           {appState.mode === "menu" ? (
@@ -103,6 +148,40 @@ export function LockpickAppView({ app, appVersion }) {
               <div className="menu-actions">
                 <button className="action-button primary" type="button" onClick={actions.startNewLock}>New lock</button>
                 <button className="action-button secondary" type="button" onClick={app.openLoadLockDialog}>Load lock</button>
+                <button className="action-button secondary" type="button" onClick={app.openImportNotationDialog}>Import notation</button>
+              </div>
+            </section>
+          ) : appState.mode === "import" ? (
+            <section className="controls-card controls-card--import-screen" aria-live="polite">
+              <label className="import-notation-field">
+                <span className="controls-title">Paste notation</span>
+                <textarea
+                  className="import-notation-input"
+                  value={importText}
+                  onChange={(event) => {
+                    setImportText(event.target.value);
+                    setImportError("");
+                  }}
+                  placeholder={"P1=0 P2=0 P3=0\n\nP1>P2 P2>P3-"}
+                />
+              </label>
+              {importError ? <p className="modal-note import-notation-error">{importError}</p> : null}
+              <div className="menu-actions import-notation-actions">
+                <button className="action-button secondary" type="button" onClick={actions.goToMainMenu}>Cancel</button>
+                <button
+                  className="action-button primary"
+                  type="button"
+                  onClick={() => {
+                    try {
+                      app.importNotation(importText);
+                      setImportError("");
+                    } catch (error) {
+                      setImportError(error instanceof Error ? error.message : "Could not import notation.");
+                    }
+                  }}
+                >
+                  Import
+                </button>
               </div>
             </section>
           ) : appState.mode === "load" ? (
@@ -130,7 +209,7 @@ export function LockpickAppView({ app, appVersion }) {
             </section>
           ) : null}
 
-          <section className={`lock-stage${appState.mode === "solution" || appState.mode === "ready_to_solve" ? " is-solution-compact" : ""}`} hidden={appState.mode === "menu" || appState.mode === "load"}>
+          <section className={`lock-stage${appState.mode === "solution" || appState.mode === "ready_to_solve" ? " is-solution-compact" : ""}`} hidden={appState.mode === "menu" || appState.mode === "load" || appState.mode === "import"}>
             {stageInstruction ? <div className={`stage-instruction${appState.mode === "setup" ? " is-setup-mode" : ""}${appState.mode === "linking" ? " is-linking-mode" : ""}`} aria-live="polite">{stageInstruction}</div> : null}
             <div className="plates-row" aria-label="Lock plates">
               {appState.offsets.map((offset, index) => (
@@ -186,7 +265,7 @@ export function LockpickAppView({ app, appVersion }) {
             </section>
           ) : null}
 
-          <div className="footer-actions" hidden={appState.mode === "menu" || appState.mode === "load"} data-mode={appState.mode} data-count={appState.mode === "solution" || appState.mode === "linking" || appState.mode === "ready_to_solve" ? "2" : "1"}>
+          <div className="footer-actions" hidden={appState.mode === "menu" || appState.mode === "load" || appState.mode === "import"} data-mode={appState.mode} data-count={appState.mode === "solution" || appState.mode === "linking" || appState.mode === "ready_to_solve" ? "2" : "1"}>
             {appState.mode === "setup" ? <button className="action-button primary" type="button" disabled={appState.offsets.every((offset) => offset === 0)} onClick={actions.startLinkingMode}>Start Linking</button> : null}
             {appState.mode === "linking" ? (
               <>

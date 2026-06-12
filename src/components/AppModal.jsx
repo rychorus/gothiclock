@@ -25,10 +25,12 @@ function LockNameForm({ initialValue, onSubmit, onCancel }) {
 
 export function AppModal({ app, modal, savedLocks, solutionChunks, currentSolutionIndex, powershellCode }) {
   const [didCopyPowershell, setDidCopyPowershell] = useState(false);
+  const [didCopyNotation, setDidCopyNotation] = useState(false);
   const [showPowershellHelp, setShowPowershellHelp] = useState(false);
 
   useEffect(() => {
     setDidCopyPowershell(false);
+    setDidCopyNotation(false);
     setShowPowershellHelp(false);
   }, [modal]);
 
@@ -93,6 +95,29 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
             <li className="modal-note">In {startDelaySeconds} seconds, it will start typing <span className="modal-keyword">WASD</span> keys on its own, which will solve the lock. Make sure you are on the game's screen by this point.</li>
           </ol>
         ) : null}
+      </Modal>
+    );
+  }
+
+  if (modal.type === "notation") {
+    return (
+      <Modal
+        title="Notation"
+        onClose={app.closeModal}
+        actions={[
+          {
+            label: didCopyNotation ? "Copied to clipboard" : "Copy",
+            className: "primary",
+            onClick: async () => {
+              const copied = await copyTextToClipboard(app.notationText);
+              if (copied) {
+                setDidCopyNotation(true);
+              }
+            },
+          },
+        ]}
+      >
+        <pre className="modal-code-block">{app.notationText}</pre>
       </Modal>
     );
   }

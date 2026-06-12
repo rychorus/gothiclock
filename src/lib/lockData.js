@@ -53,18 +53,124 @@ export function getUnknownPlates(links) {
     .map(({ index }) => index);
 }
 
-export function chooseNextDriver(state) {
+function getDeferredDependencySet(state, unknownPlates) {
+  const unknownSet = new Set(unknownPlates);
+  const deferredSet = new Set();
+
+  for (const deferredTask of state.deferredLinkTasks || []) {
+    if (!unknownSet.has(deferredTask.driver)) {
+      continue;
+    }
+
+    const blockers = (deferredTask.blockedBy || []).filter((index) => unknownSet.has(index));
+    if (!blockers.length) {
+      continue;
+    }
+
+    deferredSet.add(deferredTask.driver);
+    blockers.forEach((index) => deferredSet.add(index));
+  }
+
+  return deferredSet;
+}
+
+function buildKnownLinkAdjacency(links) {
+  const adjacency = new Map();
+
+  links.forEach((link, source) => {
+    if (!link) {
+      return;
+    }
+
+    link.forEach((value, target) => {
+      if (!value || source === target) {
+        return;
+      }
+
+      if (!adjacency.has(source)) {
+        adjacency.set(source, []);
+      }
+      if (!adjacency.has(target)) {
+        adjacency.set(target, []);
+      }
+
+      // Linked plates move as a coupled group, so a discovered relation
+      // is useful in both directions for future driver selection.
+      adjacency.get(source).push({ index: target, sign: value });
+      adjacency.get(target).push({ index: source, sign: value });
+    });
+  });
+
+  return adjacency;
+}
+
+function getKnownBlockedSet(state, candidatePlates) {
+  const adjacency = buildKnownLinkAdjacency(state.links);
+  const blockedSet = new Set();
+
+  candidatePlates.forEach((driver) => {
+    const delta = getSuggestedDelta(state.offsets[driver]);
+    const relations = new Map([[driver, 1]]);
+    const queue = [driver];
+
+    while (queue.length) {
+      const current = queue.shift();
+
+      for (const edge of adjacency.get(current) || []) {
+        const nextRelation = relations.get(current) * edge.sign;
+        if (relations.has(edge.index)) {
+          continue;
+        }
+
+        relations.set(edge.index, nextRelation);
+        queue.push(edge.index);
+      }
+    }
+
+    const isBlocked = [...relations.entries()].some(([index, relation]) => {
+      const nextOffset = state.offsets[index] + (relation * delta);
+      return nextOffset < -CENTER_INDEX || nextOffset > CENTER_INDEX;
+    });
+
+    if (isBlocked) {
+      blockedSet.add(driver);
+    }
+  });
+
+  return blockedSet;
+}
+
+export function chooseNextDriver(state, excludedDrivers = []) {
   const unknownPlates = getUnknownPlates(state.links);
   if (!unknownPlates.length) {
     return null;
   }
 
-  const unresolvedActivePlates = unknownPlates.filter((index) => state.offsets[index] !== 0);
-  if (!unresolvedActivePlates.length) {
+  const excludedSet = new Set(excludedDrivers);
+  const deferredDependencySet = getDeferredDependencySet(state, unknownPlates);
+  const selectableUnknownPlates = unknownPlates.filter((index) => !excludedSet.has(index));
+  if (!selectableUnknownPlates.length) {
     return null;
   }
 
-  return unresolvedActivePlates
+  const unresolvedActivePlates = selectableUnknownPlates.filter((index) => state.offsets[index] !== 0);
+  const preferredActivePlates = unresolvedActivePlates.filter((index) => !deferredDependencySet.has(index));
+  const activePool = preferredActivePlates.length ? preferredActivePlates : unresolvedActivePlates;
+  const blockedByKnownLinks = getKnownBlockedSet(state, activePool);
+  const unblockedActivePlates = activePool.filter((index) => !blockedByKnownLinks.has(index));
+
+  const unexploredFallbackPlates = selectableUnknownPlates.filter((index) => (
+    state.offsets[index] === 0
+    && !deferredDependencySet.has(index)
+  ));
+
+  const selectablePlates = unblockedActivePlates.length
+    ? unblockedActivePlates
+    : (unexploredFallbackPlates.length
+      ? unexploredFallbackPlates
+      : (activePool.length ? activePool : selectableUnknownPlates));
+
+  return selectablePlates
     .map((index) => ({
       index,
       score: Math.abs(state.offsets[index]),
@@ -95,6 +201,7 @@ export function createInitialAppState() {
     testingFeedback: null,
     currentTask: null,
     solution: null,
+    deferredLinkTasks: [],
     currentSaveId: null,
     snapshotsByCount: {},
   };
