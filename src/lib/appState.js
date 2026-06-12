@@ -52,26 +52,101 @@ export function setPlateCount(state, count) {
   const previousLinks = [...state.links];
   const previousStartOffsets = state.linkingStartOffsets ? cloneOffsets(state.linkingStartOffsets) : null;
   const previousMode = state.mode;
+  const previousCount = state.plateCount;
+  const deltaCount = count - previousCount;
+
+  function rebaseTask(task) {
+    if (!task) return null;
+    const newDriver = task.driver + deltaCount;
+    if (newDriver < 0 || newDriver >= count) return null;
+
+    function rebaseArray(arr) {
+      if (!arr) return null;
+      if (deltaCount > 0) {
+        const next = Array.from({ length: count }, () => 0);
+        for (let i = 0; i < arr.length; i += 1) {
+          next[i + deltaCount] = arr[i];
+        }
+        return next;
+      }
+      if (deltaCount < 0) {
+        return arr.slice(-count);
+      }
+      return Array.from({ length: count }, (_, i) => arr[i] ?? 0);
+    }
+
+    return {
+      ...task,
+      driver: newDriver,
+      startOffsets: rebaseArray(task.startOffsets),
+      baseOffsets: rebaseArray(task.baseOffsets),
+      attempts: rebaseArray(task.attempts) || Array.from({ length: count }, () => 0),
+    };
+  }
 
   const nextState = {
     ...state,
     snapshotsByCount,
     plateCount: count,
-    offsets: existingSnapshot ? cloneOffsets(existingSnapshot.offsets) : resizeOffsets(previousOffsets, count),
-    links: existingSnapshot
-      ? existingSnapshot.links.map((link) => resizeLink(link, count))
-      : Array.from({ length: count }, (_, index) => resizeLink(previousLinks[index], count)),
-    linkDeltas: existingSnapshot
-      ? resizeLinkDeltas(existingSnapshot.linkDeltas, count)
-      : resizeLinkDeltas(state.linkDeltas, count),
-    mode: existingSnapshot?.mode ?? previousMode,
-    linkingStartOffsets: existingSnapshot?.linkingStartOffsets
-      ? cloneOffsets(existingSnapshot.linkingStartOffsets)
-      : previousStartOffsets
-        ? resizeOffsets(previousStartOffsets, count)
+    offsets: (function () {
+        if (deltaCount > 0) {
+          // Add new plates to the top: shift existing offsets down
+          const next = Array.from({ length: count }, () => 0);
+          for (let i = 0; i < previousOffsets.length; i += 1) {
+            next[i + deltaCount] = previousOffsets[i];
+          }
+          return next;
+        }
+        if (deltaCount < 0) {
+          // Removing plates: drop from the top, keep the bottom-most plates
+          return previousOffsets.slice(-count);
+        }
+        return resizeOffsets(previousOffsets, count);
+      })(),
+    links: (function () {
+        if (deltaCount > 0) {
+          const next = Array.from({ length: count }, () => null);
+          for (let i = 0; i < previousLinks.length; i += 1) {
+            next[i + deltaCount] = resizeLink(previousLinks[i], count);
+          }
+          return next;
+        }
+        if (deltaCount < 0) {
+          return Array.from({ length: count }, (_, idx) => resizeLink(previousLinks[idx + (previousCount - count)], count));
+        }
+        return Array.from({ length: count }, (_, index) => resizeLink(previousLinks[index], count));
+      })(),
+    linkDeltas: (function () {
+        if (deltaCount > 0) {
+          const next = Array.from({ length: count }, () => null);
+          for (let i = 0; i < (state.linkDeltas || []).length; i += 1) {
+            next[i + deltaCount] = state.linkDeltas?.[i] ?? null;
+          }
+          return next;
+        }
+        if (deltaCount < 0) {
+          return resizeLinkDeltas((state.linkDeltas || []).slice(previousCount - count), count);
+        }
+        return resizeLinkDeltas(state.linkDeltas, count);
+      })(),
+    mode: previousMode,
+    linkingStartOffsets: previousStartOffsets
+        ? (function () {
+          if (deltaCount > 0) {
+            const next = Array.from({ length: count }, () => 0);
+            for (let i = 0; i < previousStartOffsets.length; i += 1) {
+              next[i + deltaCount] = previousStartOffsets[i];
+            }
+            return next;
+          }
+          if (deltaCount < 0) {
+            return previousStartOffsets.slice(-count);
+          }
+          return resizeOffsets(previousStartOffsets, count);
+        })()
         : null,
-    currentTask: null,
-    solution: null,
+    currentTask: rebaseTask(state.currentTask),
+    solution: state.solution,
   };
 
   if (nextState.mode === "setup" || !nextState.linkingStartOffsets) {

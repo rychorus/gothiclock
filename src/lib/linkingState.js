@@ -346,7 +346,23 @@ export function resetPlates(state) {
     offsets: cloneOffsets(state.linkingStartOffsets),
   };
 
-  return state.mode === "linking" ? beginNextLinkTask(nextState) : nextState;
+  if (state.mode === "linking") {
+    // If a step2 task exists with recorded attempts, avoid re-selecting
+    // the same driver immediately after a reset to prevent repeated
+    // break-loop situations from the physical game reset.
+    if (state.currentTask?.phase === "step2" && state.currentTask.attempts?.some((a) => a !== 0)) {
+      const offsetsCopy = cloneOffsets(nextState.offsets);
+      offsetsCopy[state.currentTask.driver] = 0;
+      return beginNextLinkTask({
+        ...nextState,
+        offsets: offsetsCopy,
+      });
+    }
+
+    return beginNextLinkTask(nextState);
+  }
+
+  return nextState;
 }
 
 export function advanceFromStep1(state) {

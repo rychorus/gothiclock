@@ -162,7 +162,13 @@ export function useLockpickApp() {
     setModal,
     actions: {
       startNewLock: () => setAppState(startNewLock),
-      setPlateCount: (count) => setAppState((current) => setPlateCount(current, count)),
+      setPlateCount: (count) => {
+        // briefly disable plate-track transitions to avoid visual jump
+        document.body.classList.add("is-resizing");
+        setAppState((current) => setPlateCount(current, count));
+        // remove the class after next paint + a small delay
+        requestAnimationFrame(() => setTimeout(() => document.body.classList.remove("is-resizing"), 80));
+      },
       startOver: () => setAppState(startOver),
       startLinkingMode: () => setAppState(startLinkingMode),
       stepBackLinking: () => setAppState(stepBackLinking),

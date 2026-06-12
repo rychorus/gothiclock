@@ -28,7 +28,8 @@ function renderHeroTitle(mode) {
 
 function getStageInstruction(appState, currentSolutionChunk) {
   if (appState.mode === "linking" && appState.currentTask) {
-    const driver = (appState.currentTask.driver ?? 0) + 1;
+    const driverIndex = appState.currentTask.driver ?? 0;
+    const driver = (appState.plateCount - driverIndex);
     const direction = appState.currentTask.direction === "up" ? "left" : "right";
     return appState.currentTask.phase === "step2" ? `What moved with plate ${driver}?` : `Move plate ${driver} ${direction}`;
   }

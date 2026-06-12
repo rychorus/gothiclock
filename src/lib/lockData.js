@@ -69,7 +69,7 @@ export function chooseNextDriver(state) {
       index,
       score: Math.abs(state.offsets[index]),
     }))
-    .sort((a, b) => b.score - a.score || a.index - b.index)[0].index;
+    .sort((a, b) => b.score - a.score || b.index - a.index)[0].index;
 }
 
 export function getSuggestedDelta(offset) {

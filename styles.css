@@ -1079,8 +1079,10 @@ body.is-linking-mode .panel {
   z-index: 5;
   right: 0;
   background: #1a120d !important;
-  opacity: 1;
+  background-color: #1a120d !important;
+  opacity: 1 !important;
   backdrop-filter: none;
+  background-clip: padding-box;
 }
 
 .solution-dialog-list {
@@ -1332,6 +1334,18 @@ body.is-linking-mode .panel {
   align-content: start;
 }
 
+body.is-load-mode .controls-card--load-screen .saved-lock-list {
+  /* Allow saved locks to scroll when the load dialog is tall */
+  max-height: min(60dvh, 40rem);
+  overflow: auto;
+  padding-right: 0.25rem;
+}
+
+/* Temporarily disable plate transform animations during plate count changes */
+body.is-resizing .plate-track {
+  transition: none !important;
+}
+
 .saved-lock-section {
   display: grid;
   gap: 0.45rem;
@@ -1455,7 +1469,7 @@ body.is-linking-mode .panel {
 .saved-lock-menu-item {
   border: 0;
   border-radius: 0.65rem;
-  background: transparent;
+  background: #1a120d;
   color: var(--text);
   padding: 0.55rem 0.65rem;
   display: inline-flex;
