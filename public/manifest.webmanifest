@@ -1,6 +1,6 @@
 {
-  "name": "Gothic Lockpick Solver",
-  "short_name": "Lockpick",
+  "name": "Gothic Lock",
+  "short_name": "Gothic Lock",
   "description": "A lightweight Gothic lockpick helper for linking plates and replaying the solve sequence.",
   "start_url": "./",
   "scope": "./",

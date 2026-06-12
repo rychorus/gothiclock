@@ -1,4 +1,6 @@
-export const APP_VERSION = "v1.5.34";
+import packageJson from "../../package.json";
+
+export const APP_VERSION = `v${packageJson.version}`;
 export const MIN_PLATES = 3;
 export const MAX_PLATES = 7;
 export const HOLE_COUNT = 7;

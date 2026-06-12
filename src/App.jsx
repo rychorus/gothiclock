@@ -15,7 +15,7 @@ function App() {
   const app = useLockpickApp();
 
   useEffect(() => {
-    document.title = "Gothic Lockpick UI Prototype";
+    document.title = "Gothic Lock";
   }, []);
 
   useEffect(() => {

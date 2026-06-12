@@ -2,7 +2,7 @@
   "name": "gothic-lockpick",
   "version": "1.0.0",
   "private": true,
-  "description": "React + Vite app for the Gothic Lockpick solver",
+  "description": "Gothic Remake Lockpick solver",
   "scripts": {
     "dev": "vite",
     "start": "vite",
