@@ -1,9 +1,26 @@
+import { createIdentityLink } from "./lockData";
+
 export function getVisiblePlateLabel(index, plateCount) {
   return `P${plateCount - index}`;
 }
 
-function formatOffset(offset) {
-  return `${offset}`;
+function formatPosition(offset) {
+  return `${4 - offset}`;
+}
+
+function isIdentityLink(link, source) {
+  return Boolean(link)
+    && link[source] === 1
+    && link.every((value, index) => (index === source ? value === 1 : value === 0));
+}
+
+function parsePosition(token) {
+  const position = Number.parseInt(token, 10);
+  if (!Number.isInteger(position) || position < 1 || position > 7) {
+    return null;
+  }
+
+  return 4 - position;
 }
 
 function formatLinkTarget(label, relation) {
@@ -25,15 +42,19 @@ export function buildNotationString(state) {
   }
 
   const setupParts = [];
-  for (let index = plateCount - 1; index >= 0; index -= 1) {
-    setupParts.push(`${getVisiblePlateLabel(index, plateCount)}=${formatOffset(state.offsets?.[index] ?? 0)}`);
+  for (let index = 0; index < plateCount; index += 1) {
+    setupParts.push(`${getVisiblePlateLabel(index, plateCount)}=${formatPosition(state.offsets?.[index] ?? 0)}`);
   }
 
   const linkParts = [];
-  for (let source = plateCount - 1; source >= 0; source -= 1) {
+  for (let source = 0; source < plateCount; source += 1) {
     const link = state.links?.[source];
+    if (!link) {
+      continue;
+    }
+
     const targets = [];
-    if (link) {
+    if (!isIdentityLink(link, source)) {
       for (let target = plateCount - 1; target >= 0; target -= 1) {
         if (target === source) {
           continue;
@@ -47,6 +68,7 @@ export function buildNotationString(state) {
         targets.push(formatLinkTarget(getVisiblePlateLabel(target, plateCount), relation));
       }
     }
+
     linkParts.push(formatLinkSource(getVisiblePlateLabel(source, plateCount), targets));
   }
 
@@ -58,14 +80,14 @@ export function buildNotationString(state) {
 }
 
 function parseSetupToken(token) {
-  const match = token.match(/^P(\d+)=(-?\d+)$/i);
+  const match = token.match(/^P(\d+)=(\d+)$/i);
   if (!match) {
     return null;
   }
 
   return {
     plateNumber: Number.parseInt(match[1], 10),
-    offset: Number.parseInt(match[2], 10),
+    offset: parsePosition(match[2]),
   };
 }
 
@@ -107,7 +129,7 @@ export function parseNotationString(text) {
   const setupTokens = sections[0].split(/\s+/).filter(Boolean);
   const setupEntries = setupTokens.map(parseSetupToken);
   if (setupEntries.some((entry) => !entry)) {
-    throw new Error("The first line must use plate offsets like `P1=0`.");
+    throw new Error("The first line must use plate positions like `P1=4`.");
   }
 
   const linkTokens = sections[1] ? sections[1].split(/\s+/).filter(Boolean) : [];
@@ -144,7 +166,7 @@ export function parseNotationString(text) {
 
   linkEntries.forEach(({ plateNumber, targetsText }) => {
     const sourceIndex = plateCount - plateNumber;
-    const sourceLink = links[sourceIndex] || Array.from({ length: plateCount }, () => 0);
+    const sourceLink = links[sourceIndex] || createIdentityLink(plateCount, sourceIndex);
     targetsText
       .split(",")
       .map((target) => target.trim())

@@ -56,6 +56,7 @@ export function LockpickAppView({ app, appVersion }) {
   const moves = appState.solution?.moves;
   const noOtherPlateMoved = appState.currentTask?.phase === "step2" && !selectors.hasAnyStep2Selection();
   const isAtLinkingStart = !appState.links.some(Boolean) && appState.currentTask?.phase === "step1";
+  const deferredDrivers = new Set((appState.deferredLinkTasks || []).map((task) => task.driver));
 
   useEffect(() => {
     if (appState.mode !== "import") {
@@ -162,7 +163,7 @@ export function LockpickAppView({ app, appVersion }) {
                     setImportText(event.target.value);
                     setImportError("");
                   }}
-                  placeholder={"P1=0 P2=0 P3=0\n\nP1>P2 P2>P3- P3>"}
+                  placeholder={"P1=4 P2=4 P3=4\n\nP1>P2 P2>P3- P3>"}
                 />
               </label>
               {importError ? <p className="modal-note import-notation-error">{importError}</p> : null}
@@ -223,6 +224,7 @@ export function LockpickAppView({ app, appVersion }) {
                   testingFeedback={testingFeedback}
                   selection={selectors.getStep2Selection(index)}
                   isKnown={Boolean(appState.links[index])}
+                  isDeferred={deferredDrivers.has(index)}
                   bounds={selectors.getOffsetBounds(index)}
                   canMoveUp={selectors.canMove(index, "up")}
                   canMoveDown={selectors.canMove(index, "down")}

@@ -53,16 +53,38 @@ export function getUnknownPlates(links) {
     .map(({ index }) => index);
 }
 
+function getDeferredRequirements(deferredTask) {
+  if (Array.isArray(deferredTask.blockedRequirements) && deferredTask.blockedRequirements.length) {
+    return deferredTask.blockedRequirements;
+  }
+
+  return (deferredTask.blockedBy || []).map((index) => ({
+    index,
+    delta: deferredTask.task?.attempts?.[index] || 0,
+  }));
+}
+
+function isDeferredBlockerActive(state, deferredTask, index, unknownSet) {
+  if (unknownSet.has(index)) {
+    return true;
+  }
+
+  const requirement = getDeferredRequirements(deferredTask).find((entry) => entry.index === index);
+  const requiredDelta = requirement?.delta || 0;
+  if (!requiredDelta) {
+    return false;
+  }
+
+  const nextOffset = (state.offsets?.[index] ?? 0) + requiredDelta;
+  return nextOffset < -CENTER_INDEX || nextOffset > CENTER_INDEX;
+}
+
 function getDeferredDependencySet(state, unknownPlates) {
   const unknownSet = new Set(unknownPlates);
   const deferredSet = new Set();
 
   for (const deferredTask of state.deferredLinkTasks || []) {
-    if (!unknownSet.has(deferredTask.driver)) {
-      continue;
-    }
-
-    const blockers = (deferredTask.blockedBy || []).filter((index) => unknownSet.has(index));
+    const blockers = (deferredTask.blockedBy || []).filter((index) => isDeferredBlockerActive(state, deferredTask, index, unknownSet));
     if (!blockers.length) {
       continue;
     }
@@ -72,6 +94,21 @@ function getDeferredDependencySet(state, unknownPlates) {
   }
 
   return deferredSet;
+}
+
+function getReadyDeferredDrivers(state, excludedDrivers = []) {
+  const excludedSet = new Set(excludedDrivers);
+  const unknownSet = new Set(getUnknownPlates(state.links));
+
+  return (state.deferredLinkTasks || [])
+    .filter((deferredTask) => {
+      if (excludedSet.has(deferredTask.driver)) {
+        return false;
+      }
+
+      return (deferredTask.blockedBy || []).every((index) => !isDeferredBlockerActive(state, deferredTask, index, unknownSet));
+    })
+    .map((deferredTask) => deferredTask.driver);
 }
 
 function buildKnownLinkAdjacency(links) {
@@ -141,6 +178,16 @@ function getKnownBlockedSet(state, candidatePlates) {
 }
 
 export function chooseNextDriver(state, excludedDrivers = []) {
+  const readyDeferredDrivers = getReadyDeferredDrivers(state, excludedDrivers);
+  if (readyDeferredDrivers.length) {
+    return readyDeferredDrivers
+      .map((index) => ({
+        index,
+        score: Math.abs(state.offsets[index]),
+      }))
+      .sort((a, b) => b.score - a.score || b.index - a.index)[0].index;
+  }
+
   const unknownPlates = getUnknownPlates(state.links);
   if (!unknownPlates.length) {
     return null;

@@ -17,6 +17,7 @@ export function PlateColumn({
   testingFeedback,
   selection,
   isKnown,
+  isDeferred,
   bounds,
   canMoveUp,
   canMoveDown,
@@ -43,6 +44,10 @@ export function PlateColumn({
 
     if (isKnown && mode === "linking") {
       nextClasses.push("is-known");
+    }
+
+    if (isDeferred && mode === "linking") {
+      nextClasses.push("is-deferred");
     }
 
     if (selection === currentTask?.delta && selection !== 0) {
@@ -87,7 +92,7 @@ export function PlateColumn({
     }
 
     return nextClasses.join(" ");
-  }, [currentSolutionMove, currentTask, index, isKnown, mode, offset, selection, testingFeedback]);
+  }, [currentSolutionMove, currentTask, index, isDeferred, isKnown, mode, offset, selection, testingFeedback]);
 
   function measureStepSize() {
     if (!holeRef.current || !stackRef.current) {

@@ -820,6 +820,32 @@ body.is-testing-mode .lock-stage {
   transform: rotate(-45deg) translateY(-0.02rem);
 }
 
+.plate-column.is-deferred .plate-status {
+  border-color: rgba(227, 167, 77, 0.5);
+  background: rgba(227, 167, 77, 0.16);
+}
+
+.plate-column.is-deferred .plate-status::before {
+  width: 0.72rem;
+  height: 0.12rem;
+  border-radius: 999px;
+  background: #f6d7a2;
+}
+
+.plate-column.is-deferred.is-known .plate-status {
+  border-color: rgba(227, 167, 77, 0.5);
+  background: rgba(227, 167, 77, 0.16);
+}
+
+.plate-column.is-deferred.is-known .plate-status::before {
+  width: 0.72rem;
+  height: 0.12rem;
+  border-radius: 999px;
+  background: #f6d7a2;
+  border: 0;
+  transform: none;
+}
+
 .center-band {
   position: absolute;
   inset: 0 50% 0 auto;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { buildWasdSequence, buildSolutionCommandString } from "../lib/solution";
+import { buildSolutionPlan, buildWasdSequence, buildSolutionCommandString } from "../lib/solution";
 import { buildNotationString, parseNotationString } from "../lib/notation";
 import { canMove, getOffsetBounds, getStep2Selection, hasAnyStep2Selection } from "../lib/plateMath";
 import { createEmptyLinkDeltas, createInitialAppState, getUnknownPlates, isTrivialCenteredLock } from "../lib/lockData";
@@ -96,6 +96,7 @@ export function useLockpickApp() {
   function importNotation(text) {
     const parsed = parseNotationString(text);
     const hasLinks = parsed.links.some(Boolean);
+    const allLinksKnown = parsed.links.every(Boolean);
     const baseState = {
       ...createInitialAppState(),
       plateCount: parsed.plateCount,
@@ -110,14 +111,24 @@ export function useLockpickApp() {
       mode: hasLinks ? "linking" : "setup",
     };
 
-    setAppState(() => (
-      hasLinks
-        ? beginNextLinkTask({
-            ...baseState,
-            solution: null,
-          })
-        : baseState
-    ));
+    setAppState(() => {
+      if (!hasLinks) {
+        return baseState;
+      }
+
+      if (allLinksKnown) {
+        return {
+          ...baseState,
+          mode: "ready_to_solve",
+          solution: buildSolutionPlan(baseState, parsed.offsets),
+        };
+      }
+
+      return beginNextLinkTask({
+        ...baseState,
+        solution: null,
+      });
+    });
 
     closeModal();
   }

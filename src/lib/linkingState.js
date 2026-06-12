@@ -53,18 +53,51 @@ function dedupeIndices(indices) {
   return [...new Set(indices)].sort((a, b) => a - b);
 }
 
-function pruneDeferredLinkTasks(state) {
-  const unknownPlates = new Set(getUnknownPlates(state.links));
+function getDeferredRequirements(state, deferredTask) {
+  if (Array.isArray(deferredTask.blockedRequirements) && deferredTask.blockedRequirements.length) {
+    return deferredTask.blockedRequirements;
+  }
 
+  return (deferredTask.blockedBy || []).map((index) => ({
+    index,
+    delta: deferredTask.task?.attempts?.[index] || 0,
+  }));
+}
+
+function isDeferredBlockerActive(state, deferredTask, index) {
+  if (getUnknownPlates(state.links).includes(index)) {
+    return true;
+  }
+
+  const requirement = getDeferredRequirements(state, deferredTask).find((entry) => entry.index === index);
+  const requiredDelta = requirement?.delta || 0;
+  if (!requiredDelta) {
+    return false;
+  }
+
+  const nextOffset = (state.offsets?.[index] ?? 0) + requiredDelta;
+  return nextOffset < -CENTER_INDEX || nextOffset > CENTER_INDEX;
+}
+
+function pruneDeferredLinkTasks(state) {
   return (state.deferredLinkTasks || [])
     .map((deferredTask) => ({
       ...deferredTask,
       driver: deferredTask.driver ?? deferredTask.task?.driver,
+      blockedRequirements: getDeferredRequirements(state, deferredTask).filter(({ index }) => (
+        index !== (deferredTask.driver ?? deferredTask.task?.driver)
+        && isDeferredBlockerActive(state, deferredTask, index)
+      )),
       blockedBy: dedupeIndices(
-        (deferredTask.blockedBy || []).filter((index) => unknownPlates.has(index) && index !== (deferredTask.driver ?? deferredTask.task?.driver)),
+        getDeferredRequirements(state, deferredTask)
+          .filter(({ index }) => (
+            index !== (deferredTask.driver ?? deferredTask.task?.driver)
+            && isDeferredBlockerActive(state, deferredTask, index)
+          ))
+          .map(({ index }) => index),
       ),
     }))
-    .filter((deferredTask) => unknownPlates.has(deferredTask.driver));
+    .filter((deferredTask) => deferredTask.driver !== undefined && deferredTask.driver !== null);
 }
 
 function getStep2Selection(task, offsets, index) {
@@ -183,12 +216,17 @@ function applyKnownBlockedLinks(state) {
 
 function beginDeferredBlockedTask(state, blockedIndexes) {
   const blockedBy = dedupeIndices(blockedIndexes.filter((index) => index !== state.currentTask.driver));
+  const blockedRequirements = blockedBy.map((index) => ({
+    index,
+    delta: state.currentTask.attempts?.[index] || 0,
+  }));
   const currentDriver = state.currentTask.driver;
   const deferredTasks = pruneDeferredLinkTasks(state).filter((deferredTask) => deferredTask.driver !== currentDriver);
 
   deferredTasks.push({
     driver: currentDriver,
     blockedBy,
+    blockedRequirements,
     task: cloneLinkTask(state.currentTask),
     offsets: cloneOffsets(state.offsets),
   });
@@ -258,6 +296,14 @@ export function beginNextLinkTask(state, options = {}) {
   const driver = chooseNextDriver(normalizedState, options.excludeDrivers || []);
 
   if (driver === null || driver === undefined) {
+    if (normalizedState.deferredLinkTasks.length) {
+      return {
+        ...normalizedState,
+        mode: "linking",
+        currentTask: null,
+      };
+    }
+
     const links = normalizedState.links.map((link, index) => link || createIdentityLink(normalizedState.plateCount, index));
     return enterSolutionMode({ ...normalizedState, links });
   }
@@ -458,12 +504,8 @@ export function finishLinkCapture(state) {
     linkDeltas,
   };
 
-  const blockedUnknownPlates = blockedSelections
-    .filter(({ known }) => !known)
-    .map(({ index }) => index);
-
-  if (blockedUnknownPlates.length) {
-    return beginDeferredBlockedTask(committedState, blockedUnknownPlates);
+  if (blockedSelections.length) {
+    return beginDeferredBlockedTask(committedState, blockedSelections.map(({ index }) => index));
   }
 
   const nextState = {
@@ -473,10 +515,6 @@ export function finishLinkCapture(state) {
       links,
     }).filter((deferredTask) => deferredTask.driver !== driver),
   };
-
-  if ((preparedState.deferredLinkTasks || []).length) {
-    return resumeDeferredBlockedTask(nextState);
-  }
 
   if (getUnknownPlates(links).length === 0) {
     return enterSolutionMode(nextState);
