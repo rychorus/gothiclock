@@ -11,6 +11,10 @@ function renderHeroTitle(mode) {
     return "Linking Mode";
   }
 
+  if (mode === "setup") {
+    return "Plates Setup";
+  }
+
   if (mode === "testing") {
     return "Testing Mode";
   }
@@ -38,7 +42,7 @@ function getStageInstruction(appState, currentSolutionChunk) {
     return appState.currentTask.phase === "step2" ? `What moved with plate ${driver}?` : `Move plate ${driver} ${direction}`;
   }
 
-  return appState.mode === "setup" ? "Plates setup" : "";
+  return "";
 }
 
 export function LockpickAppView({ app, appVersion }) {
@@ -215,7 +219,7 @@ export function LockpickAppView({ app, appVersion }) {
           ) : null}
 
           <section className={`lock-stage${appState.mode === "solution" || appState.mode === "ready_to_solve" ? " is-solution-compact" : ""}`} hidden={appState.mode === "menu" || appState.mode === "load" || appState.mode === "import"}>
-            {stageInstruction ? <div className={`stage-instruction${appState.mode === "setup" ? " is-setup-mode" : ""}${appState.mode === "linking" ? " is-linking-mode" : ""}`} aria-live="polite">{stageInstruction}</div> : null}
+            {stageInstruction ? <div className={`stage-instruction${appState.mode === "linking" ? " is-linking-mode" : ""}`} aria-live="polite">{stageInstruction}</div> : null}
             <div className="plates-row" aria-label="Lock plates">
               {appState.offsets.map((offset, index) => (
                 <PlateColumn
@@ -237,13 +241,13 @@ export function LockpickAppView({ app, appVersion }) {
                 />
               ))}
             </div>
-            {(appState.mode === "linking" || appState.mode === "testing") ? (
-              <div className="stage-inline-actions">
-                {appState.mode === "linking" ? <button className="stage-start-over" type="button" onClick={actions.startOver}>Start over</button> : null}
-                <button className="stage-reset" type="button" onClick={appState.mode === "testing" ? actions.resetTestingMode : actions.resetPlates}>Reset</button>
-              </div>
-            ) : null}
           </section>
+
+          {(appState.mode === "linking" || appState.mode === "testing") ? (
+            <div className="stage-inline-actions" data-mode={appState.mode}>
+              <button className="stage-reset" type="button" onClick={appState.mode === "testing" ? actions.resetTestingMode : actions.resetPlates}>Reset</button>
+            </div>
+          ) : null}
 
           {(appState.mode === "ready_to_solve" || appState.mode === "solution") ? (
             <section className="bottom-panel">

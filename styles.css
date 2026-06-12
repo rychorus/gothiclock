@@ -71,6 +71,7 @@ button {
   justify-content: center;
   align-items: flex-start;
   padding: 0.65rem 0.65rem calc(0.65rem + env(safe-area-inset-bottom, 0px));
+  overflow-x: hidden;
 }
 
 .panel {
@@ -85,7 +86,8 @@ button {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto auto;
   gap: 0.65rem;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .hero {
@@ -303,6 +305,7 @@ body.is-menu-mode .hero-title-line:first-child {
   color: rgba(244, 234, 216, 0.66);
 }
 
+body.is-setup-mode .hero-title,
 body.is-linking-mode .hero-title,
 body.is-solution-mode .hero-title {
   color: rgba(244, 234, 216, 0.82);
@@ -413,7 +416,8 @@ body.is-load-mode .controls-card--load-screen {
 
 .lock-stage {
   position: relative;
-  overflow: visible;
+  overflow-x: clip;
+  overflow-y: visible;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -540,11 +544,12 @@ body.is-testing-mode .lock-stage {
   align-content: center;
   justify-content: center;
   flex: 1 1 auto;
-  width: fit-content;
+  width: 100%;
   max-width: 100%;
   height: auto;
   min-height: 0;
   margin: 0 auto;
+  overflow-x: clip;
   z-index: 1;
 }
 
@@ -552,7 +557,6 @@ body.is-testing-mode .lock-stage {
   position: relative;
   display: grid;
   grid-template-columns: var(--plate-width) var(--plate-track-width) var(--plate-width);
-  column-gap: clamp(0.46rem, 1.2vw, 0.72rem);
   align-items: center;
   justify-content: center;
   width: fit-content;
@@ -574,7 +578,7 @@ body.is-testing-mode .lock-stage {
 .plate-column.show-status .plate-status-row {
   display: flex;
   position: absolute;
-  right: calc(100% + 1.45rem);
+  right: calc(100% + 0.9rem);
   top: 50%;
   transform: translateY(-50%);
   width: var(--plate-status-width);
@@ -1006,18 +1010,36 @@ body.is-linking-mode .panel {
   padding-bottom: 0.3rem;
 }
 
+body.is-setup-mode .controls-heading {
+  margin-top: 0.2rem;
+}
+
+body.is-setup-mode .count-picker {
+  margin-bottom: 0.2rem;
+}
+
 .stage-inline-actions {
   display: flex;
   justify-content: center;
   gap: 0.75rem;
-  margin-top: 0.75rem;
-  padding-top: 0.35rem;
+  margin: 0.6rem 0 0;
+  padding-top: 0;
   flex-wrap: wrap;
+}
+
+.stage-inline-actions[data-mode="linking"] {
+  width: fit-content;
+  justify-self: center;
 }
 
 .footer-actions[data-mode="solution"],
 .footer-actions[data-mode="ready_to_solve"] {
   flex-wrap: nowrap;
+}
+
+.stage-inline-actions .stage-reset {
+  height: 2.35rem;
+  padding: 0 0.95rem;
 }
 
 .footer-actions[data-mode="solution"] .action-button,
@@ -1937,27 +1959,45 @@ body.is-resizing .plate-track {
   }
 
   .lock-stage {
-    padding-top: 1.7rem;
+    padding-top: 1.55rem;
   }
 
   .lock-stage.is-solution-compact {
-    --stage-height: clamp(8.4rem, 20dvh, 10.4rem);
-    --plate-width: clamp(1.7rem, 8vw, 2.15rem);
-    --hole-size: clamp(0.38rem, 1.25vw, 0.54rem);
-    --hole-gap: clamp(0.28rem, 0.62vh, 0.38rem);
-    --plate-padding-x: 0.82rem;
-    --plate-body-thickness: clamp(1.82rem, 6vw, 2.3rem);
-    --plate-lane-height: max(clamp(2.45rem, 8vw, 3.2rem), calc(var(--plate-body-thickness) + 0.42rem));
-    padding-top: 0.8rem;
+    --stage-height: clamp(8.2rem, 19dvh, 10.2rem);
+    --plate-width: clamp(1.42rem, 6.2vw, 1.76rem);
+    --hole-size: clamp(0.37rem, 1.2vw, 0.52rem);
+    --hole-gap: clamp(0.22rem, 0.5vh, 0.28rem);
+    --plate-padding-x: 0.64rem;
+    --plate-body-thickness: clamp(1.78rem, 5.8vw, 2.22rem);
+    --plate-lane-height: max(clamp(2.38rem, 7.7vw, 3.08rem), calc(var(--plate-body-thickness) + 0.4rem));
+    padding-top: 0.72rem;
   }
 
   .plates-row {
-    gap: 0.22rem;
+    gap: 0.06rem;
+    width: 100%;
   }
 
   .plate-button {
-    height: 1.9rem;
+    height: 2.35rem;
     border-radius: 0.9rem;
+    width: clamp(2.3rem, 7vw, 2.8rem);
+  }
+
+  .plate-column .plate-button[data-direction="left"] {
+    margin-right: -0.0rem;
+  }
+
+  .plate-column .plate-button[data-direction="right"] {
+    margin-left: 0.0rem;
+  }
+
+  .stage-inline-actions {
+    margin-top: 0.45rem;
+  }
+
+  .stage-inline-actions[data-mode="linking"] {
+    width: fit-content;
   }
 
   .app-version {
@@ -1968,6 +2008,7 @@ body.is-resizing .plate-track {
     font-size: 0.56rem;
   }
 
+  body.is-setup-mode .hero-title,
   body.is-linking-mode .hero-title,
   body.is-solution-mode .hero-title {
     font-size: 0.98rem;
