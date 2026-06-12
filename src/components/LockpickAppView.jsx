@@ -8,7 +8,7 @@ import { SolutionSequence } from "./SolutionSequence";
 
 function renderHeroTitle(mode) {
   if (mode === "linking") {
-    return "Linking Mode";
+    return "Plates Linking";
   }
 
   if (mode === "setup") {
@@ -20,7 +20,7 @@ function renderHeroTitle(mode) {
   }
 
   if (mode === "solution" || mode === "ready_to_solve") {
-    return "Solution Mode";
+    return "Solution";
   }
 
   if (mode === "import") {
