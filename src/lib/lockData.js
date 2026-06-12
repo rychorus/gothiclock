@@ -1,4 +1,4 @@
-export const APP_VERSION = "v1.5.18";
+export const APP_VERSION = "v1.5.25";
 export const MIN_PLATES = 3;
 export const MAX_PLATES = 7;
 export const HOLE_COUNT = 7;

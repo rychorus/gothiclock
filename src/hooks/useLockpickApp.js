@@ -19,14 +19,19 @@ export function useLockpickApp() {
   }, [appState.mode]);
 
   useEffect(() => {
-    if (appState.mode === "linking" || appState.mode === "ready_to_solve" || appState.mode === "solution") {
+    const existingLock = getSavedLockById(appState.currentSaveId);
+    const shouldSyncDraft = !existingLock || existingLock.isDraft;
+
+    if ((appState.mode === "linking" || appState.mode === "ready_to_solve" || appState.mode === "solution") && shouldSyncDraft) {
       const lockId = persistCurrentLock(appState, { isDraft: true });
       if (lockId && lockId !== appState.currentSaveId) {
         setAppState((current) => (current.currentSaveId === lockId ? current : { ...current, currentSaveId: lockId }));
       }
     }
 
-    syncFinalLockProgress(appState);
+    if (shouldSyncDraft) {
+      syncFinalLockProgress(appState);
+    }
   }, [appState]);
 
   useEffect(() => {

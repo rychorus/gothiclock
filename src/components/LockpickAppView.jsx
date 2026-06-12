@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MAX_PLATES, MIN_PLATES } from "../lib/lockData";
 import { MaterialIcon } from "../lib/icons";
 import { AppModal } from "./AppModal";
@@ -38,6 +38,7 @@ function getStageInstruction(appState, currentSolutionChunk) {
 export function LockpickAppView({ app, appVersion }) {
   const { appState, modal, savedLocks, unknownPlates, currentSolutionChunk, testingFeedback, powershellCode, actions, selectors } = app;
   const [isSolutionMenuOpen, setIsSolutionMenuOpen] = useState(false);
+  const solutionMenuRef = useRef(null);
   const heroTitle = renderHeroTitle(appState.mode);
   const stageInstruction = getStageInstruction(appState, currentSolutionChunk);
   const solutionChunks = appState.solution?.chunks ?? [];
@@ -60,6 +61,21 @@ export function LockpickAppView({ app, appVersion }) {
     [app, appState.solution?.index, modal, powershellCode, savedLocks, solutionChunks],
   );
 
+  useEffect(() => {
+    if (!isSolutionMenuOpen) {
+      return undefined;
+    }
+
+    function handlePointerDown(event) {
+      if (!solutionMenuRef.current?.contains(event.target)) {
+        setIsSolutionMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [isSolutionMenuOpen]);
+
   return (
     <>
       <main className="app-shell">
@@ -75,7 +91,7 @@ export function LockpickAppView({ app, appVersion }) {
               <span></span>
             </button>
             <p className="hero-title">
-              {heroTitle ? heroTitle : <><span className="hero-title-line">Gothic Remake</span><span className="hero-title-line hero-title-line--accent">Lockpick Solver</span></>}
+              {heroTitle ? heroTitle : <><span className="hero-title-line">Gothic Remake</span>{" "}<span className="hero-title-line hero-title-line--accent">Lockpick Solver</span></>}
             </p>
             <span className="app-version" aria-label="App version" title={`Current version: ${appVersion}`}>{appVersion}</span>
           </header>
@@ -146,11 +162,11 @@ export function LockpickAppView({ app, appVersion }) {
                   <p className="controls-title is-solution">{currentStep} of {solutionChunks.length || 1}</p>
                   <button className="solution-nav-button" type="button" aria-label="Next solution step" disabled={(appState.solution?.index ?? 0) >= solutionChunks.length - 1} onClick={() => actions.setSolutionStep((appState.solution?.index ?? 0) + 1)}><MaterialIcon name="chevron_right" /></button>
                 </div>
-                <div className="solution-menu-wrap">
+                <div ref={solutionMenuRef} className="solution-menu-wrap">
                   <button className="solution-toggle-icon" type="button" aria-label="Solution actions" aria-expanded={isSolutionMenuOpen} onClick={() => setIsSolutionMenuOpen((current) => !current)}><MaterialIcon name="more_vert" /></button>
                   <div className="saved-lock-menu solution-toggle-menu" hidden={!isSolutionMenuOpen}>
                     <button className="saved-lock-menu-item" type="button" onClick={() => { setIsSolutionMenuOpen(false); actions.enterTestingMode(); }}>
-                      <MaterialIcon name="restart_alt" />
+                      <MaterialIcon name="play_arrow" />
                       <span>Testing mode</span>
                     </button>
                     <button className="saved-lock-menu-item" type="button" onClick={() => { setIsSolutionMenuOpen(false); app.setModal({ type: "powershell" }); }}>

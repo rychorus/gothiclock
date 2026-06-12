@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MaterialIcon } from "../lib/icons";
 
 function getRelativeDayLabel(savedAt) {
@@ -56,11 +56,49 @@ function getRelativeTimeLabel(savedAt) {
   return `${diffDays} days ago`;
 }
 
+function groupLocksByDay(locks) {
+  const groups = new Map();
+
+  locks.forEach((lock) => {
+    const dayKey = new Date(lock.savedAt).toDateString();
+    if (!groups.has(dayKey)) {
+      groups.set(dayKey, {
+        key: dayKey,
+        label: getRelativeDayLabel(lock.savedAt),
+        items: [],
+      });
+    }
+
+    groups.get(dayKey).items.push(lock);
+  });
+
+  return [...groups.values()];
+}
+
 export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }) {
   const [showDrafts, setShowDrafts] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const listRef = useRef(null);
 
-  const visibleLocks = savedLocks.filter((lock) => showDrafts || !lock.isDraft);
+  const visibleLocks = savedLocks
+    .filter((lock) => showDrafts || !lock.isDraft)
+    .sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
+  const groupedLocks = groupLocksByDay(visibleLocks);
+
+  useEffect(() => {
+    if (!openMenuId) {
+      return undefined;
+    }
+
+    function handlePointerDown(event) {
+      if (!listRef.current?.contains(event.target)) {
+        setOpenMenuId(null);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [openMenuId]);
 
   return (
     <>
@@ -70,7 +108,7 @@ export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }) {
         <span className="saved-lock-filter-switch" aria-hidden="true"></span>
       </label>
 
-      <div className="saved-lock-list" onClick={() => setOpenMenuId(null)}>
+      <div ref={listRef} className="saved-lock-list" onClick={() => setOpenMenuId(null)}>
         {!visibleLocks.length ? (
           <div className="saved-lock-empty">
             <p className="modal-empty">
@@ -83,37 +121,47 @@ export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }) {
             ) : null}
           </div>
         ) : (
-          visibleLocks.map((lock) => (
-            <div className="saved-lock-item" key={lock.id}>
-              <button className="saved-lock-main" type="button" onClick={() => onLoad(lock.id)}>
-                <span className="saved-lock-name-row">
-                  <span className="saved-lock-name">{lock.name}</span>
-                  {lock.isDraft ? <span className="saved-lock-badge">Draft</span> : null}
-                </span>
-                <span className="saved-lock-meta">{lock.plateCount} plates · {getRelativeDayLabel(lock.savedAt)} · {getRelativeTimeLabel(lock.savedAt)}</span>
-              </button>
+          groupedLocks.map((group) => (
+            <section className="saved-lock-section" key={group.key}>
+              <header className="saved-lock-section-header">
+                <p className="saved-lock-section-title">{group.label}</p>
+              </header>
 
-              <div className="saved-lock-tools" onClick={(event) => event.stopPropagation()}>
-                <button
-                  className="saved-lock-menu-toggle"
-                  type="button"
-                  aria-label="Open lock actions"
-                  onClick={() => setOpenMenuId((current) => (current === lock.id ? null : lock.id))}
-                >
-                  <MaterialIcon name="more_vert" />
-                </button>
-                <div className={`saved-lock-menu${openMenuId === lock.id ? "" : ""}`} hidden={openMenuId !== lock.id}>
-                  <button className="saved-lock-menu-item" type="button" onClick={() => onRename(lock.id)}>
-                    <MaterialIcon name="edit" />
-                    <span>Edit</span>
-                  </button>
-                  <button className="saved-lock-menu-item is-danger" type="button" onClick={() => onDelete(lock.id)}>
-                    <MaterialIcon name="delete" />
-                    <span>Delete</span>
-                  </button>
-                </div>
+              <div className="saved-lock-section-list">
+                {group.items.map((lock) => (
+                  <div className="saved-lock-item" key={lock.id}>
+                    <button className="saved-lock-main" type="button" onClick={() => onLoad(lock.id)}>
+                      <span className="saved-lock-name-row">
+                        <span className="saved-lock-name">{lock.name}</span>
+                        {lock.isDraft ? <span className="saved-lock-badge">Draft</span> : null}
+                      </span>
+                      <span className="saved-lock-meta">{lock.plateCount} plates · {getRelativeTimeLabel(lock.savedAt)}</span>
+                    </button>
+
+                    <div className="saved-lock-tools" onClick={(event) => event.stopPropagation()}>
+                      <button
+                        className="saved-lock-menu-toggle"
+                        type="button"
+                        aria-label="Open lock actions"
+                        onClick={() => setOpenMenuId((current) => (current === lock.id ? null : lock.id))}
+                      >
+                        <MaterialIcon name="more_vert" />
+                      </button>
+                      <div className={`saved-lock-menu${openMenuId === lock.id ? "" : ""}`} hidden={openMenuId !== lock.id}>
+                        <button className="saved-lock-menu-item" type="button" onClick={() => onRename(lock.id)}>
+                          <MaterialIcon name="edit" />
+                          <span>Edit</span>
+                        </button>
+                        <button className="saved-lock-menu-item is-danger" type="button" onClick={() => onDelete(lock.id)}>
+                          <MaterialIcon name="delete" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
+            </section>
           ))
         )}
       </div>

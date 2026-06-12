@@ -3,6 +3,11 @@ import { copyTextToClipboard } from "../lib/clipboard";
 import { Modal } from "./Modal";
 import { SolutionSequence } from "./SolutionSequence";
 
+function getPowershellStartDelaySeconds(powershellCode) {
+  const match = powershellCode.match(/Start-Sleep -Seconds (\d+)/i);
+  return match ? Number.parseInt(match[1], 10) : 10;
+}
+
 function LockNameForm({ initialValue, onSubmit, onCancel }) {
   const [value, setValue] = useState(initialValue);
 
@@ -20,9 +25,11 @@ function LockNameForm({ initialValue, onSubmit, onCancel }) {
 
 export function AppModal({ app, modal, savedLocks, solutionChunks, currentSolutionIndex, powershellCode }) {
   const [didCopyPowershell, setDidCopyPowershell] = useState(false);
+  const [showPowershellHelp, setShowPowershellHelp] = useState(false);
 
   useEffect(() => {
     setDidCopyPowershell(false);
+    setShowPowershellHelp(false);
   }, [modal]);
 
   if (modal.type === "save-current") {
@@ -53,6 +60,8 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
   }
 
   if (modal.type === "powershell") {
+    const startDelaySeconds = getPowershellStartDelaySeconds(powershellCode);
+
     return (
       <Modal
         title="Powershell code"
@@ -71,6 +80,19 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
         ]}
       >
         <pre className="modal-code-block">{powershellCode}</pre>
+        <div className="modal-inline-actions modal-inline-actions--after-code">
+          <button type="button" className="modal-text-button" onClick={() => setShowPowershellHelp((current) => !current)}>
+            {showPowershellHelp ? "Hide instructions" : "How to use"}
+          </button>
+        </div>
+        {showPowershellHelp ? (
+          <ol className="modal-help-list">
+            <li className="modal-note">Copy the Powershell code.</li>
+            <li className="modal-note">Press <span className="modal-keyword">Windows key</span>, type <span className="modal-keyword">Powershell</span> and press <span className="modal-keyword">Enter</span> to open it.</li>
+            <li className="modal-note">Paste the copied code and press <span className="modal-keyword">Enter</span>.</li>
+            <li className="modal-note">In {startDelaySeconds} seconds, it will start typing <span className="modal-keyword">WASD</span> keys on its own, which will solve the lock. Make sure you are on the game's screen by this point.</li>
+          </ol>
+        ) : null}
       </Modal>
     );
   }
