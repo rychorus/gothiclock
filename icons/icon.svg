@@ -5,22 +5,30 @@
       <stop offset="100%" stop-color="#120d09"/>
     </linearGradient>
     <linearGradient id="metal" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0%" stop-color="#d8ca9e"/>
-      <stop offset="50%" stop-color="#9d8e68"/>
-      <stop offset="100%" stop-color="#66563d"/>
+      <stop offset="0%" stop-color="#f2e3bf"/>
+      <stop offset="45%" stop-color="#c7b07e"/>
+      <stop offset="100%" stop-color="#6f5a3a"/>
     </linearGradient>
-    <radialGradient id="gem" cx="35%" cy="35%" r="70%">
-      <stop offset="0%" stop-color="#f4cb8a"/>
-      <stop offset="60%" stop-color="#d08b34"/>
-      <stop offset="100%" stop-color="#78461a"/>
+    <linearGradient id="metalDim" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#b99f6a"/>
+      <stop offset="100%" stop-color="#5d4a2e"/>
+    </linearGradient>
+    <radialGradient id="highlight" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#f8e7c4" stop-opacity=".95"/>
+      <stop offset="70%" stop-color="#f8e7c4" stop-opacity=".18"/>
+      <stop offset="100%" stop-color="#f8e7c4" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="512" height="512" rx="120" fill="url(#bg)"/>
-  <rect x="86" y="62" width="340" height="388" rx="60" fill="none" stroke="#e3a74d" stroke-opacity=".22" stroke-width="8"/>
-  <rect x="188" y="74" width="136" height="364" rx="54" fill="url(#metal)" stroke="rgba(255,239,209,.2)" stroke-width="3"/>
-  <circle cx="256" cy="158" r="22" fill="#201812"/>
-  <circle cx="256" cy="218" r="22" fill="#201812"/>
-  <circle cx="256" cy="278" r="22" fill="url(#gem)" stroke="#f6d7a2" stroke-width="3"/>
-  <circle cx="256" cy="338" r="22" fill="#201812"/>
-  <path d="M144 278h224" stroke="#e3a74d" stroke-opacity=".35" stroke-width="6" stroke-linecap="round"/>
+  <rect x="84" y="62" width="344" height="388" rx="60" fill="none" stroke="#e3a74d" stroke-opacity=".18" stroke-width="8"/>
+
+  <path d="M190 182v-28c0-34 28-62 66-62s66 28 66 62v28h-28v-28c0-19-16-34-38-34s-38 15-38 34v28z" fill="url(#metalDim)"/>
+  <path d="M188 180v-26c0-36 30-66 68-66s68 30 68 66v26h-22v-26c0-25-20-44-46-44s-46 19-46 44v26z" fill="none" stroke="url(#metal)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <text x="258" y="352" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="284" font-weight="700" fill="url(#metal)" stroke="#f7e0b0" stroke-opacity=".16" stroke-width="4" paint-order="stroke fill">G</text>
+
+  <path d="M282 284c0-15-12-27-26-27s-26 12-26 27c0 10 5 18 13 23v22h26v-22c8-5 13-13 13-23z" fill="#1e1711"/>
+  <path d="M256 276c-8 0-14 6-14 14 0 6 4 11 9 14v19h10v-19c5-3 9-8 9-14 0-8-6-14-14-14z" fill="url(#highlight)"/>
+
+  <path d="M130 258h252" stroke="#e3a74d" stroke-opacity=".28" stroke-width="6" stroke-linecap="round"/>
 </svg>
