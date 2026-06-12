@@ -60,6 +60,7 @@ export function LockpickAppView({ app, appVersion }) {
   if (appState.currentTask?.wasDeferred) {
     deferredDrivers.add(appState.currentTask.driver);
   }
+  const allUnknownCentered = unknownPlates.length > 0 && unknownPlates.every((index) => appState.offsets[index] === 0);
 
   useEffect(() => {
     if (appState.mode !== "import") {
@@ -133,7 +134,7 @@ export function LockpickAppView({ app, appVersion }) {
             </p>
             {appState.mode === "menu" ? (
               <span className="app-version" aria-label="App version" title={`Current version: ${appVersion}`}>{appVersion}</span>
-            ) : (
+            ) : (appState.mode === "setup" || appState.mode === "linking") ? (
               <div ref={topMenuRef} className="hero-menu-wrap">
                 <button className="solution-toggle-icon hero-menu-toggle" type="button" aria-label="Screen menu" aria-expanded={isTopMenuOpen} onClick={() => setIsTopMenuOpen((current) => !current)}>
                   <MaterialIcon name="more_vert" />
@@ -144,7 +145,7 @@ export function LockpickAppView({ app, appVersion }) {
                   </button>
                 </div>
               </div>
-            )}
+            ) : null}
           </header>
 
           {appState.mode === "menu" ? (
@@ -275,8 +276,8 @@ export function LockpickAppView({ app, appVersion }) {
             {appState.mode === "linking" ? (
               <>
                 <button className="action-button secondary" type="button" onClick={actions.stepBackLinking}><span className="action-button-row"><span className="action-icon is-left" aria-hidden="true"></span><span>{isAtLinkingStart ? "Back to setup" : "Back"}</span></span></button>
-                <button className={`action-button ${unknownPlates.length === 1 && appState.currentTask?.phase === "step2" && !(appState.deferredLinkTasks || []).length ? "solve" : "primary"}`} type="button" onClick={appState.currentTask?.phase === "step2" ? actions.finishLinkCapture : actions.advanceFromStep1}>
-                  {unknownPlates.length === 1 && appState.currentTask?.phase === "step2" && !(appState.deferredLinkTasks || []).length ? (
+                <button className={`action-button ${allUnknownCentered && appState.currentTask?.phase === "step2" ? "solve" : "primary"}`} type="button" onClick={appState.currentTask?.phase === "step2" ? actions.finishLinkCapture : actions.advanceFromStep1}>
+                  {allUnknownCentered && appState.currentTask?.phase === "step2" ? (
                     "Solve"
                   ) : noOtherPlateMoved ? (
                     <>

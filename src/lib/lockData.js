@@ -53,6 +53,11 @@ export function getUnknownPlates(links) {
     .map(({ index }) => index);
 }
 
+export function areUnknownPlatesCentered(state) {
+  const unknownPlates = getUnknownPlates(state.links);
+  return unknownPlates.length > 0 && unknownPlates.every((index) => state.offsets[index] === 0);
+}
+
 function getDeferredRequirements(deferredTask) {
   if (Array.isArray(deferredTask.blockedRequirements) && deferredTask.blockedRequirements.length) {
     return deferredTask.blockedRequirements;

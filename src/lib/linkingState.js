@@ -6,6 +6,7 @@ import {
   createEmptyLinks,
   createIdentityLink,
   chooseNextDriver,
+  areUnknownPlatesCentered,
   getSuggestedDelta,
   getUnknownPlates,
 } from "./lockData";
@@ -330,6 +331,12 @@ export function beginNextLinkTask(state, options = {}) {
     ...state,
     deferredLinkTasks: pruneDeferredLinkTasks(state),
   };
+
+  if (areUnknownPlatesCentered(normalizedState)) {
+    const links = normalizedState.links.map((link, index) => link || createIdentityLink(normalizedState.plateCount, index));
+    return enterSolutionMode({ ...normalizedState, links });
+  }
+
   const driver = chooseNextDriver(normalizedState, options.excludeDrivers || []);
 
   if (driver === null || driver === undefined) {
