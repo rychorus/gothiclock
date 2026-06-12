@@ -1,16 +1,92 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { buildSolutionPlan, buildWasdSequence, buildSolutionCommandString } from "../lib/solution";
 import { buildNotationString, parseNotationString } from "../lib/notation";
 import { canMove, getOffsetBounds, getStep2Selection, hasAnyStep2Selection } from "../lib/plateMath";
-import { createEmptyLinkDeltas, createInitialAppState, getUnknownPlates, isTrivialCenteredLock } from "../lib/lockData";
+import { createEmptyLinkDeltas, createEmptyLinks, createInitialAppState, getUnknownPlates, isTrivialCenteredLock, cloneOffsets } from "../lib/lockData";
 import { deleteSavedLock, getDefaultLockName, getSavedLockById, getSavedLocks, persistCurrentLock, renameSavedLock, syncFinalLockProgress } from "../lib/lockStorage";
 import { applyTestingMove, enterTestingMode, loadSavedLockState, resetTestingMode, returnToSolutionView, setPlateCount, setSolutionStep, startNewLock, startOver } from "../lib/appState";
 import { advanceFromStep1, beginNextLinkTask, enterSolutionMode, finishLinkCapture, recordPlateAttempt, resetPlates, startLinkingMode, stepBackLinking, updatePlateOffset } from "../lib/linkingState";
 
 export function useLockpickApp() {
   const [appState, setAppState] = useState(createInitialAppState);
-  const [modal, setModal] = useState({ type: null });
+  const [modal, setModalState] = useState({ type: null });
   const [storageNonce, setStorageNonce] = useState(0);
+  const historyReadyRef = useRef(false);
+  const historyKeyRef = useRef("");
+  const restoringHistoryRef = useRef(false);
+
+  function snapshotNavigation(nextAppState = appState, nextModal = modal) {
+    return { appState: nextAppState, modal: nextModal };
+  }
+
+  function getNavigationKey(nextAppState = appState, nextModal = modal) {
+    return `${nextAppState.mode}|${nextModal.type || "none"}`;
+  }
+
+  function replaceNavigationState(nextAppState = appState, nextModal = modal) {
+    if (typeof window === "undefined" || !window.history?.replaceState) {
+      return;
+    }
+
+    window.history.replaceState(snapshotNavigation(nextAppState, nextModal), "", window.location.href);
+    historyKeyRef.current = getNavigationKey(nextAppState, nextModal);
+  }
+
+  function pushNavigationState(nextAppState = appState, nextModal = modal) {
+    if (typeof window === "undefined" || !window.history?.pushState) {
+      return;
+    }
+
+    window.history.pushState(snapshotNavigation(nextAppState, nextModal), "", window.location.href);
+    historyKeyRef.current = getNavigationKey(nextAppState, nextModal);
+  }
+
+  function goBackScreen() {
+    if (typeof window !== "undefined" && window.history?.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    if (modal.type) {
+      setModalState({ type: null });
+      return;
+    }
+
+    if (appState.mode === "testing") {
+      setAppState(returnToSolutionView);
+      return;
+    }
+
+    if (appState.mode === "solution") {
+      setAppState((current) => ({ ...current, mode: "ready_to_solve" }));
+      return;
+    }
+
+    if (appState.mode === "ready_to_solve") {
+      setAppState((current) => beginNextLinkTask({ ...current, mode: "linking" }));
+      return;
+    }
+
+    if (appState.mode === "linking") {
+      setAppState((current) => ({
+        ...current,
+        mode: "setup",
+        currentTask: null,
+        links: createEmptyLinks(current.plateCount),
+        linkDeltas: createEmptyLinkDeltas(current.plateCount),
+        offsets: cloneOffsets(current.linkingStartOffsets || current.offsets),
+      }));
+      return;
+    }
+
+    if (appState.mode === "load" || appState.mode === "import" || appState.mode === "setup") {
+      setAppState((current) => ({ ...current, mode: "menu", currentTask: null }));
+    }
+  }
+
+  function setModal(nextModal) {
+    setModalState(nextModal);
+  }
 
   useEffect(() => {
     document.body.classList.toggle("is-menu-mode", appState.mode === "menu");
@@ -21,6 +97,44 @@ export function useLockpickApp() {
     document.body.classList.toggle("is-solution-mode", appState.mode === "solution" || appState.mode === "ready_to_solve" || appState.mode === "testing");
     document.body.classList.toggle("is-testing-mode", appState.mode === "testing");
   }, [appState.mode]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.history?.replaceState) {
+      return undefined;
+    }
+
+    function handlePopState(event) {
+      restoringHistoryRef.current = true;
+      setAppState(event.state?.appState || createInitialAppState());
+      setModalState(event.state?.modal || { type: null });
+    }
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.history?.pushState) {
+      return;
+    }
+
+    if (!historyReadyRef.current) {
+      replaceNavigationState(appState, modal);
+      historyReadyRef.current = true;
+      return;
+    }
+
+    const nextKey = getNavigationKey(appState, modal);
+    if (restoringHistoryRef.current) {
+      restoringHistoryRef.current = false;
+      historyKeyRef.current = nextKey;
+      return;
+    }
+
+    if (historyKeyRef.current !== nextKey) {
+      pushNavigationState(appState, modal);
+    }
+  }, [appState, modal]);
 
   useEffect(() => {
     const existingLock = getSavedLockById(appState.currentSaveId);
@@ -60,7 +174,7 @@ export function useLockpickApp() {
   const powershellCode = `$myKeys = "${buildSolutionCommandString(appState.solution?.chunks)}"; $delayR = 1500; $delayAD = 500; $delayOthers = 100; Start-Sleep -Seconds 10; Add-Type -AssemblyName System.Windows.Forms; $myKeys.ToCharArray() | ForEach-Object { [System.Windows.Forms.SendKeys]::SendWait($_); if ($_ -match '^[R]$') { Start-Sleep -Milliseconds $delayR } elseif ($_ -match '^[AD]$') { Start-Sleep -Milliseconds $delayAD } else { Start-Sleep -Milliseconds $delayOthers } }`;
 
   function closeModal() {
-    setModal({ type: null });
+    goBackScreen();
   }
 
   function persistWithName(name, isDraft = false) {
@@ -85,12 +199,10 @@ export function useLockpickApp() {
   }
 
   function openLoadLockDialog() {
-    closeModal();
     setAppState((current) => ({ ...current, mode: "load", currentTask: null }));
   }
 
   function openImportNotationDialog() {
-    closeModal();
     setAppState((current) => ({ ...current, mode: "import", currentTask: null }));
   }
 
@@ -130,8 +242,6 @@ export function useLockpickApp() {
         solution: null,
       });
     });
-
-    closeModal();
   }
 
   function loadSavedLock(lockId) {
@@ -141,7 +251,6 @@ export function useLockpickApp() {
     }
 
     setAppState((current) => loadSavedLockState(current, savedLock));
-    closeModal();
   }
 
   function movePlate(index, direction) {
@@ -211,6 +320,7 @@ export function useLockpickApp() {
     persistWithName,
     setAppState,
     setModal,
+    goBackScreen,
     actions: {
       startNewLock: () => setAppState(startNewLock),
       setPlateCount: (count) => {
@@ -228,15 +338,14 @@ export function useLockpickApp() {
       finishLinkCapture: () => setAppState(finishLinkCapture),
       enterSolutionMode: () => setAppState(enterSolutionMode),
       enterTestingMode: () => setAppState(enterTestingMode),
-      returnToSolutionView: () => setAppState(returnToSolutionView),
+      returnToSolutionView: goBackScreen,
       beginNextLinkTask: () => setAppState(beginNextLinkTask),
-      returnToLinking: () => setAppState((current) => beginNextLinkTask({ ...current, mode: "linking" })),
+      returnToLinking: goBackScreen,
       setSolutionStep: (index) => setAppState((current) => setSolutionStep(current, index)),
       resetTestingMode: () => setAppState(resetTestingMode),
-      goToMainMenu: () => {
-        closeModal();
-        setAppState((current) => ({ ...current, mode: "menu", currentTask: null }));
-      },
+      goToMainMenu: goBackScreen,
+      goBackScreen,
+      goBack: goBackScreen,
       movePlate,
       commitDrag,
     },

@@ -125,9 +125,9 @@ export function LockpickAppView({ app, appVersion }) {
             <button
               className="hero-back"
               type="button"
-              aria-label={appState.mode === "testing" ? "Back to solution mode" : "Back to main menu"}
+              aria-label={appState.mode === "testing" ? "Back to solution mode" : appState.mode === "solution" ? "Back to ready to solve" : appState.mode === "ready_to_solve" ? "Back to linking" : appState.mode === "linking" ? "Back to plates setup" : "Back to main menu"}
               hidden={appState.mode === "menu"}
-              onClick={appState.mode === "testing" ? actions.returnToSolutionView : actions.goToMainMenu}
+              onClick={actions.goBackScreen}
             >
               <span></span>
             </button>
@@ -261,6 +261,10 @@ export function LockpickAppView({ app, appVersion }) {
                     <button className="saved-lock-menu-item" type="button" onClick={() => { setIsSolutionMenuOpen(false); actions.enterTestingMode(); }}>
                       <MaterialIcon name="play_arrow" />
                       <span>Testing mode</span>
+                    </button>
+                    <button className="saved-lock-menu-item" type="button" onClick={() => { setIsSolutionMenuOpen(false); app.setModal({ type: "notation" }); }}>
+                      <MaterialIcon name="description" />
+                      <span>Show plates setup notation</span>
                     </button>
                     <button className="saved-lock-menu-item" type="button" onClick={() => { setIsSolutionMenuOpen(false); app.setModal({ type: "powershell" }); }}>
                       <MaterialIcon name="code" />

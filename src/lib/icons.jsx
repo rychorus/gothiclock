@@ -8,6 +8,7 @@ const PATHS = {
   chevron_left: "M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z",
   chevron_right: "M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z",
   open_in_full: "M21 3h-6v2h2.59l-3.83 3.83 1.41 1.41L19 6.41V9h2V3zM3 15h2v2.59l3.83-3.83 1.41 1.41L6.41 19H9v2H3v-6zm6.41-4.76L5.59 6.41H8V4H2v6h2V7.41l3.83 3.83 1.58-1zm5.17 3.59l-1.41 1.41L17.59 19H15v2h6v-6h-2v2.59l-4.42-4.42z",
+  description: "M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm1 7V3.5L18.5 9H15zm-1 4H8v-2h6v2zm2-4H8V7h8v2zm-2 8H8v-2h6v2z",
 };
 
 export function MaterialIcon({ name }) {
