@@ -35,18 +35,21 @@ export function buildSolutionChunks(moves, startOffsets, links) {
     },
   ];
 
-  let focusedPlate = 0;
+  // Solution steps are expressed in the visible plate numbering,
+  // where the bottom plate is 1 and plates count upward from there.
+  let focusedPlate = 1;
   let offsets = cloneOffsets(startOffsets);
 
   moves.forEach((move, index) => {
+    const targetPlate = links.length - move.plate;
     const keys = [];
 
-    while (focusedPlate < move.plate) {
+    while (focusedPlate < targetPlate) {
       keys.push("W");
       focusedPlate += 1;
     }
 
-    while (focusedPlate > move.plate) {
+    while (focusedPlate > targetPlate) {
       keys.push("S");
       focusedPlate -= 1;
     }
