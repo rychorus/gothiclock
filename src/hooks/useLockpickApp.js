@@ -16,6 +16,7 @@ export function useLockpickApp() {
     document.body.classList.toggle("is-load-mode", appState.mode === "load");
     document.body.classList.toggle("is-linking-mode", appState.mode === "linking");
     document.body.classList.toggle("is-solution-mode", appState.mode === "solution" || appState.mode === "ready_to_solve" || appState.mode === "testing");
+    document.body.classList.toggle("is-testing-mode", appState.mode === "testing");
   }, [appState.mode]);
 
   useEffect(() => {

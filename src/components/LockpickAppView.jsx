@@ -29,7 +29,8 @@ function renderHeroTitle(mode) {
 function getStageInstruction(appState, currentSolutionChunk) {
   if (appState.mode === "linking" && appState.currentTask) {
     const driver = (appState.currentTask.driver ?? 0) + 1;
-    return appState.currentTask.phase === "step2" ? `What moved with plate ${driver}?` : `Move plate ${driver} ${appState.currentTask.direction ?? "up"}`;
+    const direction = appState.currentTask.direction === "up" ? "left" : "right";
+    return appState.currentTask.phase === "step2" ? `What moved with plate ${driver}?` : `Move plate ${driver} ${direction}`;
   }
 
   return appState.mode === "setup" ? "Plates setup" : "";
@@ -128,10 +129,8 @@ export function LockpickAppView({ app, appVersion }) {
             </section>
           ) : null}
 
-          <section className={`lock-stage${appState.mode === "solution" || appState.mode === "ready_to_solve" ? " is-solution-compact" : ""}${appState.mode === "linking" ? " has-stage-controls has-bottom-instruction" : ""}`} hidden={appState.mode === "menu" || appState.mode === "load"}>
+          <section className={`lock-stage${appState.mode === "solution" || appState.mode === "ready_to_solve" ? " is-solution-compact" : ""}`} hidden={appState.mode === "menu" || appState.mode === "load"}>
             {stageInstruction ? <div className={`stage-instruction${appState.mode === "setup" ? " is-setup-mode" : ""}${appState.mode === "linking" ? " is-linking-mode" : ""}`} aria-live="polite">{stageInstruction}</div> : null}
-            <button className="stage-start-over" type="button" hidden={appState.mode !== "linking"} onClick={actions.startOver}>Start over</button>
-            <button className="stage-reset" type="button" hidden={appState.mode === "setup" || appState.mode === "solution" || appState.mode === "ready_to_solve"} onClick={appState.mode === "testing" ? actions.resetTestingMode : actions.resetPlates}>Reset</button>
             <div className="plates-row" aria-label="Lock plates">
               {appState.offsets.map((offset, index) => (
                 <PlateColumn
@@ -152,6 +151,12 @@ export function LockpickAppView({ app, appVersion }) {
                 />
               ))}
             </div>
+            {(appState.mode === "linking" || appState.mode === "testing") ? (
+              <div className="stage-inline-actions">
+                {appState.mode === "linking" ? <button className="stage-start-over" type="button" onClick={actions.startOver}>Start over</button> : null}
+                <button className="stage-reset" type="button" onClick={appState.mode === "testing" ? actions.resetTestingMode : actions.resetPlates}>Reset</button>
+              </div>
+            ) : null}
           </section>
 
           {(appState.mode === "ready_to_solve" || appState.mode === "solution") ? (

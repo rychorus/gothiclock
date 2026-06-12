@@ -2,10 +2,10 @@ import { useMemo, useRef, useState } from "react";
 
 function getTransformValue(offset, dragPixels) {
   if (dragPixels !== null) {
-    return `translateY(calc(-50% + ${dragPixels}px))`;
+    return `translate(calc(-50% + ${dragPixels}px), -50%)`;
   }
 
-  return `translateY(calc(-50% + (${offset}) * (var(--hole-size) + var(--hole-gap))))`;
+  return `translate(calc(-50% + (${offset}) * (var(--hole-size) + var(--hole-gap))), -50%)`;
 }
 
 export function PlateColumn({
@@ -95,9 +95,9 @@ export function PlateColumn({
     }
 
     const stackStyles = window.getComputedStyle(stackRef.current);
-    const gap = parseFloat(stackStyles.rowGap || stackStyles.gap || "0");
-    const holeHeight = holeRef.current.getBoundingClientRect().height;
-    return gap + holeHeight;
+    const gap = parseFloat(stackStyles.columnGap || stackStyles.gap || "0");
+    const holeWidth = holeRef.current.getBoundingClientRect().width;
+    return gap + holeWidth;
   }
 
   function handlePointerDown(event) {
@@ -109,8 +109,8 @@ export function PlateColumn({
     const stepSize = measureStepSize();
     dragStateRef.current = {
       pointerId: event.pointerId,
-      startY: event.clientY,
-      lastClientY: event.clientY,
+      startX: event.clientX,
+      lastClientX: event.clientX,
       startOffset: offset,
       stepSize,
     };
@@ -124,8 +124,8 @@ export function PlateColumn({
       return;
     }
 
-    dragState.lastClientY = event.clientY;
-    const deltaPixels = event.clientY - dragState.startY;
+    dragState.lastClientX = event.clientX;
+    const deltaPixels = event.clientX - dragState.startX;
     const nextPixels = (dragState.startOffset * dragState.stepSize) + deltaPixels;
     const minPixels = bounds.min * dragState.stepSize;
     const maxPixels = bounds.max * dragState.stepSize;
@@ -138,10 +138,10 @@ export function PlateColumn({
       return;
     }
 
-    const finalY = typeof event.clientY === "number" && event.clientY !== 0 ? event.clientY : dragState.lastClientY;
-    const snappedDelta = Math.round((finalY - dragState.startY) / dragState.stepSize);
+    const finalX = typeof event.clientX === "number" && event.clientX !== 0 ? event.clientX : dragState.lastClientX;
+    const snappedDelta = Math.round((finalX - dragState.startX) / dragState.stepSize);
     const snappedOffset = Math.max(bounds.min, Math.min(bounds.max, dragState.startOffset + snappedDelta));
-    const attemptedDirection = finalY === dragState.startY ? 0 : (finalY < dragState.startY ? -1 : 1);
+    const attemptedDirection = finalX === dragState.startX ? 0 : (finalX < dragState.startX ? -1 : 1);
 
     viewportRef.current.classList.remove("is-dragging");
     viewportRef.current.releasePointerCapture?.(dragState.pointerId);
@@ -151,14 +151,16 @@ export function PlateColumn({
   }
 
   const hideMoveButtons = mode === "solution" || mode === "ready_to_solve";
+  const leftSuggested = mode === "linking" && currentTask?.phase === "step1" && currentTask?.driver === index && currentTask.direction === "up";
+  const rightSuggested = mode === "linking" && currentTask?.phase === "step1" && currentTask?.driver === index && currentTask.direction === "down";
 
   return (
     <article className={classes} data-plate-index={index}>
       <button
-        className={`plate-button${mode === "linking" && currentTask?.phase === "step1" && currentTask?.driver === index && currentTask.direction === "up" ? " is-suggested" : ""}`}
+        className={`plate-button${leftSuggested ? " is-suggested" : ""}`}
         type="button"
-        data-direction="up"
-        aria-label="Move plate up"
+        data-direction="left"
+        aria-label="Move plate left"
         hidden={hideMoveButtons}
         disabled={!canMoveUp}
         onClick={() => onMove(index, "up")}
@@ -199,10 +201,10 @@ export function PlateColumn({
       </div>
 
       <button
-        className={`plate-button${mode === "linking" && currentTask?.phase === "step1" && currentTask?.driver === index && currentTask.direction === "down" ? " is-suggested" : ""}`}
+        className={`plate-button${rightSuggested ? " is-suggested" : ""}`}
         type="button"
-        data-direction="down"
-        aria-label="Move plate down"
+        data-direction="right"
+        aria-label="Move plate right"
         hidden={hideMoveButtons}
         disabled={!canMoveDown}
         onClick={() => onMove(index, "down")}
