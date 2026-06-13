@@ -1,4 +1,4 @@
-import { CENTER_INDEX, cloneOffsets, getUnknownPlates } from "../../lib/lockData";
+import { CENTER_INDEX, cloneOffsets, getUnknownPlates } from "../../../lib/lockData";
 
 export function getSolutionStartOffsets(state) {
   return cloneOffsets(state.linkingStartOffsets || state.offsets);

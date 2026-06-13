@@ -1,5 +1,5 @@
 import { createEmptyLinkDeltas, createEmptyLinks, createInitialAppState, resizeLink, resizeLinkDeltas, resizeOffsets } from "../../lib/lockData";
-import { buildSolutionPlan } from "../../lib/solution";
+import { buildSolutionPlanForApp } from "../plate-linking/implementation";
 import { beginNextLinkTask } from "../plate-linking/linkingState";
 
 export function snapshotCurrentCountState(state) {
@@ -147,7 +147,7 @@ export function setPlateCount(state, count) {
     return {
       ...nextState,
       mode: "ready_to_solve",
-      solution: buildSolutionPlan(nextState, nextState.linkingStartOffsets),
+      solution: buildSolutionPlanForApp(nextState, nextState.linkingStartOffsets),
     };
   }
 

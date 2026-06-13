@@ -1,5 +1,6 @@
-import { CENTER_INDEX, clampOffset, cloneOffsets } from "../../lib/lockData";
-import { cloneLinkTask } from "./linkingState.helpers";
+import { CENTER_INDEX, clampOffset, cloneOffsets } from "../../../lib/lockData";
+import { cloneLinkTask } from "./helpers";
+import { withSolverInteraction } from "../implementation/custom/session";
 
 export function getStep2Selection(task, offsets, index) {
   const actualDelta = offsets[index] - task.baseOffsets[index];
@@ -129,7 +130,12 @@ export function updatePlateOffset(state, index, nextOffset, attemptedDirection =
     };
   }
 
-  return syncStep2DriverState(nextState);
+  return withSolverInteraction(syncStep2DriverState(nextState), {
+    kind: "drag_plate",
+    plateIndex: index,
+    offset: nextOffset,
+    details: { attemptedDirection },
+  });
 }
 
 export function recordPlateAttempt(state, index, attemptedDirection) {
@@ -139,11 +145,15 @@ export function recordPlateAttempt(state, index, attemptedDirection) {
 
   const attempts = [...state.currentTask.attempts];
   attempts[index] = attemptedDirection;
-  return syncStep2DriverState({
+  return withSolverInteraction(syncStep2DriverState({
     ...state,
     currentTask: {
       ...state.currentTask,
       attempts,
     },
+  }), {
+    kind: "attempt_plate",
+    plateIndex: index,
+    details: { attemptedDirection },
   });
 }

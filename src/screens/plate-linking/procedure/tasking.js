@@ -1,6 +1,8 @@
-import { cloneOffsets, createEmptyLinkDeltas, createEmptyLinks, createIdentityLink, chooseNextDriver, getSuggestedDelta } from "../../lib/lockData";
-import { buildSolutionPlan } from "../../lib/solution";
-import { cloneLinkTask, getSolutionStartOffsets, pruneDeferredLinkTasks, rebaseDeferredTask } from "./linkingState.helpers";
+import { cloneOffsets, createEmptyLinkDeltas, createEmptyLinks, createIdentityLink, chooseNextDriver, getSuggestedDelta } from "../../../lib/lockData";
+import { buildSolutionPlanForApp } from "../implementation";
+import { USE_CUSTOM_SOLUTION } from "../implementation/solutionMode";
+import { finalizeSolverSession, withSolverInteraction } from "../implementation/custom/session";
+import { cloneLinkTask, getSolutionStartOffsets, pruneDeferredLinkTasks, rebaseDeferredTask } from "./helpers";
 
 function beginDeferredBlockedTask(state, blockedIndexes, beginNextLinkTask) {
   const blockedBy = [...new Set(blockedIndexes.filter((index) => index !== state.currentTask.driver))].sort((a, b) => a - b);
@@ -87,22 +89,22 @@ export function beginNextLinkTask(state, options = {}) {
 
   if (driver === null || driver === undefined) {
     if (normalizedState.deferredLinkTasks.length) {
-      return {
+      return withSolverInteraction({
         ...normalizedState,
         mode: "linking",
         currentTask: null,
-      };
+      }, { kind: "task_wait" });
     }
 
     const links = normalizedState.links.map((link, index) => link || createIdentityLink(normalizedState.plateCount, index));
-    return enterSolutionMode({ ...normalizedState, links });
+    return withSolverInteraction(enterSolutionMode({ ...normalizedState, links }), { kind: "enter_solution" });
   }
 
   if (normalizedState.deferredLinkTasks.some((deferredTask) => deferredTask.driver === driver)) {
-    return resumeDeferredBlockedTask(normalizedState, driver);
+    return withSolverInteraction(resumeDeferredBlockedTask(normalizedState, driver), { kind: "resume_task", plateIndex: driver });
   }
 
-  return startLinkTaskForDriver(normalizedState, driver);
+  return withSolverInteraction(startLinkTaskForDriver(normalizedState, driver), { kind: "begin_task", plateIndex: driver });
 }
 
 export function enterSolutionMode(state) {
@@ -115,8 +117,15 @@ export function enterSolutionMode(state) {
     offsets: cloneOffsets(startOffsets),
   };
 
+  if (USE_CUSTOM_SOLUTION) {
+    return finalizeSolverSession(withSolverInteraction({
+      ...nextState,
+      solution: buildSolutionPlanForApp(nextState, startOffsets),
+    }, { kind: "enter_solution" }));
+  }
+
   return {
     ...nextState,
-    solution: buildSolutionPlan(nextState, startOffsets),
+    solution: buildSolutionPlanForApp(nextState, startOffsets),
   };
 }

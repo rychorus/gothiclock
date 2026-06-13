@@ -1,4 +1,4 @@
-import { buildSolutionPlan } from "../../lib/solution";
+import { buildSolutionPlanForApp } from "../plate-linking/implementation";
 import { createEmptyLinkDeltas, createInitialAppState } from "../../lib/lockData";
 import { parseNotationString } from "../../lib/notation";
 import { beginNextLinkTask, enterSolutionMode } from "../plate-linking/linkingState";
@@ -36,7 +36,7 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
       setAppState(() => ({
         ...baseState,
         mode: "ready_to_solve",
-        solution: buildSolutionPlan(baseState, parsed.offsets),
+        solution: buildSolutionPlanForApp(baseState, parsed.offsets),
       }));
       return;
     }

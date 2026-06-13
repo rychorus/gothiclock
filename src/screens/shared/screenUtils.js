@@ -27,6 +27,10 @@ export function getHeroTitle(mode) {
 }
 
 export function getStageInstruction(appState) {
+  if (appState.customSolverSession?.prompt?.message && appState.mode === "linking") {
+    return appState.customSolverSession.prompt.message;
+  }
+
   if (appState.mode === "linking" && appState.currentTask) {
     const driverIndex = appState.currentTask.driver ?? 0;
     const driver = appState.plateCount - driverIndex;

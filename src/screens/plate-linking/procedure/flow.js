@@ -1,28 +1,14 @@
-import { clampOffset, cloneOffsets, createEmptyLinkDeltas, createEmptyLinks } from "../../lib/lockData";
-import { appendTaskHistory, cloneLinkTask, pruneDeferredLinkTasks, rebuildOffsetsFromLinks } from "./linkingState.helpers";
-import { applyKnownBlockedLinks, hasBlockedSelection, syncStep2DriverState } from "./linkingState.step2";
-import { beginNextLinkTask, enterSolutionMode } from "./linkingState.tasking";
+import { clampOffset, cloneOffsets, createEmptyLinkDeltas, createEmptyLinks } from "../../../lib/lockData";
+import { appendTaskHistory, cloneLinkTask, pruneDeferredLinkTasks, rebuildOffsetsFromLinks } from "./helpers";
+import { applyKnownBlockedLinks, hasBlockedSelection, syncStep2DriverState } from "./step2";
+import { beginNextLinkTask, enterSolutionMode } from "./tasking";
+import { USE_CUSTOM_SOLUTION } from "../implementation/solutionMode";
+import { finalizeSolverSession, initializeSolverSession, withSolverInteraction } from "../implementation/custom/session";
 
 export function startLinkingMode(state) {
   const isAligned = state.offsets.every((offset) => offset === 0);
 
-  if (isAligned) {
-    const nextState = {
-      ...state,
-      mode: "solution",
-      links: createEmptyLinks(state.plateCount),
-      linkDeltas: createEmptyLinkDeltas(state.plateCount),
-      linkingStartOffsets: cloneOffsets(state.offsets),
-      currentTask: null,
-    };
-
-    return {
-      ...nextState,
-      solution: enterSolutionMode(nextState).solution,
-    };
-  }
-
-  return beginNextLinkTask({
+  const linkingState = {
     ...state,
     deferredLinkTasks: [],
     mode: "linking",
@@ -30,7 +16,24 @@ export function startLinkingMode(state) {
     linkDeltas: createEmptyLinkDeltas(state.plateCount),
     linkingStartOffsets: cloneOffsets(state.offsets),
     solution: null,
-  });
+  };
+
+  const sessionState = USE_CUSTOM_SOLUTION ? initializeSolverSession(linkingState) : linkingState;
+
+  if (isAligned) {
+    const solutionState = {
+      ...sessionState,
+      mode: "solution",
+      currentTask: null,
+    };
+
+    return {
+      ...solutionState,
+      solution: enterSolutionMode(solutionState).solution,
+    };
+  }
+
+  return beginNextLinkTask(sessionState);
 }
 
 export function stepBackLinking(state) {
@@ -39,7 +42,7 @@ export function stepBackLinking(state) {
   }
 
   if (state.currentTask.phase === "step2") {
-    return {
+    return withSolverInteraction({
       ...state,
       offsets: cloneOffsets(state.currentTask.startOffsets),
       currentTask: {
@@ -47,7 +50,7 @@ export function stepBackLinking(state) {
         phase: "step1",
         startOffsets: cloneOffsets(state.currentTask.startOffsets),
       },
-    };
+    }, { kind: "step_back", phase: "step2", plateIndex: state.currentTask.driver });
   }
 
   const history = [...(state.linkTaskHistory || [])];
@@ -58,7 +61,7 @@ export function stepBackLinking(state) {
     links[previousTask.driver] = null;
     linkDeltas[previousTask.driver] = null;
 
-    return {
+    return withSolverInteraction({
       ...state,
       linkTaskHistory: history,
       offsets: rebuildOffsetsFromLinks(state, links, linkDeltas),
@@ -73,17 +76,17 @@ export function stepBackLinking(state) {
         wasDeferred: Boolean(previousTask.wasDeferred),
       },
       mode: "linking",
-    };
+    }, { kind: "step_back", phase: "step1", plateIndex: previousTask.driver });
   }
 
-  return {
+  return withSolverInteraction({
     ...state,
     offsets: cloneOffsets(state.linkingStartOffsets || state.offsets),
     links: createEmptyLinks(state.plateCount),
     linkDeltas: createEmptyLinkDeltas(state.plateCount),
     currentTask: null,
     mode: "setup",
-  };
+  }, { kind: "step_back", phase: "setup" });
 }
 
 export function resetPlates(state) {
@@ -97,10 +100,10 @@ export function resetPlates(state) {
   };
 
   if (state.mode === "linking") {
-    return beginNextLinkTask(nextState);
+    return withSolverInteraction(beginNextLinkTask(nextState), { kind: "reset_plates" });
   }
 
-  return nextState;
+  return withSolverInteraction(nextState, { kind: "reset_plates" });
 }
 
 export function advanceFromStep1(state) {
@@ -112,7 +115,7 @@ export function advanceFromStep1(state) {
   const offsets = cloneOffsets(state.offsets);
   offsets[driver] = clampOffset(startOffsets[driver] + delta);
 
-  return {
+  return withSolverInteraction({
     ...state,
     offsets,
     currentTask: {
@@ -121,7 +124,7 @@ export function advanceFromStep1(state) {
       baseOffsets: cloneOffsets(offsets),
       attempts: Array.from({ length: state.plateCount }, () => 0),
     },
-  };
+  }, { kind: "advance_step1", plateIndex: driver });
 }
 
 export function finishLinkCapture(state) {
@@ -196,21 +199,21 @@ export function finishLinkCapture(state) {
     });
   }
 
-  const nextState = {
+  const trackedState = withSolverInteraction({
     ...appendTaskHistory(committedState, preparedState.currentTask),
     deferredLinkTasks: pruneDeferredLinkTasks({
       ...committedState,
       links,
     }).filter((deferredTask) => deferredTask.driver !== driver),
-  };
+  }, { kind: "finish_link_capture", plateIndex: driver, phase: "step2" });
 
   if (preparedState.links.every(Boolean)) {
-    if ((nextState.deferredLinkTasks || []).length) {
-      return beginNextLinkTask(nextState);
+    if ((trackedState.deferredLinkTasks || []).length) {
+      return beginNextLinkTask(trackedState);
     }
 
-    return enterSolutionMode(nextState);
+    return enterSolutionMode(trackedState);
   }
 
-  return beginNextLinkTask(nextState);
+  return beginNextLinkTask(trackedState);
 }

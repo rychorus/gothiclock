@@ -1,5 +1,6 @@
 import { CENTER_INDEX, cloneOffsets, createInitialAppState, resizeLink, resizeLinkDeltas } from "../../lib/lockData";
-import { buildSolutionPlan, buildSolutionCommandString, buildWasdSequence } from "../../lib/solution";
+import { buildSolutionPlanForApp } from "../plate-linking/implementation";
+import { buildSolutionCommandString, buildWasdSequence } from "../../lib/solution";
 import { beginNextLinkTask } from "../plate-linking/linkingState";
 
 export function getSolutionDisplayOffsets(state, index = state.solution?.index ?? 0) {
@@ -123,7 +124,7 @@ export function loadSavedLockState(state, savedLock) {
     deferredLinkTasks: [],
     linkTaskHistory: [],
     currentSaveId: savedLock.id,
-    solution: savedLock.isDraft ? null : buildSolutionPlan(savedLock, cloneOffsets(savedLock.linkingStartOffsets || savedLock.currentOffsets)),
+    solution: savedLock.isDraft ? null : buildSolutionPlanForApp(savedLock, cloneOffsets(savedLock.linkingStartOffsets || savedLock.currentOffsets)),
     snapshotsByCount: {},
   };
 

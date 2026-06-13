@@ -259,6 +259,7 @@ export function createInitialAppState() {
     linkTaskHistory: [],
     currentSaveId: null,
     snapshotsByCount: {},
+    customSolverSession: null,
   };
 }
 
