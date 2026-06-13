@@ -47,6 +47,15 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
 
   return (
     <>
+      <LockStage
+        appState={appState}
+        currentSolutionChunk={currentSolutionChunk}
+        testingFeedback={testingFeedback}
+        selectors={selectors}
+        actions={actions}
+        showResetButton
+      />
+
       {appState.mode !== "testing" ? (
         <section className="bottom-panel">
           <div className="controls-heading bottom-panel-heading">
@@ -71,15 +80,6 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
           </div>
         </section>
       ) : null}
-
-      <LockStage
-        appState={appState}
-        currentSolutionChunk={currentSolutionChunk}
-        testingFeedback={testingFeedback}
-        selectors={selectors}
-        actions={actions}
-        showResetButton
-      />
 
       <div className="footer-actions" hidden={false} data-mode={appState.mode} data-count={appState.mode === "solution" ? "3" : appState.mode === "linking" || appState.mode === "ready_to_solve" ? "2" : "1"}>
         {appState.mode === "ready_to_solve" ? (
