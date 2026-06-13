@@ -131,7 +131,7 @@ export function PlateColumn({
 
     dragState.lastClientX = event.clientX;
     const deltaPixels = event.clientX - dragState.startX;
-    const nextPixels = (dragState.startOffset * dragState.stepSize) + deltaPixels;
+    const nextPixels = dragState.startOffset * dragState.stepSize + deltaPixels;
     const minPixels = bounds.min * dragState.stepSize;
     const maxPixels = bounds.max * dragState.stepSize;
     setDragPixels(Math.max(minPixels, Math.min(maxPixels, nextPixels)));
@@ -146,7 +146,7 @@ export function PlateColumn({
     const finalX = typeof event.clientX === "number" && event.clientX !== 0 ? event.clientX : dragState.lastClientX;
     const snappedDelta = Math.round((finalX - dragState.startX) / dragState.stepSize);
     const snappedOffset = Math.max(bounds.min, Math.min(bounds.max, dragState.startOffset + snappedDelta));
-    const attemptedDirection = finalX === dragState.startX ? 0 : (finalX < dragState.startX ? -1 : 1);
+    const attemptedDirection = finalX === dragState.startX ? 0 : finalX < dragState.startX ? -1 : 1;
 
     viewportRef.current.classList.remove("is-dragging");
     viewportRef.current.releasePointerCapture?.(dragState.pointerId);

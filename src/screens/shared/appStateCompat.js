@@ -8,10 +8,10 @@ export {
   loadSavedLockState,
   buildSolutionCommandString,
   buildWasdSequence,
-} from "../screens/solution/solutionState";
+} from "../solution/solutionState";
 export {
   snapshotCurrentCountState,
   startNewLock,
   setPlateCount,
   startOver,
-} from "../screens/plate-setup/plateSetupState";
+} from "../plate-setup/plateSetupState";

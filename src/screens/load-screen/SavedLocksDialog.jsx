@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { MaterialIcon } from "../lib/icons";
+import { MaterialIcon } from "../../lib/icons";
 
 function getRelativeDayLabel(savedAt) {
   const date = new Date(savedAt);
@@ -159,7 +159,7 @@ export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }) {
                         <span className="saved-lock-name">{lock.name}</span>
                         {lock.isDraft ? <span className="saved-lock-badge">Draft</span> : null}
                       </span>
-                      <span className="saved-lock-meta">{lock.plateCount} plates · {getRelativeTimeLabel(lock.savedAt)}</span>
+                      <span className="saved-lock-meta">{lock.plateCount} plates - {getRelativeTimeLabel(lock.savedAt)}</span>
                     </button>
 
                     <div className="saved-lock-tools" onClick={(event) => event.stopPropagation()}>

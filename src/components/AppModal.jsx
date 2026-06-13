@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { copyTextToClipboard } from "../lib/clipboard";
 import { Modal } from "./Modal";
-import { SolutionSequence } from "./SolutionSequence";
+import { SolutionSequence } from "../screens/solution/SolutionSequence";
 
 function getPowershellStartDelaySeconds(powershellCode) {
   const match = powershellCode.match(/Start-Sleep -Seconds (\d+)/i);
