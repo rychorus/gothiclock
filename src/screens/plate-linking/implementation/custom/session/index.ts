@@ -5,4 +5,4 @@ export {
   initializeSolverSession,
   completeSolverSession,
   finalizeSolverSession,
-} from "./session.js";
+} from "./session";

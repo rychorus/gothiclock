@@ -26,7 +26,7 @@ export function getHeroTitle(mode) {
   return null;
 }
 
-export function getStageInstruction(appState) {
+export function getStageInstruction(appState, _currentSolutionChunk = null) {
   if (appState.customSolverSession?.prompt?.message && appState.mode === "linking") {
     return appState.customSolverSession.prompt.message;
   }

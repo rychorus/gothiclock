@@ -5,6 +5,14 @@
  * sequence of plate moves, clicks, and confirmations the user performed.
  */
 export class SolverInteraction {
+  kind;
+  plateIndex;
+  direction;
+  offset;
+  phase;
+  details;
+  timestamp;
+
   constructor({
     kind = "unknown",
     plateIndex = null,

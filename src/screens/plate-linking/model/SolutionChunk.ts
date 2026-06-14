@@ -1,4 +1,12 @@
 export class SolutionChunk {
+  id;
+  type;
+  label;
+  keys;
+  keyGroups;
+  offsets;
+  move;
+
   constructor({
     id = "",
     type = "move",

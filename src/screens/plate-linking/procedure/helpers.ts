@@ -1,10 +1,10 @@
 import { CENTER_INDEX, cloneOffsets, getUnknownPlates } from "../../../lib/lockData";
 
-export function getSolutionStartOffsets(state) {
+export function getSolutionStartOffsets(state: any) {
   return cloneOffsets(state.linkingStartOffsets || state.offsets);
 }
 
-export function cloneLinkTask(task) {
+export function cloneLinkTask(task: any) {
   if (!task) {
     return null;
   }
@@ -17,7 +17,7 @@ export function cloneLinkTask(task) {
   };
 }
 
-export function rebaseOffsets(offsets, snapshotOffsets, currentOffsets) {
+export function rebaseOffsets(offsets: number[] | null, snapshotOffsets: number[], currentOffsets: number[]) {
   if (!offsets) {
     return null;
   }
@@ -25,7 +25,7 @@ export function rebaseOffsets(offsets, snapshotOffsets, currentOffsets) {
   return offsets.map((value, index) => value + (currentOffsets[index] - snapshotOffsets[index]));
 }
 
-export function rebaseDeferredTask(task, snapshotOffsets, currentOffsets) {
+export function rebaseDeferredTask(task: any, snapshotOffsets: number[], currentOffsets: number[]) {
   const clonedTask = cloneLinkTask(task);
   if (!clonedTask) {
     return null;
@@ -38,11 +38,11 @@ export function rebaseDeferredTask(task, snapshotOffsets, currentOffsets) {
   };
 }
 
-export function dedupeIndices(indices) {
+export function dedupeIndices(indices: number[]) {
   return [...new Set(indices)].sort((a, b) => a - b);
 }
 
-export function appendTaskHistory(state, task) {
+export function appendTaskHistory(state: any, task: any) {
   if (!task) {
     return state;
   }
@@ -53,7 +53,7 @@ export function appendTaskHistory(state, task) {
   };
 }
 
-export function rebuildOffsetsFromLinks(state, links, linkDeltas) {
+export function rebuildOffsetsFromLinks(state: any, links: Array<Array<number> | null>, linkDeltas: Array<number | null>) {
   let offsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
 
   for (let index = 0; index < links.length; index += 1) {

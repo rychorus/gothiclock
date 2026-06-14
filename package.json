@@ -8,6 +8,7 @@
     "start": "vite",
     "start:lan": "vite --host 0.0.0.0 --port 8080",
     "build": "vite build",
+    "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "deploy": "./scripts/deploy-pages.sh"
   },
@@ -17,6 +18,9 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.5",
+    "typescript": "^5.8.3",
     "vite": "^5.4.10"
   }
 }

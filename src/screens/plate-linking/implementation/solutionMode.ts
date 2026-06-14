@@ -1,5 +1,5 @@
 import { buildSolutionPlan as buildExistingSolutionPlan } from "./existing";
-import { buildSolutionPlan as buildCustomSolutionPlan } from "./custom/solution.js";
+import { buildSolutionPlan as buildCustomSolutionPlan } from "./custom/solution";
 import { PlateLinkingState, StartOffsets } from "../model";
 
 // Flip this to `true` to use the custom implementation in this folder.

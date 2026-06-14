@@ -1,12 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { MaterialIcon } from "../../lib/icons";
 
+type SavedLock = {
+  id: string;
+  name: string;
+  isDraft?: boolean;
+  plateCount: number;
+  savedAt: string;
+};
+
 function getRelativeDayLabel(savedAt) {
   const date = new Date(savedAt);
   const now = new Date();
   const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const savedDayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const dayDiff = Math.round((dayStart - savedDayStart) / 86400000);
+  const dayDiff = Math.round((dayStart.getTime() - savedDayStart.getTime()) / 86400000);
 
   if (dayDiff <= 0) {
     return "Today";
@@ -56,8 +64,8 @@ function getRelativeTimeLabel(savedAt) {
   return `${diffDays} days ago`;
 }
 
-function groupLocksByDay(locks) {
-  const groups = new Map();
+function groupLocksByDay(locks: SavedLock[]) {
+  const groups = new Map<string, { key: string; label: string; items: SavedLock[] }>();
 
   locks.forEach((lock) => {
     const dayKey = new Date(lock.savedAt).toDateString();
@@ -75,7 +83,12 @@ function groupLocksByDay(locks) {
   return [...groups.values()];
 }
 
-export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }) {
+export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }: {
+  savedLocks: SavedLock[];
+  onLoad: (lockId: string) => void;
+  onRename: (lockId: string) => void;
+  onDelete: (lockId: string) => void;
+}) {
   const [showDrafts, setShowDrafts] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [openMenuIsUpward, setOpenMenuIsUpward] = useState(false);

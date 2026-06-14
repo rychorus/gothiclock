@@ -1,20 +1,35 @@
 import { createIdentityLink } from "./lockData";
 
-export function getVisiblePlateLabel(index, plateCount) {
+type ParsedSetupToken = {
+  plateNumber: number;
+  offset: number | null;
+};
+
+type ParsedLinkToken = {
+  plateNumber: number;
+  targetsText: string;
+};
+
+type ParsedLinkTarget = {
+  plateNumber: number;
+  relation: number;
+};
+
+export function getVisiblePlateLabel(index: number, plateCount: number) {
   return `P${plateCount - index}`;
 }
 
-function formatPosition(offset) {
+function formatPosition(offset: number) {
   return `${4 - offset}`;
 }
 
-function isIdentityLink(link, source) {
+function isIdentityLink(link: Array<number> | null, source: number) {
   return Boolean(link)
     && link[source] === 1
     && link.every((value, index) => (index === source ? value === 1 : value === 0));
 }
 
-function parsePosition(token) {
+function parsePosition(token: string): number | null {
   const position = Number.parseInt(token, 10);
   if (!Number.isInteger(position) || position < 1 || position > 7) {
     return null;
@@ -23,11 +38,11 @@ function parsePosition(token) {
   return 4 - position;
 }
 
-function formatLinkTarget(label, relation) {
+function formatLinkTarget(label: string, relation: number) {
   return relation === -1 ? `${label}-` : label;
 }
 
-function formatLinkSource(label, targets) {
+function formatLinkSource(label: string, targets: string[]) {
   if (!targets.length) {
     return `${label}>`;
   }
@@ -35,7 +50,7 @@ function formatLinkSource(label, targets) {
   return `${label}>${targets.join(",")}`;
 }
 
-export function buildNotationString(state) {
+export function buildNotationString(state: any) {
   const plateCount = state.plateCount || 0;
   if (!plateCount) {
     return "";
@@ -79,7 +94,7 @@ export function buildNotationString(state) {
   ].join("\n");
 }
 
-function parseSetupToken(token) {
+function parseSetupToken(token: string): ParsedSetupToken | null {
   const match = token.match(/^P(\d+)=(\d+)$/i);
   if (!match) {
     return null;
@@ -91,7 +106,7 @@ function parseSetupToken(token) {
   };
 }
 
-function parseLinkToken(token) {
+function parseLinkToken(token: string): ParsedLinkToken | null {
   const match = token.match(/^P(\d+)>(.*)$/i);
   if (!match) {
     return null;
@@ -103,7 +118,7 @@ function parseLinkToken(token) {
   };
 }
 
-function parseLinkTarget(token) {
+function parseLinkTarget(token: string): ParsedLinkTarget | null {
   const match = token.match(/^P(\d+)([+-])?$/i);
   if (!match) {
     return null;
@@ -113,6 +128,10 @@ function parseLinkTarget(token) {
     plateNumber: Number.parseInt(match[1], 10),
     relation: match[2] === "-" ? -1 : 1,
   };
+}
+
+function isParsedLinkTarget(value: ParsedLinkTarget | null): value is ParsedLinkTarget {
+  return Boolean(value && typeof value.plateNumber === "number" && typeof value.relation === "number");
 }
 
 export function parseNotationString(text) {
@@ -138,20 +157,20 @@ export function parseNotationString(text) {
     throw new Error("The second line must use links like `P1>P2,P3-` or `P1>`.");
   }
 
-  const plateNumbers = new Set();
+  const plateNumbers = new Set<number>();
   setupEntries.forEach(({ plateNumber }) => plateNumbers.add(plateNumber));
   linkEntries.forEach(({ plateNumber, targetsText }) => {
     plateNumbers.add(plateNumber);
     targetsText.split(",").map((target) => target.trim()).filter(Boolean).forEach((targetToken) => {
       const target = parseLinkTarget(targetToken);
-      if (!target) {
+      if (!isParsedLinkTarget(target)) {
         throw new Error("Link targets must look like `P2` or `P2-`.");
       }
       plateNumbers.add(target.plateNumber);
     });
   });
 
-  const plateCount = Math.max(...plateNumbers);
+  const plateCount = Math.max(...Array.from(plateNumbers));
   if (!Number.isFinite(plateCount) || plateCount < 3) {
     throw new Error("Notation must include at least 3 plates.");
   }
@@ -173,7 +192,7 @@ export function parseNotationString(text) {
       .filter(Boolean)
       .forEach((targetToken) => {
         const target = parseLinkTarget(targetToken);
-        if (!target) {
+        if (!isParsedLinkTarget(target)) {
           throw new Error("Link targets must look like `P2` or `P2-`.");
         }
 

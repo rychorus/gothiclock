@@ -4,7 +4,7 @@ import { USE_CUSTOM_SOLUTION } from "../implementation/solutionMode";
 import { finalizeSolverSession, withSolverInteraction } from "../implementation/custom/session";
 import { cloneLinkTask, getSolutionStartOffsets, pruneDeferredLinkTasks, rebaseDeferredTask } from "./helpers";
 
-function beginDeferredBlockedTask(state, blockedIndexes, beginNextLinkTask) {
+function beginDeferredBlockedTask(state: any, blockedIndexes: number[], beginNextLinkTask: any) {
   const blockedBy = [...new Set(blockedIndexes.filter((index) => index !== state.currentTask.driver))].sort((a, b) => a - b);
   const blockedRequirements = blockedBy.map((index) => ({
     index,
@@ -30,7 +30,7 @@ function beginDeferredBlockedTask(state, blockedIndexes, beginNextLinkTask) {
   });
 }
 
-function resumeDeferredBlockedTask(state, driver = null) {
+function resumeDeferredBlockedTask(state: any, driver: number | null = null) {
   const deferredLinkTasks = pruneDeferredLinkTasks(state);
   if (!deferredLinkTasks.length) {
     return state;
@@ -64,7 +64,7 @@ function resumeDeferredBlockedTask(state, driver = null) {
   };
 }
 
-function startLinkTaskForDriver(state, driver) {
+function startLinkTaskForDriver(state: any, driver: number) {
   const delta = getSuggestedDelta(state.offsets[driver]);
 
   return {
@@ -79,7 +79,7 @@ function startLinkTaskForDriver(state, driver) {
   };
 }
 
-export function beginNextLinkTask(state, options = {}) {
+export function beginNextLinkTask(state: any, options: { excludeDrivers?: number[] } = {}) {
   const normalizedState = {
     ...state,
     deferredLinkTasks: pruneDeferredLinkTasks(state),

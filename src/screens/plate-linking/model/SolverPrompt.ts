@@ -5,6 +5,12 @@
  * next plate move, click, or confirmation step.
  */
 export class SolverPrompt {
+  kind;
+  message;
+  plateIndex;
+  direction;
+  hint;
+
   constructor({
     kind = "idle",
     message = "",

@@ -46,7 +46,10 @@ function stripLegacyDraftPrefix(name) {
   return name?.replace(/^Draft - /, "") || "";
 }
 
-export function persistCurrentLock(state, { isDraft, nameOverride } = {}) {
+export function persistCurrentLock(
+  state,
+  { isDraft, nameOverride }: { isDraft?: boolean; nameOverride?: string } = {},
+) {
   const normalizedState = state.linkingStartOffsets || !state.solution?.startOffsets
     ? state
     : { ...state, linkingStartOffsets: cloneOffsets(state.solution.startOffsets) };

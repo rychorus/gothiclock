@@ -99,6 +99,6 @@ export function buildSolutionPlanFromSession(session) {
 /**
  * Backward-compatible wrapper for the app.
  */
-export function buildSolutionPlan(session) {
+export function buildSolutionPlan(session, _startOffsets = null) {
   return buildSolutionPlanFromSession(session);
 }

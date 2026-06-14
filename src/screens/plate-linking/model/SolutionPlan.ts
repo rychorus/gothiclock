@@ -1,4 +1,9 @@
 export class SolutionPlan {
+  moves;
+  chunks;
+  index;
+  startOffsets;
+
   constructor({
     moves = null,
     chunks = [],

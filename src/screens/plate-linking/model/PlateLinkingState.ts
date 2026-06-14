@@ -5,6 +5,18 @@
  * explicit and the fields are easy to inspect while implementing a solver.
  */
 export class PlateLinkingState {
+  plateCount;
+  offsets;
+  links;
+  linkDeltas;
+  linkingStartOffsets;
+  mode;
+  currentTask;
+  solution;
+  deferredLinkTasks;
+  linkTaskHistory;
+  customSolverSession;
+
   constructor({
     plateCount = 0,
     offsets = [],

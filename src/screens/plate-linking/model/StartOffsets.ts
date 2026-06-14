@@ -5,6 +5,8 @@
  * for the solver input.
  */
 export class StartOffsets {
+  values;
+
   constructor(values = []) {
     this.values = values;
   }

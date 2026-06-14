@@ -6,6 +6,13 @@
  * complete.
  */
 export class SolverSession {
+  status;
+  prompt;
+  interactions;
+  state;
+  startOffsets;
+  solution;
+
   constructor({
     status = "collecting",
     prompt = null,
