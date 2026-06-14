@@ -1,4 +1,4 @@
-import type { Offsets, SolutionChunkData, SolutionMoveData, SolutionPlanData } from "../../../lib/types";
+import type { Offsets, SolutionChunkData, SolutionMoveData, SolutionPlanData } from "./types";
 
 export class SolutionPlan implements SolutionPlanData {
   moves: SolutionMoveData[] | null;

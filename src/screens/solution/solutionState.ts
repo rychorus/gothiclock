@@ -1,5 +1,5 @@
 import { CENTER_INDEX, cloneOffsets, createInitialAppState, resizeLink, resizeLinkDeltas } from "../../lib/lockData";
-import type { AppStateData, SavedLockRecord, SolutionChunkData } from "../../lib/types";
+import type { AppStateData, SavedLockRecord } from "../../lib/types";
 import { buildSolutionPlanForApp } from "../plate-linking/implementation";
 import { buildSolutionCommandString, buildWasdSequence } from "../../lib/solution";
 import { beginNextLinkTask } from "../plate-linking/linkingState";

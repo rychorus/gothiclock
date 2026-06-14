@@ -1,4 +1,4 @@
-import type { Offsets, PlateLinkingStateData, SolutionPlanData, SolverInteractionData, SolverPromptData, SolverSessionData } from "../../../lib/types";
+import type { Offsets, PlateLinkingStateData, SolutionPlanData, SolverInteractionData, SolverPromptData, SolverSessionData } from "./types";
 
 /**
  * Mutable-by-return session state for the custom interactive solver.

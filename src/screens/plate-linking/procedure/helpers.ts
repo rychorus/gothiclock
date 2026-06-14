@@ -1,5 +1,6 @@
 import { CENTER_INDEX, cloneOffsets, getUnknownPlates } from "../../../lib/lockData";
-import type { AppStateData, DeferredLinkTask, LinkTask, Offsets, PlateLinks } from "../../../lib/types";
+import type { AppStateData } from "../../../lib/types";
+import type { DeferredLinkTask, LinkTask, Offsets, PlateLinks } from "../model/types";
 
 export function getSolutionStartOffsets(state: AppStateData) {
   return cloneOffsets(state.linkingStartOffsets || state.offsets);

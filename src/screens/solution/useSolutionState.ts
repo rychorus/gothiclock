@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { buildSolutionCommandString, buildWasdSequence, setSolutionStep, enterTestingMode, returnToSolutionView } from "./solutionState";
-import type { AppStateData, SolutionChunkData } from "../../lib/types";
+import type { AppStateData } from "../../lib/types";
+import type { SolutionChunkData } from "../plate-linking/model/types";
 import type { Dispatch, SetStateAction } from "react";
 
 export function useSolutionState({ appState, setAppState }: {

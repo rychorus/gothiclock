@@ -1,4 +1,4 @@
-import type { Offsets, SolutionKeyGroupData, SolutionMoveData } from "../../../lib/types";
+import type { Offsets, SolutionKeyGroupData, SolutionMoveData } from "./types";
 
 export class SolutionChunk {
   id: string;

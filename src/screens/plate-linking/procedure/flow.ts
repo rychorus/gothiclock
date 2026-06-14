@@ -1,5 +1,6 @@
 import { clampOffset, cloneOffsets, createEmptyLinkDeltas, createEmptyLinks } from "../../../lib/lockData";
-import type { AppStateData, LinkTask, PlateLinks } from "../../../lib/types";
+import type { AppStateData } from "../../../lib/types";
+import type { LinkTask, PlateLinks } from "../model/types";
 import { appendTaskHistory, cloneLinkTask, pruneDeferredLinkTasks, rebuildOffsetsFromLinks } from "./helpers";
 import { applyKnownBlockedLinks, hasBlockedSelection, syncStep2DriverState } from "./step2";
 import { beginNextLinkTask, enterSolutionMode } from "./tasking";

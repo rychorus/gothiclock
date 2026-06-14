@@ -1,4 +1,4 @@
-import type { Direction, SolutionMoveData } from "../../../lib/types";
+import type { Direction, SolutionMoveData } from "./types";
 
 export class SolutionMove implements SolutionMoveData {
   plate: number;

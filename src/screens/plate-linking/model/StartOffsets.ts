@@ -1,4 +1,4 @@
-import type { Offsets, StartOffsetsData } from "../../../lib/types";
+import type { Offsets, StartOffsetsData } from "./types";
 
 /**
  * Shape reference for the starting offsets baseline.

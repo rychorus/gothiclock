@@ -1,4 +1,5 @@
-import type { AppMode, DeferredLinkTask, LinkDeltas, LinkTask, Offsets, PlateLinks, SolutionPlanData, SolverSessionData } from "../../../lib/types";
+import type { AppMode } from "../../../lib/types";
+import type { DeferredLinkTask, LinkDeltas, LinkTask, Offsets, PlateLinks, SolutionPlanData, SolverSessionData } from "./types";
 
 /**
  * Shape reference for the app state passed into the plate-linking solver.

@@ -1,5 +1,6 @@
 import { CENTER_INDEX, clampOffset, cloneOffsets } from "../../../lib/lockData";
-import type { AppStateData, LinkTask } from "../../../lib/types";
+import type { AppStateData } from "../../../lib/types";
+import type { LinkTask } from "../model/types";
 import { cloneLinkTask } from "./helpers";
 import { withSolverInteraction } from "../implementation/custom/session";
 

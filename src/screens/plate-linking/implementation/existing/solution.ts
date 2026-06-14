@@ -1,5 +1,5 @@
 import { CENTER_INDEX, cloneOffsets } from "../../../../lib/lockData";
-import type { Offsets, PlateLink, PlateLinks, SolutionChunkData, SolutionMoveData, SolutionPlanData, StartOffsetsData, PlateLinkingStateData } from "../../../../lib/types";
+import type { Offsets, PlateLink, PlateLinks, PlateLinkingStateData, SolutionChunkData, SolutionMoveData, SolutionPlanData, StartOffsetsData } from "../../model/types";
 import { PlateLinkingState, SolutionChunk, SolutionKeyGroup, SolutionMove, SolutionPlan, StartOffsets } from "../../model";
 
 export function getActionDelta(normalizedLink: PlateLink, delta: number): number[] {

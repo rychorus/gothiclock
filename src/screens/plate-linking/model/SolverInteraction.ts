@@ -4,7 +4,7 @@
  * The custom solver stores these entries so its logic can inspect the exact
  * sequence of plate moves, clicks, and confirmations the user performed.
  */
-import type { Direction, SolverInteractionData } from "../../../lib/types";
+import type { Direction, SolverInteractionData } from "./types";
 
 export class SolverInteraction implements SolverInteractionData {
   kind: string;

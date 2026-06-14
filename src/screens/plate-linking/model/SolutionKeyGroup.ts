@@ -1,4 +1,4 @@
-import type { SolutionKeyGroupData } from "../../../lib/types";
+import type { SolutionKeyGroupData } from "./types";
 
 export class SolutionKeyGroup {
   key: string;

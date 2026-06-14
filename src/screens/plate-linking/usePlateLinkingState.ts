@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import { applyTestingMove } from "../../lib/appState";
 import { canMove, getOffsetBounds, getStep2Selection, hasAnyStep2Selection } from "../../lib/plateMath";
 import { beginNextLinkTask, advanceFromStep1, enterSolutionMode, finishLinkCapture, recordPlateAttempt, resetPlates, stepBackLinking, updatePlateOffset } from "./linkingState";
-import type { AppStateData, Direction } from "../../lib/types";
+import type { AppStateData } from "../../lib/types";
+import type { Direction } from "./model/types";
 import type { Dispatch, SetStateAction } from "react";
 
 export function usePlateLinkingState({ appState, setAppState }: {

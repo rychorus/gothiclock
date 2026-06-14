@@ -1,5 +1,6 @@
 import { cloneOffsets, createEmptyLinkDeltas, createEmptyLinks, createIdentityLink, chooseNextDriver, getSuggestedDelta } from "../../../lib/lockData";
-import type { AppStateData, DeferredLinkTask, LinkTask, Offsets } from "../../../lib/types";
+import type { AppStateData } from "../../../lib/types";
+import type { DeferredLinkTask, LinkTask, Offsets } from "../model/types";
 import { buildSolutionPlanForApp } from "../implementation";
 import { USE_CUSTOM_SOLUTION } from "../implementation/solutionMode";
 import { finalizeSolverSession, withSolverInteraction } from "../implementation/custom/session";
