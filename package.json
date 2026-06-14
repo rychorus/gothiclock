@@ -1,6 +1,6 @@
 {
   "name": "gothic-lockpick",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Gothic Remake Lockpick solver",
   "scripts": {
