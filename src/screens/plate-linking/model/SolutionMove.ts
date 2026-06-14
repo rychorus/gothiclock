@@ -1,4 +1,10 @@
-import type { Direction, SolutionMoveData } from "./types";
+import type { Direction } from "./types";
+
+export interface SolutionMoveData {
+  plate: number;
+  delta: number;
+  direction: Direction;
+}
 
 export class SolutionMove implements SolutionMoveData {
   plate: number;

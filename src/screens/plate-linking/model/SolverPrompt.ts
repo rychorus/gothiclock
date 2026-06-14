@@ -4,7 +4,15 @@
  * This is the prompt the UI can display while the session is waiting for the
  * next plate move, click, or confirmation step.
  */
-import type { Direction, SolverPromptData } from "./types";
+import type { Direction } from "./types";
+
+export interface SolverPromptData {
+  kind: "idle" | "move" | "observe" | "complete";
+  message: string;
+  plateIndex: number | null;
+  direction: Direction | null;
+  hint: string;
+}
 
 export class SolverPrompt implements SolverPromptData {
   kind: "idle" | "move" | "observe" | "complete";

@@ -1,5 +1,3 @@
-import type { AppMode } from "../../../lib/types";
-
 export type Direction = "up" | "down";
 
 export type PlateLink = number[];
@@ -38,75 +36,12 @@ export interface DeferredLinkTask {
   offsets: Offsets;
 }
 
-export interface SolutionMoveData {
-  plate: number;
-  delta: number;
-  direction: Direction;
-}
-
-export interface SolutionKeyGroupData {
-  key: string;
-  count: number;
-}
-
-export interface SolutionChunkData {
-  id: string;
-  type: "reset" | "move" | "solved";
-  label: string;
-  keys: string[];
-  keyGroups: SolutionKeyGroupData[];
-  offsets: Offsets;
-  move: SolutionMoveData | null;
-}
-
-export interface SolutionPlanData {
-  moves: SolutionMoveData[] | null;
-  chunks: SolutionChunkData[];
-  index: number;
-  startOffsets: Offsets;
-}
-
-export interface SolverPromptData {
-  kind: "idle" | "move" | "observe" | "complete";
-  message: string;
-  plateIndex: number | null;
-  direction: Direction | null;
-  hint: string;
-}
-
-export interface SolverInteractionData {
-  kind: string;
-  plateIndex?: number | null;
-  direction?: Direction | null;
-  offset?: number | null;
-  phase?: string | null;
-  details?: Record<string, unknown> | null;
-  timestamp?: number;
-}
-
-export interface SolverSessionData {
-  status: "collecting" | "complete";
-  prompt: SolverPromptData | null;
-  interactions: SolverInteractionData[];
-  state: PlateLinkingStateData | null;
-  startOffsets: Offsets | null;
-  solution: SolutionPlanData | null;
-}
-
-export interface StartOffsetsData {
-  values: Offsets;
-}
-
-export interface PlateLinkingStateData {
-  plateCount: number;
-  offsets: Offsets;
-  links: PlateLinks;
-  linkDeltas: LinkDeltas;
-  linkingStartOffsets: Offsets | null;
-  mode: AppMode;
-  currentTask: LinkTask | null;
-  solution: SolutionPlanData | null;
-  deferredLinkTasks: DeferredLinkTask[];
-  linkTaskHistory: LinkTask[];
-  customSolverSession: SolverSessionData | null;
-}
+export type { SolutionMoveData } from "./SolutionMove";
+export type { SolutionKeyGroupData } from "./SolutionKeyGroup";
+export type { SolutionChunkData } from "./SolutionChunk";
+export type { SolutionPlanData } from "./SolutionPlan";
+export type { SolverPromptData } from "./SolverPrompt";
+export type { SolverInteractionData } from "./SolverInteraction";
+export type { SolverSessionData } from "./SolverSession";
+export type { StartOffsetsData } from "./StartOffsets";
+export type { PlateLinkingStateData } from "./PlateLinkingState";

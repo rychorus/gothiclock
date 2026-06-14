@@ -1,6 +1,9 @@
-import type { SolutionKeyGroupData } from "./types";
+export interface SolutionKeyGroupData {
+  key: string;
+  count: number;
+}
 
-export class SolutionKeyGroup {
+export class SolutionKeyGroup implements SolutionKeyGroupData {
   key: string;
   count: number;
 

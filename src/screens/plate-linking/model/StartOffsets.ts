@@ -1,4 +1,8 @@
-import type { Offsets, StartOffsetsData } from "./types";
+import type { Offsets } from "./types";
+
+export interface StartOffsetsData {
+  values: Offsets;
+}
 
 /**
  * Shape reference for the starting offsets baseline.

@@ -1,5 +1,8 @@
 import { PlateLinkingState, SolutionChunk, SolutionKeyGroup, SolutionMove, SolutionPlan, StartOffsets } from "../../model";
-import type { Offsets, PlateLinkingStateData, SolutionPlanData, StartOffsetsData } from "../../model/types";
+import type { Offsets } from "../../model/types";
+import type { PlateLinkingStateData } from "../../model/PlateLinkingState";
+import type { SolutionPlanData } from "../../model/SolutionPlan";
+import type { StartOffsetsData } from "../../model/StartOffsets";
 
 /**
  * Edit this file first.

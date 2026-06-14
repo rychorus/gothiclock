@@ -1,4 +1,13 @@
-import type { Offsets, SolutionChunkData, SolutionMoveData, SolutionPlanData } from "./types";
+import type { Offsets } from "./types";
+import type { SolutionChunkData } from "./SolutionChunk";
+import type { SolutionMoveData } from "./SolutionMove";
+
+export interface SolutionPlanData {
+  moves: SolutionMoveData[] | null;
+  chunks: SolutionChunkData[];
+  index: number;
+  startOffsets: Offsets;
+}
 
 export class SolutionPlan implements SolutionPlanData {
   moves: SolutionMoveData[] | null;

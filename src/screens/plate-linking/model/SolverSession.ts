@@ -1,4 +1,17 @@
-import type { Offsets, PlateLinkingStateData, SolutionPlanData, SolverInteractionData, SolverPromptData, SolverSessionData } from "./types";
+import type { Offsets } from "./types";
+import type { PlateLinkingStateData } from "./PlateLinkingState";
+import type { SolutionPlanData } from "./SolutionPlan";
+import type { SolverInteractionData } from "./SolverInteraction";
+import type { SolverPromptData } from "./SolverPrompt";
+
+export interface SolverSessionData {
+  status: "collecting" | "complete";
+  prompt: SolverPromptData | null;
+  interactions: SolverInteractionData[];
+  state: PlateLinkingStateData | null;
+  startOffsets: Offsets | null;
+  solution: SolutionPlanData | null;
+}
 
 /**
  * Mutable-by-return session state for the custom interactive solver.

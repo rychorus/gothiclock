@@ -1,6 +1,10 @@
 import { PlateLinkingState, SolverInteraction, SolverPrompt, SolverSession, StartOffsets } from "../../../model";
 import type { AppStateData } from "../../../../../lib/types";
-import type { Direction, LinkTask, Offsets, PlateLinkingStateData, SolverInteractionData, SolverSessionData, StartOffsetsData } from "../../../model/types";
+import type { Direction, LinkTask, Offsets } from "../../../model/types";
+import type { PlateLinkingStateData } from "../../../model/PlateLinkingState";
+import type { SolverInteractionData } from "../../../model/SolverInteraction";
+import type { SolverSessionData } from "../../../model/SolverSession";
+import type { StartOffsetsData } from "../../../model/StartOffsets";
 import { buildSolutionPlanFromSession } from "../solution";
 
 function buildPromptFromState(state: PlateLinkingState): SolverPrompt {

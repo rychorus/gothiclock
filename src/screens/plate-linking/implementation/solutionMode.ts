@@ -1,7 +1,9 @@
 import { buildSolutionPlan as buildExistingSolutionPlan } from "./existing";
 import { buildSolutionPlan as buildCustomSolutionPlan } from "./custom/solution";
 import { PlateLinkingState, StartOffsets } from "../model";
-import type { Offsets, PlateLinkingStateData, SolutionPlanData } from "../model/types";
+import type { Offsets } from "../model/types";
+import type { PlateLinkingStateData } from "../model/PlateLinkingState";
+import type { SolutionPlanData } from "../model/SolutionPlan";
 
 // Flip this to `true` to use the custom implementation in this folder.
 export const USE_CUSTOM_SOLUTION = false;

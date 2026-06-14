@@ -1,5 +1,21 @@
 import type { AppMode } from "../../../lib/types";
-import type { DeferredLinkTask, LinkDeltas, LinkTask, Offsets, PlateLinks, SolutionPlanData, SolverSessionData } from "./types";
+import type { DeferredLinkTask, LinkDeltas, LinkTask, Offsets, PlateLinks } from "./types";
+import type { SolutionPlanData } from "./SolutionPlan";
+import type { SolverSessionData } from "./SolverSession";
+
+export interface PlateLinkingStateData {
+  plateCount: number;
+  offsets: Offsets;
+  links: PlateLinks;
+  linkDeltas: LinkDeltas;
+  linkingStartOffsets: Offsets | null;
+  mode: AppMode;
+  currentTask: LinkTask | null;
+  solution: SolutionPlanData | null;
+  deferredLinkTasks: DeferredLinkTask[];
+  linkTaskHistory: LinkTask[];
+  customSolverSession: SolverSessionData | null;
+}
 
 /**
  * Shape reference for the app state passed into the plate-linking solver.
@@ -7,7 +23,7 @@ import type { DeferredLinkTask, LinkDeltas, LinkTask, Offsets, PlateLinks, Solut
  * The runtime still passes plain objects. This class exists so the contract is
  * explicit and the fields are easy to inspect while implementing a solver.
  */
-export class PlateLinkingState {
+export class PlateLinkingState implements PlateLinkingStateData {
   plateCount: number;
   offsets: Offsets;
   links: PlateLinks;

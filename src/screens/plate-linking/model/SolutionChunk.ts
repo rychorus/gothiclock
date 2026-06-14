@@ -1,6 +1,18 @@
-import type { Offsets, SolutionKeyGroupData, SolutionMoveData } from "./types";
+import type { Offsets } from "./types";
+import type { SolutionKeyGroupData } from "./SolutionKeyGroup";
+import type { SolutionMoveData } from "./SolutionMove";
 
-export class SolutionChunk {
+export interface SolutionChunkData {
+  id: string;
+  type: "reset" | "move" | "solved";
+  label: string;
+  keys: string[];
+  keyGroups: SolutionKeyGroupData[];
+  offsets: Offsets;
+  move: SolutionMoveData | null;
+}
+
+export class SolutionChunk implements SolutionChunkData {
   id: string;
   type: "reset" | "move" | "solved";
   label: string;
