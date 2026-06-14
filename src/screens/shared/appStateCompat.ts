@@ -8,7 +8,7 @@ export {
   loadSavedLockState,
   buildSolutionCommandString,
   buildWasdSequence,
-} from "../solution/solutionState";
+} from "../../lib/appState";
 export {
   snapshotCurrentCountState,
   startNewLock,

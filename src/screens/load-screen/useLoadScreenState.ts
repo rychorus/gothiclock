@@ -1,5 +1,5 @@
 import { deleteSavedLock, getDefaultLockName, getSavedLockById, getSavedLocks, persistCurrentLock, renameSavedLock } from "../../lib/lockStorage";
-import { loadSavedLockState } from "../solution/solutionState";
+import { loadSavedLockState } from "../../lib/appState";
 import type { AppStateData, ModalState, SavedLockRecord } from "../../lib/types";
 import type { Dispatch, SetStateAction } from "react";
 

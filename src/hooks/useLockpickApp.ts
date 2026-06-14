@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { buildNotationString } from "../lib/notation";
 import { createInitialAppState, getUnknownPlates, isTrivialCenteredLock } from "../lib/lockData";
-import { resetTestingMode } from "../screens/solution/solutionState";
+import { resetTestingMode } from "../lib/appState";
 import { syncFinalLockProgress } from "../lib/lockStorage";
 import { buildShareUrl } from "../screens/shared/shareUrl";
 import { useAppNavigation } from "../screens/shared/useAppNavigation";

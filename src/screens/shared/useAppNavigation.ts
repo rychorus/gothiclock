@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { createInitialAppState, createEmptyLinkDeltas, createEmptyLinks, cloneOffsets } from "../../lib/lockData";
-import { returnToSolutionView } from "../solution/solutionState";
+import { returnToSolutionView } from "../../lib/appState";
 import { beginNextLinkTask } from "../plate-linking/linkingState";
 import type { AppStateData, ModalState } from "../../lib/types";
 
