@@ -25,18 +25,3 @@ export function getHeroTitle(mode) {
 
   return null;
 }
-
-export function getStageInstruction(appState, _currentSolutionChunk = null) {
-  if (appState.customSolverSession?.prompt?.message && appState.mode === "linking") {
-    return appState.customSolverSession.prompt.message;
-  }
-
-  if (appState.mode === "linking" && appState.currentTask) {
-    const driverIndex = appState.currentTask.driver ?? 0;
-    const driver = appState.plateCount - driverIndex;
-    const direction = appState.currentTask.direction === "up" ? "left" : "right";
-    return appState.currentTask.phase === "step2" ? `What moved with plate ${driver}?` : `Move plate ${driver} ${direction}`;
-  }
-
-  return "";
-}

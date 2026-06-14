@@ -1,7 +1,7 @@
 import { createEmptyLinkDeltas, createEmptyLinks, createInitialAppState, resizeLink, resizeLinkDeltas, resizeOffsets } from "../../lib/lockData";
 import type { AppStateData } from "../../lib/types";
-import { buildSolutionPlanForApp } from "../plate-linking/implementation";
-import { beginNextLinkTask } from "../plate-linking/linkingState";
+import { buildSolutionPlanForApp } from "../../lib/solution";
+import { createPlateLinkingPromptTask } from "../plate-linking/prompt/plateLinkingPromptState";
 
 export function snapshotCurrentCountState(state: AppStateData) {
   return {
@@ -37,35 +37,6 @@ export function setPlateCount(state: AppStateData, count: number): AppStateData 
   const previousMode = state.mode;
   const previousCount = state.plateCount;
   const deltaCount = count - previousCount;
-
-  function rebaseTask(task) {
-    if (!task) return null;
-    const newDriver = task.driver + deltaCount;
-    if (newDriver < 0 || newDriver >= count) return null;
-
-    function rebaseArray(arr) {
-      if (!arr) return null;
-      if (deltaCount > 0) {
-        const next = Array.from({ length: count }, () => 0);
-        for (let i = 0; i < arr.length; i += 1) {
-          next[i + deltaCount] = arr[i];
-        }
-        return next;
-      }
-      if (deltaCount < 0) {
-        return arr.slice(-count);
-      }
-      return Array.from({ length: count }, (_, i) => arr[i] ?? 0);
-    }
-
-    return {
-      ...task,
-      driver: newDriver,
-      startOffsets: rebaseArray(task.startOffsets),
-      baseOffsets: rebaseArray(task.baseOffsets),
-      attempts: rebaseArray(task.attempts) || Array.from({ length: count }, () => 0),
-    };
-  }
 
   const nextState: AppStateData = {
     ...state,
@@ -126,9 +97,7 @@ export function setPlateCount(state: AppStateData, count: number): AppStateData 
           return resizeOffsets(previousStartOffsets, count);
         })()
       : null,
-    currentTask: rebaseTask(state.currentTask),
-    deferredLinkTasks: [],
-    linkTaskHistory: [],
+    linkingPromptTask: null,
     solution: state.solution,
   };
 
@@ -152,7 +121,10 @@ export function setPlateCount(state: AppStateData, count: number): AppStateData 
     } as AppStateData;
   }
 
-  return beginNextLinkTask(nextState);
+  return {
+    ...nextState,
+    linkingPromptTask: createPlateLinkingPromptTask(nextState),
+  };
 }
 
 export function startOver(state: AppStateData): AppStateData {
@@ -164,9 +136,7 @@ export function startOver(state: AppStateData): AppStateData {
     linkDeltas: createEmptyLinkDeltas(state.plateCount),
     mode: "setup",
     linkingStartOffsets: null,
-    currentTask: null,
-    deferredLinkTasks: [],
-    linkTaskHistory: [],
+    linkingPromptTask: null,
     solution: null,
   } as AppStateData;
 }

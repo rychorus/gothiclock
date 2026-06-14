@@ -12,7 +12,7 @@ export function PlateColumn({
   index,
   offset,
   mode,
-  currentTask,
+  linkingPromptTask,
   currentSolutionMove,
   testingFeedback,
   selection,
@@ -32,13 +32,13 @@ export function PlateColumn({
 
   const classes = useMemo(() => {
     const nextClasses = ["plate-column"];
-    const isDriver = currentTask?.driver === index;
+    const isDriver = linkingPromptTask?.driver === index;
 
     if (isDriver) {
       nextClasses.push("is-driver");
     }
 
-    if (mode === "linking" && currentTask?.phase === "step2" && isDriver) {
+    if (mode === "linking" && linkingPromptTask?.phase === "observe" && isDriver) {
       nextClasses.push("is-driver-focus");
     }
 
@@ -50,15 +50,15 @@ export function PlateColumn({
       nextClasses.push("is-deferred");
     }
 
-    if (selection === currentTask?.delta && selection !== 0) {
+    if (selection === linkingPromptTask?.delta && selection !== 0) {
       nextClasses.push("is-linked-same");
     }
 
-    if (selection === currentTask?.delta * -1 && selection !== 0) {
+    if (selection === linkingPromptTask?.delta * -1 && selection !== 0) {
       nextClasses.push("is-linked-opposite");
     }
 
-    if (mode === "linking" && currentTask?.phase === "step2" && selection !== 0) {
+    if (mode === "linking" && linkingPromptTask?.phase === "observe" && selection !== 0) {
       nextClasses.push("is-step2-selected");
     }
 
@@ -71,11 +71,11 @@ export function PlateColumn({
     }
 
     if (mode === "linking" && isDriver) {
-      nextClasses.push(currentTask.direction === "up" ? "is-prompt-up" : "is-prompt-down");
+      nextClasses.push(linkingPromptTask.direction === "up" ? "is-prompt-up" : "is-prompt-down");
     }
 
-    if (mode === "linking" && currentTask?.phase === "step1" && isDriver) {
-      nextClasses.push(currentTask.direction === "up" ? "is-body-prompt-up" : "is-body-prompt-down");
+    if (mode === "linking" && linkingPromptTask?.phase === "move" && isDriver) {
+      nextClasses.push(linkingPromptTask.direction === "up" ? "is-body-prompt-up" : "is-body-prompt-down");
     }
 
     if (currentSolutionMove?.plate === index) {
@@ -92,7 +92,7 @@ export function PlateColumn({
     }
 
     return nextClasses.join(" ");
-  }, [currentSolutionMove, currentTask, index, isDeferred, isKnown, mode, offset, selection, testingFeedback]);
+  }, [currentSolutionMove, index, isDeferred, isKnown, linkingPromptTask, mode, offset, selection, testingFeedback]);
 
   function measureStepSize() {
     if (!holeRef.current || !stackRef.current) {
@@ -156,8 +156,8 @@ export function PlateColumn({
   }
 
   const hideMoveButtons = mode === "solution" || mode === "ready_to_solve";
-  const leftSuggested = mode === "linking" && currentTask?.phase === "step1" && currentTask?.driver === index && currentTask.direction === "up";
-  const rightSuggested = mode === "linking" && currentTask?.phase === "step1" && currentTask?.driver === index && currentTask.direction === "down";
+  const leftSuggested = mode === "linking" && linkingPromptTask?.phase === "move" && linkingPromptTask?.driver === index && linkingPromptTask.direction === "up";
+  const rightSuggested = mode === "linking" && linkingPromptTask?.phase === "move" && linkingPromptTask?.driver === index && linkingPromptTask.direction === "down";
 
   return (
     <article className={classes} data-plate-index={index}>

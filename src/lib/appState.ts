@@ -1,8 +1,7 @@
 import { CENTER_INDEX, cloneOffsets, createInitialAppState, resizeLink, resizeLinkDeltas } from "./lockData";
 import type { AppStateData, SavedLockRecord } from "./types";
-import { buildSolutionPlanForApp } from "../screens/plate-linking/implementation";
-import { buildSolutionCommandString, buildWasdSequence } from "./solution";
-import { beginNextLinkTask } from "../screens/plate-linking/linkingState";
+import { buildSolutionCommandString, buildSolutionPlanForApp, buildWasdSequence } from "./solution";
+import { startPlateLinkingPrompt } from "../screens/plate-linking/prompt/plateLinkingPromptState";
 
 export function getSolutionDisplayOffsets(state: AppStateData, index = state.solution?.index ?? 0) {
   if (!state.solution?.chunks?.length) {
@@ -44,7 +43,7 @@ export function enterTestingMode(state: AppStateData): AppStateData {
     ...state,
     mode: "testing",
     testingFeedback: null,
-    currentTask: null,
+    linkingPromptTask: null,
     offsets: cloneOffsets(state.solution.startOffsets || state.linkingStartOffsets || state.offsets),
   };
 }
@@ -121,16 +120,14 @@ export function loadSavedLockState(state: AppStateData, savedLock: SavedLockReco
     links: savedLock.links.map((link) => resizeLink(link, savedLock.plateCount)),
     linkDeltas: resizeLinkDeltas(savedLock.linkDeltas, savedLock.plateCount),
     mode: savedLock.isDraft ? "linking" : "solution",
-    currentTask: null,
-    deferredLinkTasks: [],
-    linkTaskHistory: [],
+    linkingPromptTask: null,
     currentSaveId: savedLock.id,
     solution: null,
     snapshotsByCount: {},
   };
 
   if (savedLock.isDraft) {
-    return beginNextLinkTask(nextState);
+    return startPlateLinkingPrompt(nextState);
   }
 
   return {
@@ -138,6 +135,21 @@ export function loadSavedLockState(state: AppStateData, savedLock: SavedLockReco
     offsets: cloneOffsets(savedLock.linkingStartOffsets || savedLock.currentOffsets),
     solution: buildSolutionPlanForApp(nextState, cloneOffsets(savedLock.linkingStartOffsets || savedLock.currentOffsets)),
   } as AppStateData;
+}
+
+export function enterSolutionMode(state: AppStateData): AppStateData {
+  const startOffsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
+  const nextState: AppStateData = {
+    ...state,
+    mode: "solution",
+    linkingPromptTask: null,
+    offsets: startOffsets,
+  };
+
+  return {
+    ...nextState,
+    solution: buildSolutionPlanForApp(nextState, startOffsets),
+  };
 }
 
 export { buildSolutionCommandString, buildWasdSequence, createInitialAppState };

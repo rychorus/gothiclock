@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { createInitialAppState, createEmptyLinkDeltas, createEmptyLinks, cloneOffsets } from "../../lib/lockData";
 import { returnToSolutionView } from "../../lib/appState";
-import { beginNextLinkTask } from "../plate-linking/linkingState";
+import { startPlateLinkingPrompt } from "../plate-linking/prompt/plateLinkingPromptState";
 import type { AppStateData, ModalState } from "../../lib/types";
 
 function snapshotNavigation(nextAppState: AppStateData, nextModal: ModalState) {
@@ -53,22 +53,20 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
     }
 
     if (appState.mode === "solution") {
-      setAppState((current) => beginNextLinkTask({
+      setAppState((current) => startPlateLinkingPrompt({
         ...current,
         mode: "linking",
-        currentTask: null,
+        linkingPromptTask: null,
         solution: null,
         links: createEmptyLinks(current.plateCount),
         linkDeltas: createEmptyLinkDeltas(current.plateCount),
         offsets: cloneOffsets(current.linkingStartOffsets || current.offsets),
-        deferredLinkTasks: [],
-        linkTaskHistory: [],
       }));
       return;
     }
 
     if (appState.mode === "ready_to_solve") {
-      setAppState((current) => beginNextLinkTask({ ...current, mode: "linking" }));
+      setAppState((current) => startPlateLinkingPrompt({ ...current, mode: "linking" }));
       return;
     }
 
@@ -76,13 +74,13 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
       setAppState((current) => ({
         ...current,
         mode: "setup",
-        currentTask: null,
+        linkingPromptTask: null,
       }));
       return;
     }
 
     if (appState.mode === "load" || appState.mode === "import" || appState.mode === "setup") {
-      setAppState((current) => ({ ...current, mode: "menu", currentTask: null }));
+      setAppState((current) => ({ ...current, mode: "menu", linkingPromptTask: null }));
     }
   }
 

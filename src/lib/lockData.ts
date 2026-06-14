@@ -3,9 +3,7 @@ import type {
   AppMode,
   AppStateData,
   CountSnapshot,
-  DeferredLinkTask,
   LinkDeltas,
-  LinkTask,
   Offsets,
   PlateLinks,
   SavedLockRecord,
@@ -66,195 +64,6 @@ export function getUnknownPlates(links: PlateLinks): number[] {
     .map(({ index }) => index);
 }
 
-export function areUnknownPlatesCentered(state: Pick<AppStateData, "links" | "offsets">): boolean {
-  const unknownPlates = getUnknownPlates(state.links);
-  return unknownPlates.length > 0 && unknownPlates.every((index) => state.offsets[index] === 0);
-}
-
-function getDeferredRequirements(deferredTask: DeferredLinkTask): Array<{ index: number; delta: number }> {
-  if (Array.isArray(deferredTask.blockedRequirements) && deferredTask.blockedRequirements.length) {
-    return deferredTask.blockedRequirements;
-  }
-
-  return (deferredTask.blockedBy || []).map((index) => ({
-    index,
-    delta: deferredTask.task?.attempts?.[index] || 0,
-  }));
-}
-
-function isDeferredBlockerActive(state: Pick<AppStateData, "offsets">, deferredTask: DeferredLinkTask, index: number, unknownSet: Set<number>) {
-  if (unknownSet.has(index)) {
-    return true;
-  }
-
-  const requirement = getDeferredRequirements(deferredTask).find((entry) => entry.index === index);
-  const requiredDelta = requirement?.delta || 0;
-  if (!requiredDelta) {
-    return false;
-  }
-
-  const nextOffset = (state.offsets?.[index] ?? 0) + requiredDelta;
-  return nextOffset < -CENTER_INDEX || nextOffset > CENTER_INDEX;
-}
-
-function getDeferredDependencySet(state: Pick<AppStateData, "offsets" | "deferredLinkTasks">, unknownPlates: number[]) {
-  const unknownSet = new Set(unknownPlates);
-  const deferredSet = new Set();
-
-  for (const deferredTask of state.deferredLinkTasks || []) {
-    const blockers = (deferredTask.blockedBy || []).filter((index) => isDeferredBlockerActive(state, deferredTask, index, unknownSet));
-    if (!blockers.length) {
-      continue;
-    }
-
-    deferredSet.add(deferredTask.driver);
-    blockers.forEach((index) => deferredSet.add(index));
-  }
-
-  return deferredSet;
-}
-
-function getReadyDeferredDrivers(state: Pick<AppStateData, "links" | "offsets" | "deferredLinkTasks">, excludedDrivers: number[] = []) {
-  const excludedSet = new Set(excludedDrivers);
-  const unknownSet = new Set(getUnknownPlates(state.links));
-
-  return (state.deferredLinkTasks || [])
-    .filter((deferredTask) => {
-      if (excludedSet.has(deferredTask.driver)) {
-        return false;
-      }
-
-      return (deferredTask.blockedBy || []).every((index) => !isDeferredBlockerActive(state, deferredTask, index, unknownSet));
-    })
-    .map((deferredTask) => deferredTask.driver);
-}
-
-function buildKnownLinkAdjacency(links: PlateLinks) {
-  const adjacency = new Map<number, Array<{ index: number; sign: number }>>();
-
-  links.forEach((link, source) => {
-    if (!link) {
-      return;
-    }
-
-    link.forEach((value, target) => {
-      if (!value || source === target) {
-        return;
-      }
-
-      if (!adjacency.has(source)) {
-        adjacency.set(source, []);
-      }
-      if (!adjacency.has(target)) {
-        adjacency.set(target, []);
-      }
-
-      // Linked plates move as a coupled group, so a discovered relation
-      // is useful in both directions for future driver selection.
-      adjacency.get(source).push({ index: target, sign: value });
-      adjacency.get(target).push({ index: source, sign: value });
-    });
-  });
-
-  return adjacency;
-}
-
-function getKnownBlockedSet(state: Pick<AppStateData, "links" | "offsets">, candidatePlates: number[]) {
-  const adjacency = buildKnownLinkAdjacency(state.links);
-  const blockedSet = new Set();
-
-  candidatePlates.forEach((driver) => {
-    const delta = getSuggestedDelta(state.offsets[driver]);
-    const relations = new Map([[driver, 1]]);
-    const queue = [driver];
-
-    while (queue.length) {
-      const current = queue.shift();
-
-      for (const edge of adjacency.get(current) || []) {
-        const nextRelation = relations.get(current) * edge.sign;
-        if (relations.has(edge.index)) {
-          continue;
-        }
-
-        relations.set(edge.index, nextRelation);
-        queue.push(edge.index);
-      }
-    }
-
-    const isBlocked = [...relations.entries()].some(([index, relation]) => {
-      const nextOffset = state.offsets[index] + (relation * delta);
-      return nextOffset < -CENTER_INDEX || nextOffset > CENTER_INDEX;
-    });
-
-    if (isBlocked) {
-      blockedSet.add(driver);
-    }
-  });
-
-  return blockedSet;
-}
-
-export function chooseNextDriver(state: Pick<AppStateData, "links" | "offsets" | "deferredLinkTasks">, excludedDrivers: number[] = []): number | null {
-  const readyDeferredDrivers = getReadyDeferredDrivers(state, excludedDrivers);
-  if (readyDeferredDrivers.length) {
-    return readyDeferredDrivers
-      .map((index) => ({
-        index,
-        score: Math.abs(state.offsets[index]),
-      }))
-      .sort((a, b) => b.score - a.score || b.index - a.index)[0].index;
-  }
-
-  const unknownPlates = getUnknownPlates(state.links);
-  if (!unknownPlates.length) {
-    return null;
-  }
-
-  const excludedSet = new Set(excludedDrivers);
-  const deferredDependencySet = getDeferredDependencySet(state, unknownPlates);
-  const selectableUnknownPlates = unknownPlates.filter((index) => !excludedSet.has(index));
-  if (!selectableUnknownPlates.length) {
-    return null;
-  }
-
-  const unresolvedActivePlates = selectableUnknownPlates.filter((index) => state.offsets[index] !== 0);
-  const preferredActivePlates = unresolvedActivePlates.filter((index) => !deferredDependencySet.has(index));
-  const activePool = preferredActivePlates.length ? preferredActivePlates : unresolvedActivePlates;
-  const blockedByKnownLinks = getKnownBlockedSet(state, activePool);
-  const unblockedActivePlates = activePool.filter((index) => !blockedByKnownLinks.has(index));
-
-  const unexploredFallbackPlates = selectableUnknownPlates.filter((index) => (
-    state.offsets[index] === 0
-    && !deferredDependencySet.has(index)
-  ));
-
-  const selectablePlates = unblockedActivePlates.length
-    ? unblockedActivePlates
-    : (unexploredFallbackPlates.length
-      ? unexploredFallbackPlates
-      : (activePool.length ? activePool : selectableUnknownPlates));
-
-  return selectablePlates
-    .map((index) => ({
-      index,
-      score: Math.abs(state.offsets[index]),
-    }))
-    .sort((a, b) => b.score - a.score || b.index - a.index)[0].index;
-}
-
-export function getSuggestedDelta(offset: number): number {
-  if (offset < 0) {
-    return 1;
-  }
-
-  if (offset > 0) {
-    return -1;
-  }
-
-  return -1;
-}
-
 export function createInitialAppState(): AppStateData {
   return {
     plateCount: START_COUNT,
@@ -264,13 +73,10 @@ export function createInitialAppState(): AppStateData {
     links: createEmptyLinks(START_COUNT),
     linkDeltas: createEmptyLinkDeltas(START_COUNT),
     testingFeedback: null,
-    currentTask: null,
+    linkingPromptTask: null,
     solution: null,
-    deferredLinkTasks: [],
-    linkTaskHistory: [],
     currentSaveId: null,
     snapshotsByCount: {},
-    customSolverSession: null,
   };
 }
 

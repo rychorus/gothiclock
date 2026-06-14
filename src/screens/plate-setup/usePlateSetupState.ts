@@ -1,5 +1,5 @@
 import { setPlateCount, startNewLock, startOver } from "./plateSetupState";
-import { startLinkingMode } from "../plate-linking/linkingState";
+import { startPlateLinkingPrompt } from "../plate-linking/prompt/plateLinkingPromptState";
 import type { AppStateData } from "../../lib/types";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -14,6 +14,6 @@ export function usePlateSetupState({ setAppState }: {
       requestAnimationFrame(() => setTimeout(() => document.body.classList.remove("is-resizing"), 80));
     },
     startOver: () => setAppState(startOver),
-    startLinkingMode: () => setAppState(startLinkingMode),
+    startLinkingMode: () => setAppState(startPlateLinkingPrompt),
   };
 }

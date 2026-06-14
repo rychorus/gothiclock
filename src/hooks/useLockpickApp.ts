@@ -20,8 +20,8 @@ export function useLockpickApp() {
   const navigation = useAppNavigation({ appState, modal, setAppState, setModalState });
   const mainMenu = useMainMenuState({
     setAppState,
-    openLoadScreen: () => setAppState((current) => ({ ...current, mode: "load", currentTask: null })),
-    openImportScreen: () => setAppState((current) => ({ ...current, mode: "import", currentTask: null })),
+    openLoadScreen: () => setAppState((current) => ({ ...current, mode: "load", linkingPromptTask: null })),
+    openImportScreen: () => setAppState((current) => ({ ...current, mode: "import", linkingPromptTask: null })),
   });
   const loadScreen = useLoadScreenState({ appState, setAppState, setModal: navigation.setModal });
   const plateSetup = usePlateSetupState({ setAppState });
@@ -81,14 +81,12 @@ export function useLockpickApp() {
       setPlateCount: plateSetup.setPlateCount,
       startOver: plateSetup.startOver,
       startLinkingMode: plateSetup.startLinkingMode,
-      stepBackLinking: plateLinking.stepBackLinking,
-      resetPlates: plateLinking.resetPlates,
-      advanceFromStep1: plateLinking.advanceFromStep1,
-      finishLinkCapture: plateLinking.finishLinkCapture,
-      enterSolutionMode: plateLinking.enterSolutionMode,
+      stepBackPlateLinkingPrompt: plateLinking.stepBackPlateLinkingPrompt,
+      resetPlateLinkingPrompt: plateLinking.resetPlateLinkingPrompt,
+      advancePlateLinkingPrompt: plateLinking.advancePlateLinkingPrompt,
+      completePlateLinkingPrompt: plateLinking.completePlateLinkingPrompt,
       enterTestingMode: solution.enterTestingMode,
       returnToSolutionView: solution.returnToSolutionView,
-      beginNextLinkTask: plateLinking.beginNextLinkTask,
       returnToLinking: navigation.goBackScreen,
       setSolutionStep: solution.setSolutionStep,
       resetTestingMode: () => setAppState(resetTestingMode),

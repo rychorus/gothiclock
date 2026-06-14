@@ -1,10 +1,16 @@
 import { useMemo } from "react";
-import { applyTestingMove } from "../../lib/appState";
-import { canMove, getOffsetBounds, getStep2Selection, hasAnyStep2Selection } from "../../lib/plateMath";
-import { beginNextLinkTask, advanceFromStep1, enterSolutionMode, finishLinkCapture, recordPlateAttempt, resetPlates, stepBackLinking, updatePlateOffset } from "./linkingState";
-import type { AppStateData } from "../../lib/types";
-import type { Direction } from "./model/types";
 import type { Dispatch, SetStateAction } from "react";
+import { applyTestingMove } from "../../lib/appState";
+import { cloneOffsets } from "../../lib/lockData";
+import { canMove, getOffsetBounds, getPlateObservation, hasPlateObservation } from "../../lib/plateMath";
+import type { AppStateData, Direction } from "../../lib/types";
+import {
+  advancePlateLinkingPrompt,
+  completePlateLinkingPrompt,
+  resetPlateLinkingPrompt,
+  stepBackPlateLinkingPrompt,
+  updatePlateLinkingObservation,
+} from "./prompt/plateLinkingPromptState";
 
 export function usePlateLinkingState({ appState, setAppState }: {
   appState: AppStateData;
@@ -20,16 +26,23 @@ export function usePlateLinkingState({ appState, setAppState }: {
 
     const bounds = getOffsetBounds(appState, index);
     const nextOffset = appState.offsets[index] + delta;
-
     if (nextOffset < bounds.min || nextOffset > bounds.max) {
-      setAppState((current) => recordPlateAttempt(current, index, delta));
       return;
     }
 
-    setAppState((current) => updatePlateOffset(current, index, nextOffset, 0));
+    if (appState.mode === "linking") {
+      setAppState((current) => updatePlateLinkingObservation(current, index, nextOffset));
+      return;
+    }
+
+    setAppState((current) => {
+      const offsets = cloneOffsets(current.offsets);
+      offsets[index] = nextOffset;
+      return { ...current, offsets };
+    });
   }
 
-  function commitDrag(index: number, nextOffset: number, attemptedDirection: number) {
+  function commitDrag(index: number, nextOffset: number) {
     if (appState.mode === "testing") {
       const delta = nextOffset - appState.offsets[index];
       if (delta !== 0) {
@@ -38,23 +51,30 @@ export function usePlateLinkingState({ appState, setAppState }: {
       return;
     }
 
-    setAppState((current) => updatePlateOffset(current, index, nextOffset, attemptedDirection));
+    if (appState.mode === "linking") {
+      setAppState((current) => updatePlateLinkingObservation(current, index, nextOffset));
+      return;
+    }
+
+    setAppState((current) => {
+      const offsets = cloneOffsets(current.offsets);
+      offsets[index] = nextOffset;
+      return { ...current, offsets };
+    });
   }
 
   return useMemo(() => ({
     movePlate,
     commitDrag,
-    stepBackLinking: () => setAppState(stepBackLinking),
-    resetPlates: () => setAppState(resetPlates),
-    advanceFromStep1: () => setAppState(advanceFromStep1),
-    finishLinkCapture: () => setAppState(finishLinkCapture),
-    enterSolutionMode: () => setAppState(enterSolutionMode),
-    beginNextLinkTask: () => setAppState(beginNextLinkTask),
+    stepBackPlateLinkingPrompt: () => setAppState(stepBackPlateLinkingPrompt),
+    resetPlateLinkingPrompt: () => setAppState(resetPlateLinkingPrompt),
+    advancePlateLinkingPrompt: () => setAppState(advancePlateLinkingPrompt),
+    completePlateLinkingPrompt: () => setAppState(completePlateLinkingPrompt),
     selectors: {
       canMove: (index, direction) => canMove(appState, index, direction),
       getOffsetBounds: (index) => getOffsetBounds(appState, index),
-      getStep2Selection: (index) => getStep2Selection(appState, index),
-      hasAnyStep2Selection: () => hasAnyStep2Selection(appState),
+      getPlateObservation: (index) => getPlateObservation(appState, index),
+      hasPlateObservation: () => hasPlateObservation(appState),
     },
   }), [appState, setAppState]);
 }

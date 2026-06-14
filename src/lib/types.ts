@@ -1,16 +1,46 @@
-import type {
-  DeferredLinkTask,
-  LinkDeltas,
-  LinkTask,
-  Offsets,
-  PlateLinks,
-  PlateLinkingStateData,
-  TestingFeedbackData,
-  SolverSessionData,
-} from "../screens/plate-linking/model/types";
+import type { PlateLinkingPromptTask } from "../screens/plate-linking/prompt/types";
 
 export type AppMode = "menu" | "load" | "import" | "setup" | "linking" | "ready_to_solve" | "solution" | "testing";
-export type { DeferredLinkTask, LinkDeltas, LinkTask, Offsets, PlateLinks, PlateLinkingStateData, SolverSessionData, TestingFeedbackData } from "../screens/plate-linking/model/types";
+export type Direction = "up" | "down";
+export type PlateLink = number[];
+export type PlateLinks = Array<PlateLink | null>;
+export type Offsets = number[];
+export type LinkDeltas = Array<number | null>;
+
+export interface TestingFeedbackData {
+  id: number;
+  driver: number;
+  delta: number;
+  blockedPlates: number[];
+}
+
+export interface SolutionMoveData {
+  plate: number;
+  delta: number;
+  direction: Direction;
+}
+
+export interface SolutionKeyGroupData {
+  key: string;
+  count: number;
+}
+
+export interface SolutionChunkData {
+  id: string;
+  type: "reset" | "move" | "solved";
+  label: string;
+  keys: string[];
+  keyGroups: SolutionKeyGroupData[];
+  offsets: Offsets;
+  move: SolutionMoveData | null;
+}
+
+export interface SolutionPlanData {
+  moves: SolutionMoveData[] | null;
+  chunks: SolutionChunkData[];
+  index: number;
+  startOffsets: Offsets;
+}
 
 export interface CountSnapshot {
   offsets: Offsets;
@@ -43,17 +73,16 @@ export type ModalState =
   | { type: "notation" }
   | { type: "share" };
 
-export interface AppStateData extends PlateLinkingStateData {
-  testingFeedback: TestingFeedbackData | null;
-  currentTask: LinkTask | null;
-  currentSaveId: string | null;
-  snapshotsByCount: Record<number, CountSnapshot>;
-  customSolverSession: SolverSessionData | null;
+export interface AppStateData {
   plateCount: number;
   offsets: Offsets;
+  mode: AppMode;
+  linkingStartOffsets: Offsets | null;
   links: PlateLinks;
   linkDeltas: LinkDeltas;
-  linkingStartOffsets: Offsets | null;
-  deferredLinkTasks: DeferredLinkTask[];
-  linkTaskHistory: LinkTask[];
+  testingFeedback: TestingFeedbackData | null;
+  linkingPromptTask: PlateLinkingPromptTask | null;
+  solution: SolutionPlanData | null;
+  currentSaveId: string | null;
+  snapshotsByCount: Record<number, CountSnapshot>;
 }

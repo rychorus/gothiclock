@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { buildSolutionCommandString, buildWasdSequence, setSolutionStep, enterTestingMode, returnToSolutionView } from "../../lib/appState";
-import type { AppStateData } from "../../lib/types";
-import type { SolutionChunkData } from "../plate-linking/model/SolutionChunk";
+import type { AppStateData, SolutionChunkData } from "../../lib/types";
 import type { Dispatch, SetStateAction } from "react";
 
 export function useSolutionState({ appState, setAppState }: {
@@ -18,6 +17,6 @@ export function useSolutionState({ appState, setAppState }: {
     setSolutionStep: (index: number) => setAppState((current) => setSolutionStep(current, index)),
     enterTestingMode: () => setAppState(enterTestingMode),
     returnToSolutionView: () => setAppState(returnToSolutionView),
-    goToMainMenu: () => setAppState((current) => ({ ...current, mode: "menu", currentTask: null })),
+    goToMainMenu: () => setAppState((current) => ({ ...current, mode: "menu", linkingPromptTask: null })),
   }), [appState, currentSolutionChunk, powershellCode, setAppState]);
 }

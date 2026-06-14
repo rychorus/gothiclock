@@ -1,7 +1,8 @@
-import { buildSolutionPlanForApp } from "../plate-linking/implementation";
+import { buildSolutionPlanForApp } from "../../lib/solution";
 import { createEmptyLinkDeltas, createInitialAppState } from "../../lib/lockData";
 import { parseNotationString } from "../../lib/notation";
-import { beginNextLinkTask, enterSolutionMode } from "../plate-linking/linkingState";
+import { enterSolutionMode } from "../../lib/appState";
+import { startPlateLinkingPrompt } from "../plate-linking/prompt/plateLinkingPromptState";
 import type { AppStateData } from "../../lib/types";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -21,10 +22,9 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
       links: parsed.links,
       linkDeltas: createEmptyLinkDeltas(parsed.plateCount),
       linkingStartOffsets: parsed.offsets,
-      currentTask: null,
+      linkingPromptTask: null,
       currentSaveId: null,
       snapshotsByCount: {},
-      deferredLinkTasks: [],
       mode: hasLinks ? "linking" : "setup",
     };
 
@@ -47,7 +47,7 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
       return;
     }
 
-    setAppState(() => beginNextLinkTask({
+    setAppState(() => startPlateLinkingPrompt({
       ...baseState,
       solution: null,
     }));
