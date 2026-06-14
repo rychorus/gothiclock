@@ -1,21 +1,18 @@
-import { clampOffset, cloneOffsets } from "../../../lib/lockData";
+import {
+  clampOffset,
+  cloneOffsets,
+  createEmptyLinkDeltas,
+  createEmptyLinks,
+} from "../../../lib/lockData";
 import type { AppStateData, Direction } from "../../../lib/types";
 import type { PlateLinkingPromptTask } from "./types";
 
-function getInitialDriver(offsets: number[]): number {
-  const activeDriver = offsets.findIndex((offset) => offset !== 0);
-  return activeDriver >= 0 ? activeDriver : 0;
-}
-
-function getPromptDirection(offset: number): Direction {
-  return offset > 0 ? "up" : "down";
-}
-
-export function createPlateLinkingPromptTask(state: AppStateData): PlateLinkingPromptTask {
-  const driver = getInitialDriver(state.offsets);
-  const direction = getPromptDirection(state.offsets[driver]);
-  const delta = direction === "up" ? -1 : 1;
-
+export function createPlateLinkingPromptTask(
+  state: AppStateData,
+  driver: number,
+  delta: number,
+): PlateLinkingPromptTask {
+  const direction: Direction = delta < 0 ? "up" : "down";
   return {
     phase: "move",
     driver,
@@ -24,18 +21,7 @@ export function createPlateLinkingPromptTask(state: AppStateData): PlateLinkingP
     startOffsets: cloneOffsets(state.offsets),
     baseOffsets: null,
     observations: Array.from({ length: state.plateCount }, () => 0),
-  };
-}
-
-export function startPlateLinkingPrompt(state: AppStateData): AppStateData {
-  const linkingStartOffsets = cloneOffsets(state.offsets);
-
-  return {
-    ...state,
-    mode: "linking",
-    linkingStartOffsets,
-    linkingPromptTask: createPlateLinkingPromptTask({ ...state, linkingStartOffsets }),
-    solution: null,
+    blockedObservations: Array.from({ length: state.plateCount }, () => 0),
   };
 }
 
@@ -57,23 +43,7 @@ export function advancePlateLinkingPrompt(state: AppStateData): AppStateData {
       phase: "observe",
       baseOffsets: cloneOffsets(offsets),
       observations: Array.from({ length: state.plateCount }, () => 0),
-    },
-  };
-}
-
-export function completePlateLinkingPrompt(state: AppStateData): AppStateData {
-  if (state.mode !== "linking" || state.linkingPromptTask?.phase !== "observe") {
-    return state;
-  }
-
-  return {
-    ...state,
-    linkingPromptTask: {
-      ...state.linkingPromptTask,
-      phase: "complete",
-      observations: state.offsets.map((offset, index) => (
-        offset - (state.linkingPromptTask?.baseOffsets?.[index] ?? offset)
-      )),
+      blockedObservations: Array.from({ length: state.plateCount }, () => 0),
     },
   };
 }
@@ -93,19 +63,45 @@ export function updatePlateLinkingObservation(
   return {
     ...state,
     offsets,
+    linkingPromptTask: {
+      ...state.linkingPromptTask,
+      observations: state.linkingPromptTask.observations.map((value, observationIndex) => (
+        observationIndex === index
+          ? nextOffset - (state.linkingPromptTask?.baseOffsets?.[index] ?? nextOffset)
+          : value
+      )),
+      blockedObservations: state.linkingPromptTask.blockedObservations.map((value, observationIndex) => (
+        observationIndex === index ? 0 : value
+      )),
+    },
   };
 }
 
-export function resetPlateLinkingPrompt(state: AppStateData): AppStateData {
-  if (!state.linkingStartOffsets) {
+export function recordBlockedPlateLinkingObservation(
+  state: AppStateData,
+  index: number,
+  attemptedDelta: number,
+): AppStateData {
+  if (
+    state.mode !== "linking"
+    || state.linkingPromptTask?.phase !== "observe"
+    || index === state.linkingPromptTask.driver
+    || attemptedDelta === 0
+  ) {
     return state;
   }
 
-  const offsets = cloneOffsets(state.linkingStartOffsets);
   return {
     ...state,
-    offsets,
-    linkingPromptTask: createPlateLinkingPromptTask({ ...state, offsets }),
+    linkingPromptTask: {
+      ...state.linkingPromptTask,
+      observations: state.linkingPromptTask.observations.map((value, observationIndex) => (
+        observationIndex === index ? 0 : value
+      )),
+      blockedObservations: state.linkingPromptTask.blockedObservations.map((value, observationIndex) => (
+        observationIndex === index ? Math.sign(attemptedDelta) : value
+      )),
+    },
   };
 }
 
@@ -123,6 +119,7 @@ export function stepBackPlateLinkingPrompt(state: AppStateData): AppStateData {
         phase: "move",
         baseOffsets: null,
         observations: Array.from({ length: state.plateCount }, () => 0),
+        blockedObservations: Array.from({ length: state.plateCount }, () => 0),
       },
     };
   }
@@ -130,7 +127,12 @@ export function stepBackPlateLinkingPrompt(state: AppStateData): AppStateData {
   return {
     ...state,
     mode: "setup",
+    linkingStartOffsets: null,
+    links: createEmptyLinks(state.plateCount),
+    linkDeltas: createEmptyLinkDeltas(state.plateCount),
     linkingPromptTask: null,
+    plateLinkingProcedure: null,
+    solution: null,
     offsets: cloneOffsets(state.linkingStartOffsets || state.offsets),
   };
 }
@@ -156,5 +158,6 @@ export function getPlateLinkingObservation(state: AppStateData, index: number): 
     return 0;
   }
 
-  return state.offsets[index] - (state.linkingPromptTask.baseOffsets?.[index] ?? state.offsets[index]);
+  return state.linkingPromptTask.blockedObservations[index]
+    || state.offsets[index] - (state.linkingPromptTask.baseOffsets?.[index] ?? state.offsets[index]);
 }

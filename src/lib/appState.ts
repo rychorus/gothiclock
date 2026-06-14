@@ -1,7 +1,6 @@
 import { CENTER_INDEX, cloneOffsets, createInitialAppState, resizeLink, resizeLinkDeltas } from "./lockData";
 import type { AppStateData, SavedLockRecord } from "./types";
 import { buildSolutionCommandString, buildSolutionPlanForApp, buildWasdSequence } from "./solution";
-import { startPlateLinkingPrompt } from "../screens/plate-linking/prompt/plateLinkingPromptState";
 
 export function getSolutionDisplayOffsets(state: AppStateData, index = state.solution?.index ?? 0) {
   if (!state.solution?.chunks?.length) {
@@ -121,13 +120,14 @@ export function loadSavedLockState(state: AppStateData, savedLock: SavedLockReco
     linkDeltas: resizeLinkDeltas(savedLock.linkDeltas, savedLock.plateCount),
     mode: savedLock.isDraft ? "linking" : "solution",
     linkingPromptTask: null,
+    plateLinkingProcedure: null,
     currentSaveId: savedLock.id,
     solution: null,
     snapshotsByCount: {},
   };
 
   if (savedLock.isDraft) {
-    return startPlateLinkingPrompt(nextState);
+    return nextState;
   }
 
   return {
@@ -143,6 +143,7 @@ export function enterSolutionMode(state: AppStateData): AppStateData {
     ...state,
     mode: "solution",
     linkingPromptTask: null,
+    plateLinkingProcedure: null,
     offsets: startOffsets,
   };
 

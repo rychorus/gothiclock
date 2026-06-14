@@ -17,6 +17,11 @@ export function useSolutionState({ appState, setAppState }: {
     setSolutionStep: (index: number) => setAppState((current) => setSolutionStep(current, index)),
     enterTestingMode: () => setAppState(enterTestingMode),
     returnToSolutionView: () => setAppState(returnToSolutionView),
-    goToMainMenu: () => setAppState((current) => ({ ...current, mode: "menu", linkingPromptTask: null })),
+    goToMainMenu: () => setAppState((current) => ({
+      ...current,
+      mode: "menu",
+      linkingPromptTask: null,
+      plateLinkingProcedure: null,
+    })),
   }), [appState, currentSolutionChunk, powershellCode, setAppState]);
 }

@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { createInitialAppState, createEmptyLinkDeltas, createEmptyLinks, cloneOffsets } from "../../lib/lockData";
 import { returnToSolutionView } from "../../lib/appState";
-import { startPlateLinkingPrompt } from "../plate-linking/prompt/plateLinkingPromptState";
+import { startPlateLinkingProcedure } from "../plate-linking/procedure/plateLinkingProcedure";
 import type { AppStateData, ModalState } from "../../lib/types";
 
 function snapshotNavigation(nextAppState: AppStateData, nextModal: ModalState) {
@@ -53,10 +53,11 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
     }
 
     if (appState.mode === "solution") {
-      setAppState((current) => startPlateLinkingPrompt({
+      setAppState((current) => startPlateLinkingProcedure({
         ...current,
         mode: "linking",
         linkingPromptTask: null,
+        plateLinkingProcedure: null,
         solution: null,
         links: createEmptyLinks(current.plateCount),
         linkDeltas: createEmptyLinkDeltas(current.plateCount),
@@ -66,7 +67,7 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
     }
 
     if (appState.mode === "ready_to_solve") {
-      setAppState((current) => startPlateLinkingPrompt({ ...current, mode: "linking" }));
+      setAppState((current) => startPlateLinkingProcedure({ ...current, mode: "linking" }));
       return;
     }
 
@@ -74,7 +75,13 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
       setAppState((current) => ({
         ...current,
         mode: "setup",
+        offsets: cloneOffsets(current.linkingStartOffsets || current.offsets),
+        linkingStartOffsets: null,
+        links: createEmptyLinks(current.plateCount),
+        linkDeltas: createEmptyLinkDeltas(current.plateCount),
         linkingPromptTask: null,
+        plateLinkingProcedure: null,
+        solution: null,
       }));
       return;
     }

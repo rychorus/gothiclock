@@ -74,6 +74,7 @@ export function createInitialAppState(): AppStateData {
     linkDeltas: createEmptyLinkDeltas(START_COUNT),
     testingFeedback: null,
     linkingPromptTask: null,
+    plateLinkingProcedure: null,
     solution: null,
     currentSaveId: null,
     snapshotsByCount: {},

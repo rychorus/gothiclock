@@ -7,17 +7,7 @@ export function createPlateLinkingPrompt(task: PlateLinkingPromptTask, plateCoun
     return {
       kind: "observe",
       message: `What moved with plate ${plateNumber}?`,
-      hint: "Move each plate that followed the prompted plate, then continue.",
-      plateIndex: task.driver,
-      direction: task.direction,
-    };
-  }
-
-  if (task.phase === "complete") {
-    return {
-      kind: "complete",
-      message: `Observation captured for plate ${plateNumber}.`,
-      hint: "New plate-linking logic can consume this observation here.",
+      hint: "Move each plate that followed it. If one was blocked at an edge, press outward on that plate.",
       plateIndex: task.driver,
       direction: task.direction,
     };

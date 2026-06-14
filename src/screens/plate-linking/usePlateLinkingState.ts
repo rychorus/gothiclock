@@ -6,11 +6,14 @@ import { canMove, getOffsetBounds, getPlateObservation, hasPlateObservation } fr
 import type { AppStateData, Direction } from "../../lib/types";
 import {
   advancePlateLinkingPrompt,
-  completePlateLinkingPrompt,
-  resetPlateLinkingPrompt,
+  recordBlockedPlateLinkingObservation,
   stepBackPlateLinkingPrompt,
   updatePlateLinkingObservation,
 } from "./prompt/plateLinkingPromptState";
+import {
+  completePlateLinkingObservation,
+  resetPlateLinkingProcedure,
+} from "./procedure/plateLinkingProcedure";
 
 export function usePlateLinkingState({ appState, setAppState }: {
   appState: AppStateData;
@@ -27,26 +30,8 @@ export function usePlateLinkingState({ appState, setAppState }: {
     const bounds = getOffsetBounds(appState, index);
     const nextOffset = appState.offsets[index] + delta;
     if (nextOffset < bounds.min || nextOffset > bounds.max) {
-      return;
-    }
-
-    if (appState.mode === "linking") {
-      setAppState((current) => updatePlateLinkingObservation(current, index, nextOffset));
-      return;
-    }
-
-    setAppState((current) => {
-      const offsets = cloneOffsets(current.offsets);
-      offsets[index] = nextOffset;
-      return { ...current, offsets };
-    });
-  }
-
-  function commitDrag(index: number, nextOffset: number) {
-    if (appState.mode === "testing") {
-      const delta = nextOffset - appState.offsets[index];
-      if (delta !== 0) {
-        setAppState((current) => applyTestingMove(current, index, Math.sign(delta)));
+      if (appState.mode === "linking") {
+        setAppState((current) => recordBlockedPlateLinkingObservation(current, index, delta));
       }
       return;
     }
@@ -63,13 +48,38 @@ export function usePlateLinkingState({ appState, setAppState }: {
     });
   }
 
+  function commitDrag(index: number, nextOffset: number, attemptedDelta = 0) {
+    if (appState.mode === "testing") {
+      const delta = nextOffset - appState.offsets[index];
+      if (delta !== 0) {
+        setAppState((current) => applyTestingMove(current, index, Math.sign(delta)));
+      }
+      return;
+    }
+
+    if (appState.mode === "linking") {
+      setAppState((current) => (
+        attemptedDelta !== 0
+          ? recordBlockedPlateLinkingObservation(current, index, attemptedDelta)
+          : updatePlateLinkingObservation(current, index, nextOffset)
+      ));
+      return;
+    }
+
+    setAppState((current) => {
+      const offsets = cloneOffsets(current.offsets);
+      offsets[index] = nextOffset;
+      return { ...current, offsets };
+    });
+  }
+
   return useMemo(() => ({
     movePlate,
     commitDrag,
     stepBackPlateLinkingPrompt: () => setAppState(stepBackPlateLinkingPrompt),
-    resetPlateLinkingPrompt: () => setAppState(resetPlateLinkingPrompt),
+    resetPlateLinkingPrompt: () => setAppState(resetPlateLinkingProcedure),
     advancePlateLinkingPrompt: () => setAppState(advancePlateLinkingPrompt),
-    completePlateLinkingPrompt: () => setAppState(completePlateLinkingPrompt),
+    completePlateLinkingPrompt: () => setAppState(completePlateLinkingObservation),
     selectors: {
       canMove: (index, direction) => canMove(appState, index, direction),
       getOffsetBounds: (index) => getOffsetBounds(appState, index),

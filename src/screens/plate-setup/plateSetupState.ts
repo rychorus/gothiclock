@@ -1,7 +1,7 @@
 import { createEmptyLinkDeltas, createEmptyLinks, createInitialAppState, resizeLink, resizeLinkDeltas, resizeOffsets } from "../../lib/lockData";
 import type { AppStateData } from "../../lib/types";
 import { buildSolutionPlanForApp } from "../../lib/solution";
-import { createPlateLinkingPromptTask } from "../plate-linking/prompt/plateLinkingPromptState";
+import { startPlateLinkingProcedure } from "../plate-linking/procedure/plateLinkingProcedure";
 
 export function snapshotCurrentCountState(state: AppStateData) {
   return {
@@ -98,6 +98,7 @@ export function setPlateCount(state: AppStateData, count: number): AppStateData 
         })()
       : null,
     linkingPromptTask: null,
+    plateLinkingProcedure: null,
     solution: state.solution,
   };
 
@@ -121,10 +122,7 @@ export function setPlateCount(state: AppStateData, count: number): AppStateData 
     } as AppStateData;
   }
 
-  return {
-    ...nextState,
-    linkingPromptTask: createPlateLinkingPromptTask(nextState),
-  };
+  return startPlateLinkingProcedure(nextState);
 }
 
 export function startOver(state: AppStateData): AppStateData {
@@ -137,6 +135,7 @@ export function startOver(state: AppStateData): AppStateData {
     mode: "setup",
     linkingStartOffsets: null,
     linkingPromptTask: null,
+    plateLinkingProcedure: null,
     solution: null,
   } as AppStateData;
 }

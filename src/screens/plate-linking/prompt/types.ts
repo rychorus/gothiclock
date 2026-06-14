@@ -10,6 +10,7 @@ export interface PlateLinkingPromptTask {
   startOffsets: Offsets;
   baseOffsets: Offsets | null;
   observations: Offsets;
+  blockedObservations: Offsets;
 }
 
 export interface PlateLinkingPrompt {

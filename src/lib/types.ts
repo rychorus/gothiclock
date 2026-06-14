@@ -1,4 +1,5 @@
 import type { PlateLinkingPromptTask } from "../screens/plate-linking/prompt/types";
+import type { PlateLinkingProcedureState } from "../screens/plate-linking/procedure/types";
 
 export type AppMode = "menu" | "load" | "import" | "setup" | "linking" | "ready_to_solve" | "solution" | "testing";
 export type Direction = "up" | "down";
@@ -82,6 +83,7 @@ export interface AppStateData {
   linkDeltas: LinkDeltas;
   testingFeedback: TestingFeedbackData | null;
   linkingPromptTask: PlateLinkingPromptTask | null;
+  plateLinkingProcedure: PlateLinkingProcedureState | null;
   solution: SolutionPlanData | null;
   currentSaveId: string | null;
   snapshotsByCount: Record<number, CountSnapshot>;

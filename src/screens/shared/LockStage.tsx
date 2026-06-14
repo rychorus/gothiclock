@@ -17,7 +17,10 @@ export function LockStage({ appState, currentSolutionChunk, testingFeedback, sel
               testingFeedback={testingFeedback}
               selection={selectors.getPlateObservation(index)}
               isKnown={Boolean(appState.links[index])}
-              isDeferred={false}
+              isDeferred={Boolean(
+                appState.plateLinkingProcedure?.deferredDrivers
+                  .some((entry) => entry.driver === index),
+              )}
               bounds={selectors.getOffsetBounds(index)}
               canMoveUp={selectors.canMove(index, "up")}
               canMoveDown={selectors.canMove(index, "down")}

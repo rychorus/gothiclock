@@ -20,8 +20,18 @@ export function useLockpickApp() {
   const navigation = useAppNavigation({ appState, modal, setAppState, setModalState });
   const mainMenu = useMainMenuState({
     setAppState,
-    openLoadScreen: () => setAppState((current) => ({ ...current, mode: "load", linkingPromptTask: null })),
-    openImportScreen: () => setAppState((current) => ({ ...current, mode: "import", linkingPromptTask: null })),
+    openLoadScreen: () => setAppState((current) => ({
+      ...current,
+      mode: "load",
+      linkingPromptTask: null,
+      plateLinkingProcedure: null,
+    })),
+    openImportScreen: () => setAppState((current) => ({
+      ...current,
+      mode: "import",
+      linkingPromptTask: null,
+      plateLinkingProcedure: null,
+    })),
   });
   const loadScreen = useLoadScreenState({ appState, setAppState, setModal: navigation.setModal });
   const plateSetup = usePlateSetupState({ setAppState });

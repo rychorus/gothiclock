@@ -2,6 +2,7 @@ import { deleteSavedLock, getDefaultLockName, getSavedLockById, getSavedLocks, p
 import { loadSavedLockState } from "../../lib/appState";
 import type { AppStateData, ModalState, SavedLockRecord } from "../../lib/types";
 import type { Dispatch, SetStateAction } from "react";
+import { startPlateLinkingProcedure } from "../plate-linking/procedure/plateLinkingProcedure";
 
 export function useLoadScreenState({ appState, setAppState, setModal }: {
   appState: AppStateData;
@@ -34,7 +35,12 @@ export function useLoadScreenState({ appState, setAppState, setModal }: {
       return;
     }
 
-    setAppState((current) => loadSavedLockState(current, savedLock));
+    setAppState((current) => {
+      const loadedState = loadSavedLockState(current, savedLock);
+      return savedLock.isDraft
+        ? startPlateLinkingProcedure(loadedState)
+        : loadedState;
+    });
   }
 
   function renameLock(lockId: string, name: string) {

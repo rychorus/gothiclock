@@ -13,7 +13,6 @@ export function PlateLinkingPromptActions({
   onAdvance: () => void;
   onComplete: () => void;
 }) {
-  const isComplete = task?.phase === "complete";
   const isObserve = task?.phase === "observe";
 
   return (
@@ -27,7 +26,7 @@ export function PlateLinkingPromptActions({
       <button
         className="action-button primary"
         type="button"
-        disabled={!task || isComplete}
+        disabled={!task}
         onClick={isObserve ? onComplete : onAdvance}
       >
         {isObserve && !hasObservation ? (
@@ -36,7 +35,7 @@ export function PlateLinkingPromptActions({
             <span className="action-button-subtitle">nothing else moved</span>
           </>
         ) : (
-          isComplete ? "Observation captured" : "Next"
+          "Next"
         )}
       </button>
     </div>
