@@ -1,9 +1,10 @@
 import { CENTER_INDEX, cloneOffsets, createInitialAppState, resizeLink, resizeLinkDeltas } from "../../lib/lockData";
+import type { AppStateData, SavedLockRecord, SolutionChunkData } from "../../lib/types";
 import { buildSolutionPlanForApp } from "../plate-linking/implementation";
 import { buildSolutionCommandString, buildWasdSequence } from "../../lib/solution";
 import { beginNextLinkTask } from "../plate-linking/linkingState";
 
-export function getSolutionDisplayOffsets(state, index = state.solution?.index ?? 0) {
+export function getSolutionDisplayOffsets(state: AppStateData, index = state.solution?.index ?? 0) {
   if (!state.solution?.chunks?.length) {
     return cloneOffsets(state.offsets);
   }
@@ -17,7 +18,7 @@ export function getSolutionDisplayOffsets(state, index = state.solution?.index ?
       : cloneOffsets(state.solution.chunks[clampedIndex - 1].offsets);
 }
 
-export function setSolutionStep(state, index) {
+export function setSolutionStep(state: AppStateData, index: number): AppStateData {
   if (!state.solution?.chunks?.length) {
     return state;
   }
@@ -34,7 +35,7 @@ export function setSolutionStep(state, index) {
   };
 }
 
-export function enterTestingMode(state) {
+export function enterTestingMode(state: AppStateData): AppStateData {
   if (!state.solution) {
     return state;
   }
@@ -48,7 +49,7 @@ export function enterTestingMode(state) {
   };
 }
 
-export function returnToSolutionView(state) {
+export function returnToSolutionView(state: AppStateData): AppStateData {
   if (!state.solution) {
     return state;
   }
@@ -61,7 +62,7 @@ export function returnToSolutionView(state) {
   };
 }
 
-export function resetTestingMode(state) {
+export function resetTestingMode(state: AppStateData): AppStateData {
   if (state.mode !== "testing" || !state.solution) {
     return state;
   }
@@ -73,7 +74,7 @@ export function resetTestingMode(state) {
   };
 }
 
-export function applyTestingMove(state, index, delta) {
+export function applyTestingMove(state: AppStateData, index: number, delta: number): AppStateData {
   if (state.mode !== "testing" || !state.links[index]) {
     return state;
   }
@@ -111,8 +112,8 @@ export function applyTestingMove(state, index, delta) {
   };
 }
 
-export function loadSavedLockState(state, savedLock) {
-  const nextState = {
+export function loadSavedLockState(state: AppStateData, savedLock: SavedLockRecord): AppStateData {
+  const nextState: AppStateData = {
     ...state,
     plateCount: savedLock.plateCount,
     offsets: cloneOffsets(savedLock.currentOffsets || savedLock.linkingStartOffsets),
@@ -124,7 +125,7 @@ export function loadSavedLockState(state, savedLock) {
     deferredLinkTasks: [],
     linkTaskHistory: [],
     currentSaveId: savedLock.id,
-    solution: savedLock.isDraft ? null : buildSolutionPlanForApp(savedLock, cloneOffsets(savedLock.linkingStartOffsets || savedLock.currentOffsets)),
+    solution: null,
     snapshotsByCount: {},
   };
 
@@ -135,7 +136,8 @@ export function loadSavedLockState(state, savedLock) {
   return {
     ...nextState,
     offsets: cloneOffsets(savedLock.linkingStartOffsets || savedLock.currentOffsets),
-  };
+    solution: buildSolutionPlanForApp(nextState, cloneOffsets(savedLock.linkingStartOffsets || savedLock.currentOffsets)),
+  } as AppStateData;
 }
 
 export { buildSolutionCommandString, buildWasdSequence };

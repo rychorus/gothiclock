@@ -1,3 +1,5 @@
+import type { AppMode, DeferredLinkTask, LinkDeltas, LinkTask, Offsets, PlateLinks, SolutionPlanData, SolverSessionData } from "../../../lib/types";
+
 /**
  * Shape reference for the app state passed into the plate-linking solver.
  *
@@ -5,17 +7,17 @@
  * explicit and the fields are easy to inspect while implementing a solver.
  */
 export class PlateLinkingState {
-  plateCount;
-  offsets;
-  links;
-  linkDeltas;
-  linkingStartOffsets;
-  mode;
-  currentTask;
-  solution;
-  deferredLinkTasks;
-  linkTaskHistory;
-  customSolverSession;
+  plateCount: number;
+  offsets: Offsets;
+  links: PlateLinks;
+  linkDeltas: LinkDeltas;
+  linkingStartOffsets: Offsets | null;
+  mode: AppMode;
+  currentTask: LinkTask | null;
+  solution: SolutionPlanData | null;
+  deferredLinkTasks: DeferredLinkTask[];
+  linkTaskHistory: LinkTask[];
+  customSolverSession: SolverSessionData | null;
 
   constructor({
     plateCount = 0,
@@ -29,7 +31,7 @@ export class PlateLinkingState {
     deferredLinkTasks = [],
     linkTaskHistory = [],
     customSolverSession = null,
-  } = {}) {
+  }: Partial<PlateLinkingState> = {}) {
     this.plateCount = plateCount;
     this.offsets = offsets;
     this.links = links;

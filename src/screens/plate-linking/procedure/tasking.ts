@@ -1,10 +1,11 @@
 import { cloneOffsets, createEmptyLinkDeltas, createEmptyLinks, createIdentityLink, chooseNextDriver, getSuggestedDelta } from "../../../lib/lockData";
+import type { AppStateData, DeferredLinkTask, LinkTask, Offsets } from "../../../lib/types";
 import { buildSolutionPlanForApp } from "../implementation";
 import { USE_CUSTOM_SOLUTION } from "../implementation/solutionMode";
 import { finalizeSolverSession, withSolverInteraction } from "../implementation/custom/session";
 import { cloneLinkTask, getSolutionStartOffsets, pruneDeferredLinkTasks, rebaseDeferredTask } from "./helpers";
 
-function beginDeferredBlockedTask(state: any, blockedIndexes: number[], beginNextLinkTask: any) {
+function beginDeferredBlockedTask(state: AppStateData, blockedIndexes: number[], beginNextLinkTask: (nextState: AppStateData, options?: { excludeDrivers?: number[] }) => AppStateData) {
   const blockedBy = [...new Set(blockedIndexes.filter((index) => index !== state.currentTask.driver))].sort((a, b) => a - b);
   const blockedRequirements = blockedBy.map((index) => ({
     index,
@@ -25,12 +26,12 @@ function beginDeferredBlockedTask(state: any, blockedIndexes: number[], beginNex
     ...state,
     currentTask: null,
     deferredLinkTasks: deferredTasks,
-  }, {
+  } as AppStateData, {
     excludeDrivers: [currentDriver],
   });
 }
 
-function resumeDeferredBlockedTask(state: any, driver: number | null = null) {
+function resumeDeferredBlockedTask(state: AppStateData, driver: number | null = null): AppStateData {
   const deferredLinkTasks = pruneDeferredLinkTasks(state);
   if (!deferredLinkTasks.length) {
     return state;
@@ -47,6 +48,9 @@ function resumeDeferredBlockedTask(state: any, driver: number | null = null) {
   const [deferredTask] = deferredLinkTasks.splice(deferredIndex, 1);
   const currentOffsets = cloneOffsets(state.offsets);
   const rebasedTask = rebaseDeferredTask(deferredTask.task, deferredTask.offsets, currentOffsets);
+  if (!rebasedTask) {
+    return state;
+  }
 
   return {
     ...state,
@@ -61,10 +65,10 @@ function resumeDeferredBlockedTask(state: any, driver: number | null = null) {
       attempts: Array.from({ length: state.plateCount }, () => 0),
     },
     mode: "linking",
-  };
+  } as AppStateData;
 }
 
-function startLinkTaskForDriver(state: any, driver: number) {
+function startLinkTaskForDriver(state: AppStateData, driver: number): AppStateData {
   const delta = getSuggestedDelta(state.offsets[driver]);
 
   return {
@@ -76,11 +80,11 @@ function startLinkTaskForDriver(state: any, driver: number) {
       direction: delta === -1 ? "up" : "down",
       startOffsets: cloneOffsets(state.offsets),
     },
-  };
+  } as AppStateData;
 }
 
-export function beginNextLinkTask(state: any, options: { excludeDrivers?: number[] } = {}) {
-  const normalizedState = {
+export function beginNextLinkTask(state: AppStateData, options: { excludeDrivers?: number[] } = {}): AppStateData {
+  const normalizedState: AppStateData = {
     ...state,
     deferredLinkTasks: pruneDeferredLinkTasks(state),
   };
@@ -93,11 +97,11 @@ export function beginNextLinkTask(state: any, options: { excludeDrivers?: number
         ...normalizedState,
         mode: "linking",
         currentTask: null,
-      }, { kind: "task_wait" });
+      } as AppStateData, { kind: "task_wait" });
     }
 
     const links = normalizedState.links.map((link, index) => link || createIdentityLink(normalizedState.plateCount, index));
-    return withSolverInteraction(enterSolutionMode({ ...normalizedState, links }), { kind: "enter_solution" });
+    return withSolverInteraction(enterSolutionMode({ ...normalizedState, links } as AppStateData), { kind: "enter_solution" });
   }
 
   if (normalizedState.deferredLinkTasks.some((deferredTask) => deferredTask.driver === driver)) {
@@ -107,9 +111,9 @@ export function beginNextLinkTask(state: any, options: { excludeDrivers?: number
   return withSolverInteraction(startLinkTaskForDriver(normalizedState, driver), { kind: "begin_task", plateIndex: driver });
 }
 
-export function enterSolutionMode(state) {
+export function enterSolutionMode(state: AppStateData): AppStateData {
   const startOffsets = getSolutionStartOffsets(state);
-  const nextState = {
+  const nextState: AppStateData = {
     ...state,
     deferredLinkTasks: [],
     mode: "solution",
@@ -121,7 +125,7 @@ export function enterSolutionMode(state) {
     return finalizeSolverSession(withSolverInteraction({
       ...nextState,
       solution: buildSolutionPlanForApp(nextState, startOffsets),
-    }, { kind: "enter_solution" }));
+    } as AppStateData, { kind: "enter_solution" }));
   }
 
   return {

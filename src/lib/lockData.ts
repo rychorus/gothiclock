@@ -1,4 +1,15 @@
 import packageJson from "../../package.json";
+import type {
+  AppMode,
+  AppStateData,
+  CountSnapshot,
+  DeferredLinkTask,
+  LinkDeltas,
+  LinkTask,
+  Offsets,
+  PlateLinks,
+  SavedLockRecord,
+} from "./types";
 
 export const APP_VERSION = `v${packageJson.version}`;
 export const MIN_PLATES = 3;
@@ -8,27 +19,27 @@ export const CENTER_INDEX = 3;
 export const START_COUNT = 5;
 export const STORAGE_KEY = "gothic-lockpick.saved-locks";
 
-export function createEmptyLinks(count) {
+export function createEmptyLinks(count: number): PlateLinks {
   return Array.from({ length: count }, () => null);
 }
 
-export function createEmptyLinkDeltas(count) {
+export function createEmptyLinkDeltas(count: number): LinkDeltas {
   return Array.from({ length: count }, () => null);
 }
 
-export function createIdentityLink(count, driverIndex) {
+export function createIdentityLink(count: number, driverIndex: number): number[] {
   return Array.from({ length: count }, (_, index) => (index === driverIndex ? 1 : 0));
 }
 
-export function cloneOffsets(offsets) {
+export function cloneOffsets(offsets: Offsets): Offsets {
   return [...offsets];
 }
 
-export function resizeOffsets(offsets, count) {
+export function resizeOffsets(offsets: Offsets | null | undefined, count: number): Offsets {
   return Array.from({ length: count }, (_, index) => offsets?.[index] ?? 0);
 }
 
-export function resizeLink(link, count) {
+export function resizeLink(link: number[] | null | undefined, count: number): number[] | null {
   if (!link) {
     return null;
   }
@@ -36,31 +47,31 @@ export function resizeLink(link, count) {
   return Array.from({ length: count }, (_, index) => link[index] ?? 0);
 }
 
-export function resizeLinkDeltas(linkDeltas, count) {
+export function resizeLinkDeltas(linkDeltas: LinkDeltas | null | undefined, count: number): LinkDeltas {
   return Array.from({ length: count }, (_, index) => linkDeltas?.[index] ?? null);
 }
 
-export function clampOffset(offset) {
+export function clampOffset(offset: number): number {
   return Math.max(-CENTER_INDEX, Math.min(CENTER_INDEX, offset));
 }
 
-export function createLockId() {
+export function createLockId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function getUnknownPlates(links) {
+export function getUnknownPlates(links: PlateLinks): number[] {
   return links
     .map((link, index) => ({ index, known: Boolean(link) }))
     .filter(({ known }) => !known)
     .map(({ index }) => index);
 }
 
-export function areUnknownPlatesCentered(state) {
+export function areUnknownPlatesCentered(state: Pick<AppStateData, "links" | "offsets">): boolean {
   const unknownPlates = getUnknownPlates(state.links);
   return unknownPlates.length > 0 && unknownPlates.every((index) => state.offsets[index] === 0);
 }
 
-function getDeferredRequirements(deferredTask) {
+function getDeferredRequirements(deferredTask: DeferredLinkTask): Array<{ index: number; delta: number }> {
   if (Array.isArray(deferredTask.blockedRequirements) && deferredTask.blockedRequirements.length) {
     return deferredTask.blockedRequirements;
   }
@@ -71,7 +82,7 @@ function getDeferredRequirements(deferredTask) {
   }));
 }
 
-function isDeferredBlockerActive(state, deferredTask, index, unknownSet) {
+function isDeferredBlockerActive(state: Pick<AppStateData, "offsets">, deferredTask: DeferredLinkTask, index: number, unknownSet: Set<number>) {
   if (unknownSet.has(index)) {
     return true;
   }
@@ -86,7 +97,7 @@ function isDeferredBlockerActive(state, deferredTask, index, unknownSet) {
   return nextOffset < -CENTER_INDEX || nextOffset > CENTER_INDEX;
 }
 
-function getDeferredDependencySet(state, unknownPlates) {
+function getDeferredDependencySet(state: Pick<AppStateData, "offsets" | "deferredLinkTasks">, unknownPlates: number[]) {
   const unknownSet = new Set(unknownPlates);
   const deferredSet = new Set();
 
@@ -103,7 +114,7 @@ function getDeferredDependencySet(state, unknownPlates) {
   return deferredSet;
 }
 
-function getReadyDeferredDrivers(state, excludedDrivers = []) {
+function getReadyDeferredDrivers(state: Pick<AppStateData, "links" | "offsets" | "deferredLinkTasks">, excludedDrivers: number[] = []) {
   const excludedSet = new Set(excludedDrivers);
   const unknownSet = new Set(getUnknownPlates(state.links));
 
@@ -118,8 +129,8 @@ function getReadyDeferredDrivers(state, excludedDrivers = []) {
     .map((deferredTask) => deferredTask.driver);
 }
 
-function buildKnownLinkAdjacency(links) {
-  const adjacency = new Map();
+function buildKnownLinkAdjacency(links: PlateLinks) {
+  const adjacency = new Map<number, Array<{ index: number; sign: number }>>();
 
   links.forEach((link, source) => {
     if (!link) {
@@ -148,7 +159,7 @@ function buildKnownLinkAdjacency(links) {
   return adjacency;
 }
 
-function getKnownBlockedSet(state, candidatePlates) {
+function getKnownBlockedSet(state: Pick<AppStateData, "links" | "offsets">, candidatePlates: number[]) {
   const adjacency = buildKnownLinkAdjacency(state.links);
   const blockedSet = new Set();
 
@@ -184,7 +195,7 @@ function getKnownBlockedSet(state, candidatePlates) {
   return blockedSet;
 }
 
-export function chooseNextDriver(state, excludedDrivers = []) {
+export function chooseNextDriver(state: Pick<AppStateData, "links" | "offsets" | "deferredLinkTasks">, excludedDrivers: number[] = []): number | null {
   const readyDeferredDrivers = getReadyDeferredDrivers(state, excludedDrivers);
   if (readyDeferredDrivers.length) {
     return readyDeferredDrivers
@@ -232,7 +243,7 @@ export function chooseNextDriver(state, excludedDrivers = []) {
     .sort((a, b) => b.score - a.score || b.index - a.index)[0].index;
 }
 
-export function getSuggestedDelta(offset) {
+export function getSuggestedDelta(offset: number): number {
   if (offset < 0) {
     return 1;
   }
@@ -244,7 +255,7 @@ export function getSuggestedDelta(offset) {
   return -1;
 }
 
-export function createInitialAppState() {
+export function createInitialAppState(): AppStateData {
   return {
     plateCount: START_COUNT,
     offsets: Array.from({ length: START_COUNT }, () => 0),
@@ -263,7 +274,7 @@ export function createInitialAppState() {
   };
 }
 
-export function isTrivialCenteredLock(state) {
+export function isTrivialCenteredLock(state: Pick<AppStateData, "linkingStartOffsets" | "offsets" | "links" | "solution">): boolean {
   return Boolean(state.linkingStartOffsets)
     && state.linkingStartOffsets.every((offset) => offset === 0)
     && state.offsets.every((offset) => offset === 0)
@@ -272,11 +283,11 @@ export function isTrivialCenteredLock(state) {
     && state.solution.moves.length === 0;
 }
 
-export function buildSavedLockRecord(state, { id, name, isDraft }) {
+export function buildSavedLockRecord(state: Pick<AppStateData, "plateCount" | "mode" | "linkingStartOffsets" | "offsets" | "links" | "linkDeltas">, { id, name, isDraft }: { id: string; name: string; isDraft?: boolean }): SavedLockRecord {
   return {
     id,
     name,
-    isDraft,
+    isDraft: Boolean(isDraft),
     savedAt: new Date().toISOString(),
     plateCount: state.plateCount,
     mode: state.mode,

@@ -1,4 +1,5 @@
 import { createIdentityLink } from "./lockData";
+import type { AppStateData, Offsets, PlateLinks } from "./types";
 
 type ParsedSetupToken = {
   plateNumber: number;
@@ -23,7 +24,7 @@ function formatPosition(offset: number) {
   return `${4 - offset}`;
 }
 
-function isIdentityLink(link: Array<number> | null, source: number) {
+function isIdentityLink(link: number[] | null, source: number) {
   return Boolean(link)
     && link[source] === 1
     && link.every((value, index) => (index === source ? value === 1 : value === 0));
@@ -50,7 +51,7 @@ function formatLinkSource(label: string, targets: string[]) {
   return `${label}>${targets.join(",")}`;
 }
 
-export function buildNotationString(state: any) {
+export function buildNotationString(state: Pick<AppStateData, "plateCount" | "offsets" | "links">) {
   const plateCount = state.plateCount || 0;
   if (!plateCount) {
     return "";
@@ -134,7 +135,7 @@ function isParsedLinkTarget(value: ParsedLinkTarget | null): value is ParsedLink
   return Boolean(value && typeof value.plateNumber === "number" && typeof value.relation === "number");
 }
 
-export function parseNotationString(text) {
+export function parseNotationString(text: string): { plateCount: number; offsets: Offsets; links: PlateLinks } {
   const sections = String(text || "")
     .trim()
     .split(/\r?\n\s*\r?\n/)

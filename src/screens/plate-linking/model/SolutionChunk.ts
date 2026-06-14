@@ -1,11 +1,13 @@
+import type { Offsets, SolutionKeyGroupData, SolutionMoveData } from "../../../lib/types";
+
 export class SolutionChunk {
-  id;
-  type;
-  label;
-  keys;
-  keyGroups;
-  offsets;
-  move;
+  id: string;
+  type: "reset" | "move" | "solved";
+  label: string;
+  keys: string[];
+  keyGroups: SolutionKeyGroupData[];
+  offsets: Offsets;
+  move: SolutionMoveData | null;
 
   constructor({
     id = "",
@@ -15,7 +17,7 @@ export class SolutionChunk {
     keyGroups = [],
     offsets = [],
     move = null,
-  } = {}) {
+  }: Partial<SolutionChunk> = {}) {
     this.id = id;
     this.type = type;
     this.label = label;

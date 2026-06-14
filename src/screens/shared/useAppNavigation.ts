@@ -1,22 +1,29 @@
 import { useEffect, useRef } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { createInitialAppState, createEmptyLinkDeltas, createEmptyLinks, cloneOffsets } from "../../lib/lockData";
 import { returnToSolutionView } from "../solution/solutionState";
 import { beginNextLinkTask } from "../plate-linking/linkingState";
+import type { AppStateData, ModalState } from "../../lib/types";
 
-function snapshotNavigation(nextAppState, nextModal) {
+function snapshotNavigation(nextAppState: AppStateData, nextModal: ModalState) {
   return { appState: nextAppState, modal: nextModal };
 }
 
-function getNavigationKey(nextAppState, nextModal) {
+function getNavigationKey(nextAppState: AppStateData, nextModal: ModalState) {
   return `${nextAppState.mode}|${nextModal.type || "none"}`;
 }
 
-export function useAppNavigation({ appState, modal, setAppState, setModalState }) {
+export function useAppNavigation({ appState, modal, setAppState, setModalState }: {
+  appState: AppStateData;
+  modal: ModalState;
+  setAppState: Dispatch<SetStateAction<AppStateData>>;
+  setModalState: Dispatch<SetStateAction<ModalState>>;
+}) {
   const historyReadyRef = useRef(false);
   const historyKeyRef = useRef("");
   const restoringHistoryRef = useRef(false);
 
-  function setModal(nextModal) {
+  function setModal(nextModal: ModalState) {
     setModalState(nextModal);
   }
 
@@ -98,7 +105,7 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
       return undefined;
     }
 
-    function handlePopState(event) {
+      function handlePopState(event: PopStateEvent) {
       restoringHistoryRef.current = true;
       setAppState(event.state?.appState || createInitialAppState());
       setModalState(event.state?.modal || { type: null });

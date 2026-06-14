@@ -10,10 +10,11 @@ import { useLoadScreenState } from "../screens/load-screen/useLoadScreenState";
 import { usePlateSetupState } from "../screens/plate-setup/usePlateSetupState";
 import { usePlateLinkingState } from "../screens/plate-linking/usePlateLinkingState";
 import { useSolutionState } from "../screens/solution/useSolutionState";
+import type { AppStateData, ModalState } from "../lib/types";
 
 export function useLockpickApp() {
-  const [appState, setAppState] = useState(createInitialAppState);
-  const [modal, setModalState] = useState({ type: null });
+  const [appState, setAppState] = useState<AppStateData>(createInitialAppState());
+  const [modal, setModalState] = useState<ModalState>({ type: null });
   const appliedSharedNotationRef = useRef(false);
 
   const navigation = useAppNavigation({ appState, modal, setAppState, setModalState });

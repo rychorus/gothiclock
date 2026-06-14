@@ -1,10 +1,11 @@
 import { CENTER_INDEX, cloneOffsets, getUnknownPlates } from "../../../lib/lockData";
+import type { AppStateData, DeferredLinkTask, LinkTask, Offsets, PlateLinks } from "../../../lib/types";
 
-export function getSolutionStartOffsets(state: any) {
+export function getSolutionStartOffsets(state: AppStateData) {
   return cloneOffsets(state.linkingStartOffsets || state.offsets);
 }
 
-export function cloneLinkTask(task: any) {
+export function cloneLinkTask(task: LinkTask | null) {
   if (!task) {
     return null;
   }
@@ -17,7 +18,7 @@ export function cloneLinkTask(task: any) {
   };
 }
 
-export function rebaseOffsets(offsets: number[] | null, snapshotOffsets: number[], currentOffsets: number[]) {
+export function rebaseOffsets(offsets: Offsets | null, snapshotOffsets: Offsets, currentOffsets: Offsets) {
   if (!offsets) {
     return null;
   }
@@ -25,7 +26,7 @@ export function rebaseOffsets(offsets: number[] | null, snapshotOffsets: number[
   return offsets.map((value, index) => value + (currentOffsets[index] - snapshotOffsets[index]));
 }
 
-export function rebaseDeferredTask(task: any, snapshotOffsets: number[], currentOffsets: number[]) {
+export function rebaseDeferredTask(task: LinkTask | null, snapshotOffsets: Offsets, currentOffsets: Offsets) {
   const clonedTask = cloneLinkTask(task);
   if (!clonedTask) {
     return null;
@@ -42,7 +43,7 @@ export function dedupeIndices(indices: number[]) {
   return [...new Set(indices)].sort((a, b) => a - b);
 }
 
-export function appendTaskHistory(state: any, task: any) {
+export function appendTaskHistory(state: AppStateData, task: LinkTask | null): AppStateData {
   if (!task) {
     return state;
   }
@@ -53,7 +54,7 @@ export function appendTaskHistory(state: any, task: any) {
   };
 }
 
-export function rebuildOffsetsFromLinks(state: any, links: Array<Array<number> | null>, linkDeltas: Array<number | null>) {
+export function rebuildOffsetsFromLinks(state: AppStateData, links: PlateLinks, linkDeltas: Array<number | null>) {
   let offsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
 
   for (let index = 0; index < links.length; index += 1) {
@@ -79,7 +80,7 @@ export function rebuildOffsetsFromLinks(state: any, links: Array<Array<number> |
   return offsets;
 }
 
-export function getDeferredRequirements(deferredTask) {
+export function getDeferredRequirements(deferredTask: DeferredLinkTask) {
   if (Array.isArray(deferredTask.blockedRequirements) && deferredTask.blockedRequirements.length) {
     return deferredTask.blockedRequirements;
   }
@@ -90,7 +91,7 @@ export function getDeferredRequirements(deferredTask) {
   }));
 }
 
-export function isDeferredBlockerActive(state, deferredTask, index) {
+export function isDeferredBlockerActive(state: AppStateData, deferredTask: DeferredLinkTask, index: number) {
   if (getUnknownPlates(state.links).includes(index)) {
     return true;
   }
@@ -105,7 +106,7 @@ export function isDeferredBlockerActive(state, deferredTask, index) {
   return nextOffset < -CENTER_INDEX || nextOffset > CENTER_INDEX;
 }
 
-export function pruneDeferredLinkTasks(state) {
+export function pruneDeferredLinkTasks(state: AppStateData): DeferredLinkTask[] {
   return (state.deferredLinkTasks || [])
     .map((deferredTask) => ({
       ...deferredTask,

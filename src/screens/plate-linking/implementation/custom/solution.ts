@@ -1,4 +1,5 @@
 import { PlateLinkingState, SolutionChunk, SolutionKeyGroup, SolutionMove, SolutionPlan, StartOffsets } from "../../model";
+import type { Offsets, PlateLinkingStateData, SolutionPlanData, StartOffsetsData } from "../../../../lib/types";
 
 /**
  * Edit this file first.
@@ -12,24 +13,40 @@ import { PlateLinkingState, SolutionChunk, SolutionKeyGroup, SolutionMove, Solut
 /**
  * Turn the session state into a `PlateLinkingState`.
  */
-function normalizeState(session) {
-  return session instanceof PlateLinkingState ? session : new PlateLinkingState(session?.state ?? session);
+type SessionLike = {
+  state?: PlateLinkingStateData | PlateLinkingState | null;
+  startOffsets?: Offsets | StartOffsetsData | StartOffsets | null;
+  solution?: SolutionPlan | null;
+};
+
+function normalizeState(session: SessionLike | PlateLinkingStateData | PlateLinkingState) {
+  if (session instanceof PlateLinkingState) {
+    return session;
+  }
+
+  if ("state" in session && session.state) {
+    return session.state instanceof PlateLinkingState ? session.state : new PlateLinkingState(session.state);
+  }
+
+  return new PlateLinkingState(session);
 }
 
 /**
  * Read the starting offsets from the session.
  */
-function normalizeStartOffsets(session, state) {
-  if (session?.startOffsets instanceof StartOffsets) {
-    return [...session.startOffsets.values];
+function normalizeStartOffsets(session: SessionLike | PlateLinkingStateData | PlateLinkingState, state: PlateLinkingState) {
+  const sessionWithOffsets = session as SessionLike;
+
+  if (sessionWithOffsets?.startOffsets instanceof StartOffsets) {
+    return [...sessionWithOffsets.startOffsets.values];
   }
 
-  if (Array.isArray(session?.startOffsets)) {
-    return [...session.startOffsets];
+  if (Array.isArray(sessionWithOffsets?.startOffsets)) {
+    return [...sessionWithOffsets.startOffsets];
   }
 
-  if (Array.isArray(session?.startOffsets?.values)) {
-    return [...session.startOffsets.values];
+  if (sessionWithOffsets?.startOffsets && "values" in sessionWithOffsets.startOffsets && Array.isArray(sessionWithOffsets.startOffsets.values)) {
+    return [...sessionWithOffsets.startOffsets.values];
   }
 
   return Array.from({ length: state.plateCount }, () => 0);
@@ -38,7 +55,7 @@ function normalizeStartOffsets(session, state) {
 /**
  * Build a tiny example solution plan.
  */
-export function buildSimpleSolutionPlan(session) {
+export function buildSimpleSolutionPlan(session: SessionLike | PlateLinkingStateData | PlateLinkingState): SolutionPlan {
   const state = normalizeState(session);
   const startOffsets = normalizeStartOffsets(session, state);
   const links = Array.isArray(state.links) ? state.links : [];
@@ -92,13 +109,13 @@ export function buildSimpleSolutionPlan(session) {
 /**
  * App-facing solver entry point.
  */
-export function buildSolutionPlanFromSession(session) {
+export function buildSolutionPlanFromSession(session: SessionLike | PlateLinkingStateData | PlateLinkingState): SolutionPlan {
   return session?.solution ?? buildSimpleSolutionPlan(session);
 }
 
 /**
  * Backward-compatible wrapper for the app.
  */
-export function buildSolutionPlan(session, _startOffsets = null) {
+export function buildSolutionPlan(session: SessionLike | PlateLinkingStateData | PlateLinkingState, _startOffsets: Offsets | StartOffsets | StartOffsetsData | null = null): SolutionPlan {
   return buildSolutionPlanFromSession(session);
 }

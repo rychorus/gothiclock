@@ -2,9 +2,14 @@ import { useMemo } from "react";
 import { applyTestingMove } from "../../lib/appState";
 import { canMove, getOffsetBounds, getStep2Selection, hasAnyStep2Selection } from "../../lib/plateMath";
 import { beginNextLinkTask, advanceFromStep1, enterSolutionMode, finishLinkCapture, recordPlateAttempt, resetPlates, stepBackLinking, updatePlateOffset } from "./linkingState";
+import type { AppStateData, Direction } from "../../lib/types";
+import type { Dispatch, SetStateAction } from "react";
 
-export function usePlateLinkingState({ appState, setAppState }) {
-  function movePlate(index, direction) {
+export function usePlateLinkingState({ appState, setAppState }: {
+  appState: AppStateData;
+  setAppState: Dispatch<SetStateAction<AppStateData>>;
+}) {
+  function movePlate(index: number, direction: Direction) {
     const delta = direction === "up" ? -1 : 1;
 
     if (appState.mode === "testing") {
@@ -23,7 +28,7 @@ export function usePlateLinkingState({ appState, setAppState }) {
     setAppState((current) => updatePlateOffset(current, index, nextOffset, 0));
   }
 
-  function commitDrag(index, nextOffset, attemptedDirection) {
+  function commitDrag(index: number, nextOffset: number, attemptedDirection: number) {
     if (appState.mode === "testing") {
       const delta = nextOffset - appState.offsets[index];
       if (delta !== 0) {

@@ -1,10 +1,11 @@
 import { STORAGE_KEY, buildSavedLockRecord, cloneOffsets, createLockId, isTrivialCenteredLock } from "./lockData";
+import type { AppStateData, SavedLockRecord } from "./types";
 
 function getStorage() {
   return window.localStorage;
 }
 
-export function getSavedLocks() {
+export function getSavedLocks(): SavedLockRecord[] {
   try {
     return JSON.parse(getStorage().getItem(STORAGE_KEY) || "[]");
   } catch {
@@ -12,11 +13,11 @@ export function getSavedLocks() {
   }
 }
 
-export function setSavedLocks(locks) {
+export function setSavedLocks(locks: SavedLockRecord[]) {
   getStorage().setItem(STORAGE_KEY, JSON.stringify(locks));
 }
 
-export function getSavedLockById(lockId) {
+export function getSavedLockById(lockId: string | null | undefined): SavedLockRecord | null {
   if (!lockId) {
     return null;
   }
@@ -24,14 +25,14 @@ export function getSavedLockById(lockId) {
   return getSavedLocks().find((lock) => lock.id === lockId) || null;
 }
 
-export function upsertSavedLock(lockRecord) {
+export function upsertSavedLock(lockRecord: SavedLockRecord) {
   const savedLocks = getSavedLocks();
   const nextLocks = savedLocks.filter((lock) => lock.id !== lockRecord.id);
   nextLocks.unshift(lockRecord);
   setSavedLocks(nextLocks);
 }
 
-export function getDefaultLockName() {
+export function getDefaultLockName(): string {
   const savedLocks = getSavedLocks();
   let nextNumber = 1;
 
@@ -47,7 +48,7 @@ function stripLegacyDraftPrefix(name) {
 }
 
 export function persistCurrentLock(
-  state,
+  state: AppStateData,
   { isDraft, nameOverride }: { isDraft?: boolean; nameOverride?: string } = {},
 ) {
   const normalizedState = state.linkingStartOffsets || !state.solution?.startOffsets
@@ -67,7 +68,7 @@ export function persistCurrentLock(
   return lockId;
 }
 
-export function renameSavedLock(lockId, nextName) {
+export function renameSavedLock(lockId: string, nextName: string) {
   const trimmedName = nextName.trim();
   if (!trimmedName) {
     return;
@@ -89,11 +90,11 @@ export function renameSavedLock(lockId, nextName) {
   setSavedLocks(nextLocks);
 }
 
-export function deleteSavedLock(lockId) {
+export function deleteSavedLock(lockId: string) {
   setSavedLocks(getSavedLocks().filter((lock) => lock.id !== lockId));
 }
 
-export function syncFinalLockProgress(state) {
+export function syncFinalLockProgress(state: AppStateData) {
   if ((state.mode !== "solution" && state.mode !== "ready_to_solve") || isTrivialCenteredLock(state)) {
     return;
   }

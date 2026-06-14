@@ -1,7 +1,8 @@
 import { PlateLinkingState, SolverInteraction, SolverPrompt, SolverSession, StartOffsets } from "../../../model";
+import type { AppStateData, Direction, LinkTask, Offsets, PlateLinkingStateData, SolverInteractionData, SolverSessionData, StartOffsetsData } from "../../../../../lib/types";
 import { buildSolutionPlanFromSession } from "../solution";
 
-function buildPromptFromState(state) {
+function buildPromptFromState(state: PlateLinkingState): SolverPrompt {
   if (!state?.currentTask) {
     return new SolverPrompt({
       kind: "idle",
@@ -30,11 +31,11 @@ function buildPromptFromState(state) {
   });
 }
 
-function normalizeState(state) {
+function normalizeState(state: PlateLinkingStateData | PlateLinkingState): PlateLinkingState {
   return state instanceof PlateLinkingState ? state : new PlateLinkingState(state);
 }
 
-function normalizeStartOffsets(startOffsets, state) {
+function normalizeStartOffsets(startOffsets: Offsets | StartOffsetsData | StartOffsets | null | undefined, state: PlateLinkingState): Offsets {
   if (startOffsets instanceof StartOffsets) {
     return [...startOffsets.values];
   }
@@ -43,7 +44,7 @@ function normalizeStartOffsets(startOffsets, state) {
     return [...startOffsets];
   }
 
-  if (Array.isArray(startOffsets?.values)) {
+  if (startOffsets && "values" in startOffsets && Array.isArray(startOffsets.values)) {
     return [...startOffsets.values];
   }
 
@@ -54,7 +55,7 @@ function normalizeStartOffsets(startOffsets, state) {
  * Create the interactive session object that React stores while the player
  * is moving plates.
  */
-export function createSolverSession(state, startOffsets = null) {
+export function createSolverSession(state: PlateLinkingStateData | PlateLinkingState, startOffsets: Offsets | StartOffsets | null = null): SolverSession {
   const normalizedState = normalizeState({ ...state, customSolverSession: null });
   return new SolverSession({
     status: "collecting",
@@ -69,7 +70,7 @@ export function createSolverSession(state, startOffsets = null) {
 /**
  * Record one plate-linking interaction inside the session.
  */
-export function recordSolverInteraction(session, interaction, nextState = null) {
+export function recordSolverInteraction(session: SolverSession | null, interaction: SolverInteractionData, nextState: PlateLinkingStateData | PlateLinkingState | null = null): SolverSession | null {
   if (!session) {
     return session;
   }
@@ -86,7 +87,7 @@ export function recordSolverInteraction(session, interaction, nextState = null) 
 /**
  * Attach a fresh solver session to an app-state object.
  */
-export function initializeSolverSession(state) {
+export function initializeSolverSession(state: AppStateData): AppStateData {
   return {
     ...state,
     customSolverSession: createSolverSession(state),
@@ -96,7 +97,7 @@ export function initializeSolverSession(state) {
 /**
  * Record the interaction and keep the session attached to the current state.
  */
-export function withSolverInteraction(state, interaction) {
+export function withSolverInteraction(state: AppStateData, interaction: SolverInteractionData): AppStateData {
   if (!state.customSolverSession) {
     return state;
   }
@@ -110,7 +111,7 @@ export function withSolverInteraction(state, interaction) {
 /**
  * Convert the live session into its final solution object.
  */
-export function completeSolverSession(session) {
+export function completeSolverSession(session: SolverSession | null): SolverSession | null {
   if (!session) {
     return session;
   }
@@ -129,7 +130,7 @@ export function completeSolverSession(session) {
 /**
  * Finalize the custom solver state stored on the app object.
  */
-export function finalizeSolverSession(state) {
+export function finalizeSolverSession(state: AppStateData): AppStateData {
   if (!state.customSolverSession) {
     return state;
   }

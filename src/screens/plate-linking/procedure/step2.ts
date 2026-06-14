@@ -1,8 +1,9 @@
 import { CENTER_INDEX, clampOffset, cloneOffsets } from "../../../lib/lockData";
+import type { AppStateData, LinkTask } from "../../../lib/types";
 import { cloneLinkTask } from "./helpers";
 import { withSolverInteraction } from "../implementation/custom/session";
 
-export function getStep2Selection(task, offsets, index) {
+export function getStep2Selection(task: LinkTask, offsets: number[], index: number) {
   const actualDelta = offsets[index] - task.baseOffsets[index];
   if (actualDelta !== 0) {
     return actualDelta;
@@ -11,7 +12,7 @@ export function getStep2Selection(task, offsets, index) {
   return task.attempts?.[index] || 0;
 }
 
-export function hasBlockedSelection(task, offsets) {
+export function hasBlockedSelection(task: LinkTask, offsets: number[]) {
   return offsets.some((offset, index) => (
     index !== task.driver
     && (task.attempts?.[index] || 0) !== 0
@@ -19,11 +20,11 @@ export function hasBlockedSelection(task, offsets) {
   ));
 }
 
-export function getDriverMovedOffset(task) {
+export function getDriverMovedOffset(task: LinkTask) {
   return clampOffset(task.startOffsets[task.driver] + task.delta);
 }
 
-export function syncStep2DriverState(state) {
+export function syncStep2DriverState(state: AppStateData): AppStateData {
   if (state.mode !== "linking" || state.currentTask?.phase !== "step2") {
     return state;
   }
@@ -44,7 +45,7 @@ export function syncStep2DriverState(state) {
   };
 }
 
-export function applyKnownBlockedLinks(state) {
+export function applyKnownBlockedLinks(state: AppStateData): AppStateData {
   if (state.mode !== "linking" || state.currentTask?.phase !== "step2") {
     return state;
   }
@@ -116,7 +117,7 @@ export function applyKnownBlockedLinks(state) {
   };
 }
 
-export function updatePlateOffset(state, index, nextOffset, attemptedDirection = 0) {
+export function updatePlateOffset(state: AppStateData, index: number, nextOffset: number, attemptedDirection = 0): AppStateData {
   const offsets = cloneOffsets(state.offsets);
   offsets[index] = nextOffset;
   const nextState = { ...state, offsets };
@@ -138,7 +139,7 @@ export function updatePlateOffset(state, index, nextOffset, attemptedDirection =
   });
 }
 
-export function recordPlateAttempt(state, index, attemptedDirection) {
+export function recordPlateAttempt(state: AppStateData, index: number, attemptedDirection: number): AppStateData {
   if (state.mode !== "linking" || state.currentTask?.phase !== "step2" || index === state.currentTask.driver) {
     return state;
   }

@@ -1,14 +1,15 @@
 import { clampOffset, cloneOffsets, createEmptyLinkDeltas, createEmptyLinks } from "../../../lib/lockData";
+import type { AppStateData, LinkTask, PlateLinks } from "../../../lib/types";
 import { appendTaskHistory, cloneLinkTask, pruneDeferredLinkTasks, rebuildOffsetsFromLinks } from "./helpers";
 import { applyKnownBlockedLinks, hasBlockedSelection, syncStep2DriverState } from "./step2";
 import { beginNextLinkTask, enterSolutionMode } from "./tasking";
 import { USE_CUSTOM_SOLUTION } from "../implementation/solutionMode";
 import { finalizeSolverSession, initializeSolverSession, withSolverInteraction } from "../implementation/custom/session";
 
-export function startLinkingMode(state) {
+export function startLinkingMode(state: AppStateData): AppStateData {
   const isAligned = state.offsets.every((offset) => offset === 0);
 
-  const linkingState = {
+  const linkingState: AppStateData = {
     ...state,
     deferredLinkTasks: [],
     mode: "linking",
@@ -21,7 +22,7 @@ export function startLinkingMode(state) {
   const sessionState = USE_CUSTOM_SOLUTION ? initializeSolverSession(linkingState) : linkingState;
 
   if (isAligned) {
-    const solutionState = {
+    const solutionState: AppStateData = {
       ...sessionState,
       mode: "solution",
       currentTask: null,
@@ -36,7 +37,7 @@ export function startLinkingMode(state) {
   return beginNextLinkTask(sessionState);
 }
 
-export function stepBackLinking(state) {
+export function stepBackLinking(state: AppStateData): AppStateData {
   if (state.mode !== "linking" || !state.currentTask) {
     return state;
   }
@@ -50,7 +51,7 @@ export function stepBackLinking(state) {
         phase: "step1",
         startOffsets: cloneOffsets(state.currentTask.startOffsets),
       },
-    }, { kind: "step_back", phase: "step2", plateIndex: state.currentTask.driver });
+    } as AppStateData, { kind: "step_back", phase: "step2", plateIndex: state.currentTask.driver });
   }
 
   const history = [...(state.linkTaskHistory || [])];
@@ -76,7 +77,7 @@ export function stepBackLinking(state) {
         wasDeferred: Boolean(previousTask.wasDeferred),
       },
       mode: "linking",
-    }, { kind: "step_back", phase: "step1", plateIndex: previousTask.driver });
+    } as AppStateData, { kind: "step_back", phase: "step1", plateIndex: previousTask.driver });
   }
 
   return withSolverInteraction({
@@ -86,15 +87,15 @@ export function stepBackLinking(state) {
     linkDeltas: createEmptyLinkDeltas(state.plateCount),
     currentTask: null,
     mode: "setup",
-  }, { kind: "step_back", phase: "setup" });
+  } as AppStateData, { kind: "step_back", phase: "setup" });
 }
 
-export function resetPlates(state) {
+export function resetPlates(state: AppStateData): AppStateData {
   if (!state.linkingStartOffsets || state.mode === "solution" || state.mode === "ready_to_solve") {
     return state;
   }
 
-  const nextState = {
+  const nextState: AppStateData = {
     ...state,
     offsets: cloneOffsets(state.linkingStartOffsets),
   };
@@ -106,7 +107,7 @@ export function resetPlates(state) {
   return withSolverInteraction(nextState, { kind: "reset_plates" });
 }
 
-export function advanceFromStep1(state) {
+export function advanceFromStep1(state: AppStateData): AppStateData {
   if (!state.currentTask || state.currentTask.phase !== "step1") {
     return state;
   }
@@ -124,10 +125,10 @@ export function advanceFromStep1(state) {
       baseOffsets: cloneOffsets(offsets),
       attempts: Array.from({ length: state.plateCount }, () => 0),
     },
-  }, { kind: "advance_step1", plateIndex: driver });
+  } as AppStateData, { kind: "advance_step1", plateIndex: driver });
 }
 
-export function finishLinkCapture(state) {
+export function finishLinkCapture(state: AppStateData): AppStateData {
   if (!state.currentTask || state.currentTask.phase !== "step2") {
     return state;
   }

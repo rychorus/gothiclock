@@ -1,11 +1,12 @@
 import { CENTER_INDEX, cloneOffsets } from "../../../../lib/lockData";
+import type { Offsets, PlateLink, PlateLinks, SolutionChunkData, SolutionMoveData, SolutionPlanData, StartOffsetsData, PlateLinkingStateData } from "../../../../lib/types";
 import { PlateLinkingState, SolutionChunk, SolutionKeyGroup, SolutionMove, SolutionPlan, StartOffsets } from "../../model";
 
-export function getActionDelta(normalizedLink, delta) {
+export function getActionDelta(normalizedLink: PlateLink, delta: number): number[] {
   return normalizedLink.map((value) => value * delta);
 }
 
-export function groupConsecutiveKeys(keys) {
+export function groupConsecutiveKeys(keys: string[]): Array<{ key: string; count: number }> {
   const groups = [];
 
   for (let index = 0; index < keys.length; ) {
@@ -20,11 +21,11 @@ export function groupConsecutiveKeys(keys) {
   return groups;
 }
 
-export function formatKeyGroups(groups) {
+export function formatKeyGroups(groups: Array<{ key: string; count: number }>): string {
   return groups.map(({ key, count }) => (count > 1 ? `${key}\u00d7${count}` : key)).join(" ");
 }
 
-export function buildSolutionChunks(moves, startOffsets, links) {
+export function buildSolutionChunks(moves: SolutionMove[], startOffsets: Offsets, links: PlateLinks) {
   const chunks = [
     new SolutionChunk({
       id: "reset",
@@ -83,7 +84,7 @@ export function buildSolutionChunks(moves, startOffsets, links) {
   return chunks;
 }
 
-function toStartOffsetArray(startOffsets, plateCount) {
+function toStartOffsetArray(startOffsets: Offsets | StartOffsetsData | StartOffsets | null | undefined, plateCount: number): Offsets {
   if (Array.isArray(startOffsets)) {
     return cloneOffsets(startOffsets);
   }
@@ -99,7 +100,7 @@ function toStartOffsetArray(startOffsets, plateCount) {
   return Array.from({ length: plateCount }, () => 0);
 }
 
-export function buildSolutionPlan(initialState, startOffsets) {
+export function buildSolutionPlan(initialState: PlateLinkingStateData | PlateLinkingState, startOffsets: Offsets | StartOffsetsData | StartOffsets): SolutionPlan {
   const state = initialState instanceof PlateLinkingState ? initialState : new PlateLinkingState(initialState);
   const { plateCount, links } = state;
   const start = toStartOffsetArray(startOffsets, plateCount);
@@ -183,11 +184,11 @@ export function buildSolutionPlan(initialState, startOffsets) {
   });
 }
 
-export function buildSolutionCommandString(chunks) {
+export function buildSolutionCommandString(chunks: SolutionChunk[] | null | undefined): string {
   return Array.isArray(chunks) && chunks.length ? chunks.flatMap((chunk) => chunk.keys).join("") : "";
 }
 
-export function buildWasdSequence(chunks) {
+export function buildWasdSequence(chunks: SolutionChunk[] | null | undefined): Array<{ key: string; count: number; kind: "single" | "pattern" }> {
   if (!Array.isArray(chunks) || !chunks.length) {
     return [];
   }

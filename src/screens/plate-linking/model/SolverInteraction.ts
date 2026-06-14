@@ -4,14 +4,16 @@
  * The custom solver stores these entries so its logic can inspect the exact
  * sequence of plate moves, clicks, and confirmations the user performed.
  */
-export class SolverInteraction {
-  kind;
-  plateIndex;
-  direction;
-  offset;
-  phase;
-  details;
-  timestamp;
+import type { Direction, SolverInteractionData } from "../../../lib/types";
+
+export class SolverInteraction implements SolverInteractionData {
+  kind: string;
+  plateIndex: number | null;
+  direction: Direction | null;
+  offset: number | null;
+  phase: string | null;
+  details: Record<string, unknown> | null;
+  timestamp: number;
 
   constructor({
     kind = "unknown",
@@ -21,7 +23,7 @@ export class SolverInteraction {
     phase = null,
     details = null,
     timestamp = Date.now(),
-  } = {}) {
+  }: Partial<SolverInteractionData> = {}) {
     this.kind = kind;
     this.plateIndex = plateIndex;
     this.direction = direction;

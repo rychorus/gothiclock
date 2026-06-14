@@ -1,8 +1,9 @@
 import { createEmptyLinkDeltas, createEmptyLinks, createInitialAppState, resizeLink, resizeLinkDeltas, resizeOffsets } from "../../lib/lockData";
+import type { AppStateData } from "../../lib/types";
 import { buildSolutionPlanForApp } from "../plate-linking/implementation";
 import { beginNextLinkTask } from "../plate-linking/linkingState";
 
-export function snapshotCurrentCountState(state) {
+export function snapshotCurrentCountState(state: AppStateData) {
   return {
     ...state.snapshotsByCount,
     [state.plateCount]: {
@@ -15,7 +16,7 @@ export function snapshotCurrentCountState(state) {
   };
 }
 
-export function startNewLock(state) {
+export function startNewLock(state: AppStateData): AppStateData {
   return {
     ...createInitialAppState(),
     plateCount: state.plateCount,
@@ -24,10 +25,10 @@ export function startNewLock(state) {
     linkDeltas: createEmptyLinkDeltas(state.plateCount),
     snapshotsByCount: {},
     mode: "setup",
-  };
+  } as AppStateData;
 }
 
-export function setPlateCount(state, count) {
+export function setPlateCount(state: AppStateData, count: number): AppStateData {
   const snapshotsByCount = snapshotCurrentCountState(state);
   const existingSnapshot = snapshotsByCount[count];
   const previousOffsets = state.offsets.slice();
@@ -66,7 +67,7 @@ export function setPlateCount(state, count) {
     };
   }
 
-  const nextState = {
+  const nextState: AppStateData = {
     ...state,
     snapshotsByCount,
     plateCount: count,
@@ -148,13 +149,13 @@ export function setPlateCount(state, count) {
       ...nextState,
       mode: "ready_to_solve",
       solution: buildSolutionPlanForApp(nextState, nextState.linkingStartOffsets),
-    };
+    } as AppStateData;
   }
 
   return beginNextLinkTask(nextState);
 }
 
-export function startOver(state) {
+export function startOver(state: AppStateData): AppStateData {
   return {
     ...state,
     snapshotsByCount: snapshotCurrentCountState(state),
@@ -167,5 +168,5 @@ export function startOver(state) {
     deferredLinkTasks: [],
     linkTaskHistory: [],
     solution: null,
-  };
+  } as AppStateData;
 }
