@@ -23,6 +23,7 @@ export function PlateColumn({
   canMoveDown,
   onMove,
   onCommitDrag,
+  bottomNote,
 }) {
   const viewportRef = useRef(null);
   const holeRef = useRef(null);
@@ -220,6 +221,8 @@ export function PlateColumn({
       <div className="plate-status-row">
         <span className="plate-status" aria-hidden="true"></span>
       </div>
+
+      {bottomNote ? <div className="plate-column-note" aria-live="polite">{bottomNote}</div> : null}
     </article>
   );
 }

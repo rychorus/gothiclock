@@ -3,6 +3,7 @@ import { createEmptyLinkDeltas, createInitialAppState } from "../../lib/lockData
 import { parseNotationString } from "../../lib/notation";
 import { enterSolutionMode } from "../../lib/appState";
 import { startPlateLinkingProcedure } from "../plate-linking/procedure/plateLinkingProcedure";
+import { parseImportedNotationInput } from "../shared/shareUrl";
 import type { AppStateData, SharedLinkMetadata } from "../../lib/types";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -12,9 +13,18 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
   openImportScreen: () => void;
 }) {
   function applyNotationText(text: string, { showSolution = false, sharedLinkMetadata = null }: { showSolution?: boolean; sharedLinkMetadata?: SharedLinkMetadata | null } = {}) {
-    const parsed = parseNotationString(text);
+    const imported = parseImportedNotationInput(text);
+    const parsed = parseNotationString(imported.notation);
     const hasLinks = parsed.links.some(Boolean);
     const allLinksKnown = parsed.links.every(Boolean);
+    const nextSharedLinkMetadata = sharedLinkMetadata ?? (
+      imported.notation === text
+        ? null
+        : {
+            name: imported.name || "",
+            description: imported.description || "",
+          }
+    );
     const baseState: AppStateData = {
       ...createInitialAppState(),
       plateCount: parsed.plateCount,
@@ -25,7 +35,7 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
       linkingPromptTask: null,
       plateLinkingProcedure: null,
       currentSaveId: null,
-      sharedLinkMetadata,
+      sharedLinkMetadata: nextSharedLinkMetadata,
       snapshotsByCount: {},
       mode: hasLinks ? "linking" : "setup",
     };
@@ -38,7 +48,7 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
     if (allLinksKnown) {
       if (showSolution) {
         setAppState(() => enterSolutionMode(baseState, {
-          returnState: sharedLinkMetadata ? createInitialAppState() : undefined,
+          returnState: nextSharedLinkMetadata ? createInitialAppState() : undefined,
         }));
         return;
       }

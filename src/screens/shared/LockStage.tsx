@@ -1,10 +1,11 @@
 import { PlateColumn } from "./PlateColumn";
 
-export function LockStage({ appState, currentSolutionChunk, testingFeedback, selectors, actions, showResetButton = false, instruction = "" }) {
+export function LockStage({ appState, currentSolutionChunk, testingFeedback, selectors, actions, showResetButton = false, instruction = "", instructionClassName = "" }) {
+  const showResetNote = appState.mode === "solution" && currentSolutionChunk?.type === "reset";
   return (
     <>
       <section className={`lock-stage${appState.mode === "solution" || appState.mode === "ready_to_solve" ? " is-solution-compact" : ""}`} hidden={appState.mode === "menu" || appState.mode === "load" || appState.mode === "import"}>
-        {instruction ? <div className={`stage-instruction${appState.mode === "linking" ? " is-linking-mode" : ""}`} aria-live="polite">{instruction}</div> : null}
+        {instruction ? <div className={`stage-instruction${appState.mode === "linking" ? " is-linking-mode" : ""}${instructionClassName ? ` ${instructionClassName}` : ""}`} aria-live="polite">{instruction}</div> : null}
         <div className="plates-row" aria-label="Lock plates">
           {appState.offsets.map((offset, index) => (
             <PlateColumn
@@ -26,6 +27,7 @@ export function LockStage({ appState, currentSolutionChunk, testingFeedback, sel
               canMoveDown={selectors.canMove(index, "down")}
               onMove={actions.movePlate}
               onCommitDrag={actions.commitDrag}
+              bottomNote={showResetNote && index === appState.offsets.length - 1 ? "Reset The Lock" : ""}
             />
           ))}
         </div>

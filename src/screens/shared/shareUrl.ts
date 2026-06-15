@@ -34,3 +34,21 @@ export function parseShareUrl(url: string) {
     description: sharedUrl.searchParams.get("description") || "",
   };
 }
+
+export function parseImportedNotationInput(input: string) {
+  const text = String(input || "").trim();
+  if (!text) {
+    return { notation: "", name: "", description: "" };
+  }
+
+  try {
+    const parsed = parseShareUrl(text);
+    if (parsed.notation) {
+      return parsed;
+    }
+  } catch {
+    // Not a share URL. Fall through and treat the input as raw notation.
+  }
+
+  return { notation: text, name: "", description: "" };
+}
