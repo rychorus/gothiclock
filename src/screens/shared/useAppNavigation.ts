@@ -95,6 +95,16 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
   }
 
   function goBackHeader() {
+    if (appState.mode === "solution" && appState.solutionReturnState) {
+      setAppState({
+        ...appState.solutionReturnState,
+        solutionOrigin: null,
+        solutionReturnState: null,
+      });
+      setModalState({ type: null });
+      return;
+    }
+
     if (appState.mode === "solution" && appState.solutionOrigin === "load") {
       setAppState(createInitialAppState());
       setModalState({ type: null });

@@ -93,6 +93,7 @@ export function useLockpickApp() {
     loadSavedLock: loadScreen.loadSavedLock,
     renameLock: loadScreen.renameLock,
     removeLock: loadScreen.removeLock,
+    removeAllDrafts: loadScreen.removeAllDrafts,
     persistWithName: loadScreen.persistWithName,
     setAppState,
     setModal: navigation.setModal,

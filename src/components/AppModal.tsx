@@ -31,7 +31,7 @@ function formatNotationForDisplay(notationText, isExpanded) {
     .join("\n\n");
 }
 
-function LockDetailsForm({ initialName, initialDescription, onSubmit, onCancel }) {
+function LockDetailsForm({ initialName, initialDescription, onSubmit, onCancel, showCancel = true }) {
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
   const nameInputRef = useRef(null);
@@ -52,7 +52,7 @@ function LockDetailsForm({ initialName, initialDescription, onSubmit, onCancel }
         <input className="modal-input" type="text" value={description} onChange={(event) => setDescription(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit(name, description)} />
       </label>
       <div className="modal-actions">
-        <button type="button" className="action-button secondary" onClick={onCancel}>Cancel</button>
+        {showCancel ? <button type="button" className="action-button secondary" onClick={onCancel}>Cancel</button> : null}
         <button type="button" className="action-button primary" onClick={() => onSubmit(name, description)}>Save</button>
       </div>
     </div>
@@ -102,6 +102,7 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
           initialDescription={modal.description}
           onSubmit={(name, description) => app.persistWithName(name, description, false)}
           onCancel={app.closeModal}
+          showCancel={false}
         />
       </Modal>
     );
@@ -133,6 +134,31 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
     }
 
     return <Modal title="Delete lock" onClose={app.closeModal} actions={[{ label: "Delete", className: "danger", onClick: () => app.removeLock(modal.lockId) }]}><p className="modal-note">Delete <strong>{savedLock.name}</strong>?</p></Modal>;
+  }
+
+  if (modal.type === "delete-all-drafts") {
+    const draftCount = savedLocks.filter((lock) => lock.isDraft).length;
+    if (!draftCount) {
+      return null;
+    }
+
+    return (
+      <Modal
+        title="Delete drafts"
+        onClose={app.closeModal}
+        actions={[
+          {
+            label: "Delete drafts",
+            className: "danger",
+            onClick: () => app.removeAllDrafts(),
+          },
+        ]}
+      >
+        <p className="modal-note">
+          Delete {draftCount} draft{draftCount === 1 ? "" : "s"}?
+        </p>
+      </Modal>
+    );
   }
 
   if (modal.type === "solution-steps") {

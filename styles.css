@@ -195,6 +195,7 @@ button {
 
 .controls-card--load-screen {
   padding-top: 0.95rem;
+  padding-bottom: 2.7rem;
   align-content: start;
   min-height: 0;
   height: 100%;
@@ -265,6 +266,20 @@ button {
   align-items: center;
 }
 
+.import-notation-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.import-notation-actions .action-button {
+  width: min(100%, 10.5rem);
+  min-width: 10.5rem;
+  max-width: 10.5rem;
+}
+
 .controls-title {
   margin: 0;
   font-size: 0.82rem;
@@ -310,6 +325,12 @@ button {
 
 body.is-menu-mode .menu-actions {
   justify-items: center;
+}
+
+body.is-menu-mode .menu-actions .action-button {
+  width: min(100%, 18.5rem);
+  min-width: min(18.5rem, 100%);
+  max-width: 18.5rem;
 }
 
 .menu-actions .action-button:first-child {
@@ -1438,24 +1459,10 @@ body.is-setup-mode .count-picker {
 .modal-actions {
   margin-top: 1rem;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
   flex: 0 0 auto;
-}
-
-.modal-card--notation .modal-actions {
-  justify-content: stretch;
-}
-
-.modal-card--notation .modal-actions .action-button {
-  width: 100%;
-}
-
-.modal-card--share .modal-actions {
-  justify-content: stretch;
-}
-
-.modal-card--share .modal-actions .action-button {
-  width: 100%;
 }
 
 .modal-close {
@@ -1608,6 +1615,12 @@ body.is-setup-mode .count-picker {
   overflow: hidden;
 }
 
+.controls-card--load-screen .load-screen-search,
+.controls-card--load-screen .saved-locks-dialog {
+  width: min(100%, 42rem);
+  margin-inline: auto;
+}
+
 .controls-card--load-screen .saved-lock-filter {
   flex: 0 0 auto;
   margin-bottom: 0.7rem;
@@ -1617,6 +1630,26 @@ body.is-setup-mode .count-picker {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
+}
+
+.load-screen-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.55rem;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.load-screen-delete-drafts {
+  width: auto;
+  min-width: 0;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.68rem;
+  line-height: 1;
+  min-height: 1.55rem;
+  pointer-events: auto;
 }
 
 .saved-locks-dialog .saved-lock-list {
@@ -1842,7 +1875,9 @@ body.is-resizing .plate-track {
 }
 
 .saved-lock-name {
-  font-size: 0.9rem;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .saved-lock-name-row {
@@ -1855,6 +1890,12 @@ body.is-resizing .plate-track {
 .saved-lock-meta {
   color: var(--muted);
   font-size: 0.72rem;
+}
+
+.saved-lock-description {
+  color: rgba(244, 234, 216, 0.7);
+  font-size: 0.8rem;
+  line-height: 1.35;
 }
 
 .saved-lock-badge {

@@ -113,6 +113,10 @@ export function deleteSavedLock(lockId: string) {
   setSavedLocks(getSavedLocks().filter((lock) => lock.id !== lockId));
 }
 
+export function deleteAllDraftLocks() {
+  setSavedLocks(getSavedLocks().filter((lock) => !lock.isDraft));
+}
+
 export function syncFinalLockProgress(state: AppStateData) {
   if (state.mode !== "solution" || isTrivialCenteredLock(state) || state.currentSaveId) {
     return null;

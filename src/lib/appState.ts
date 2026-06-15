@@ -111,12 +111,24 @@ export function applyTestingMove(state: AppStateData, index: number, delta: numb
 }
 
 export function loadSavedLockState(state: AppStateData, savedLock: SavedLockRecord): AppStateData {
+  const returnState: AppStateData | null = state.mode === "load"
+    ? {
+        ...state,
+        mode: "load",
+        solutionOrigin: null,
+        solutionReturnState: null,
+        linkingPromptTask: null,
+        plateLinkingProcedure: null,
+        solution: null,
+      }
+    : null;
+
   const nextState: AppStateData = {
     ...state,
     plateCount: savedLock.plateCount,
     offsets: cloneOffsets(savedLock.currentOffsets || savedLock.linkingStartOffsets),
-    solutionOrigin: savedLock.isDraft ? null : "load",
-    solutionReturnState: null,
+    solutionOrigin: "load",
+    solutionReturnState: returnState,
     linkingStartOffsets: savedLock.linkingStartOffsets ? cloneOffsets(savedLock.linkingStartOffsets) : null,
     links: savedLock.links.map((link) => resizeLink(link, savedLock.plateCount)),
     linkDeltas: resizeLinkDeltas(savedLock.linkDeltas, savedLock.plateCount),

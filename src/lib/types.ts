@@ -70,6 +70,7 @@ export type ModalState =
   | { type: "save-current"; value: string; description: string }
   | { type: "rename-saved"; lockId: string }
   | { type: "delete-saved"; lockId: string }
+  | { type: "delete-all-drafts" }
   | { type: "solution-steps" }
   | { type: "powershell" }
   | { type: "notation" }

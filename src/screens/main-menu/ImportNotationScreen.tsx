@@ -24,7 +24,7 @@ export function ImportNotationScreen({ onCancel, onImport }) {
         />
       </label>
       {importError ? <p className="modal-note import-notation-error">{importError}</p> : null}
-      <div className="menu-actions import-notation-actions">
+      <div className="import-notation-actions">
         <button className="action-button secondary" type="button" onClick={onCancel}>Cancel</button>
         <button
           className="action-button primary"

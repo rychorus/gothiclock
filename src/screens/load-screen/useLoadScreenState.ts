@@ -1,4 +1,4 @@
-import { deleteSavedLock, getDefaultLockName, getSavedLockById, getSavedLocks, persistCurrentLock, renameSavedLock } from "../../lib/lockStorage";
+import { deleteAllDraftLocks, deleteSavedLock, getDefaultLockName, getSavedLockById, getSavedLocks, persistCurrentLock, renameSavedLock } from "../../lib/lockStorage";
 import { loadSavedLockState } from "../../lib/appState";
 import type { AppStateData, ModalState, SavedLockRecord } from "../../lib/types";
 import type { Dispatch, SetStateAction } from "react";
@@ -55,6 +55,13 @@ export function useLoadScreenState({ appState, setAppState, setModal }: {
     setModal({ type: null });
   }
 
+  function removeAllDrafts() {
+    const currentSave = getSavedLockById(appState.currentSaveId);
+    deleteAllDraftLocks();
+    setAppState((current) => (currentSave?.isDraft ? { ...current, currentSaveId: null } : current));
+    setModal({ type: null });
+  }
+
   return {
     savedLocks: getSavedLocks(),
     saveCurrentLock,
@@ -62,5 +69,6 @@ export function useLoadScreenState({ appState, setAppState, setModal }: {
     loadSavedLock,
     renameLock,
     removeLock,
+    removeAllDrafts,
   };
 }

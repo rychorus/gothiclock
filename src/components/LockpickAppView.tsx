@@ -187,6 +187,7 @@ export function LockpickAppView({ app, appVersion }) {
               onRename={(lockId) => app.setModal({ type: "rename-saved", lockId })}
               onDelete={(lockId) => app.setModal({ type: "delete-saved", lockId })}
               onShare={(lockId) => app.setModal({ type: "share", lockId })}
+              onDeleteAllDrafts={() => app.setModal({ type: "delete-all-drafts" })}
               searchQuery={loadSearchQuery}
               showDrafts={showDrafts}
               onSearchQueryChange={setLoadSearchQuery}

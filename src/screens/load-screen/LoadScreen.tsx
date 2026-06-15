@@ -1,7 +1,8 @@
 import { SavedLocksDialog } from "./SavedLocksDialog";
 import { MaterialIcon } from "../../lib/icons";
 
-export function LoadScreen({ savedLocks, onLoad, onRename, onDelete, onShare, searchQuery, showDrafts, onSearchQueryChange, isSearchOpen, onToggleSearch, searchInputRef }) {
+export function LoadScreen({ savedLocks, onLoad, onRename, onDelete, onShare, onDeleteAllDrafts, searchQuery, showDrafts, onSearchQueryChange, isSearchOpen, onToggleSearch, searchInputRef }) {
+  const draftCount = savedLocks.filter((lock) => lock.isDraft).length;
   return (
     <section className="controls-card controls-card--load-screen" aria-live="polite">
       {isSearchOpen ? (
@@ -32,6 +33,17 @@ export function LoadScreen({ savedLocks, onLoad, onRename, onDelete, onShare, se
           showDrafts={showDrafts}
         />
       </div>
+      {showDrafts && draftCount > 0 ? (
+        <div className="load-screen-footer">
+          <button
+            className="action-button secondary action-button--compact load-screen-delete-drafts"
+            type="button"
+            onClick={onDeleteAllDrafts}
+          >
+            Delete all drafts
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }
