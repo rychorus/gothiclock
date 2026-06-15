@@ -12,7 +12,7 @@ export function ImportNotationScreen({ onCancel, onImport }) {
   return (
     <section className="controls-card controls-card--import-screen" aria-live="polite">
       <label className="import-notation-field">
-        <span className="controls-title">Paste notation</span>
+        <span className="controls-title">Paste Notation or Link</span>
         <textarea
           className="import-notation-input"
           value={importText}

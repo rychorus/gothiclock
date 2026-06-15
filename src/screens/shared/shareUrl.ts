@@ -38,17 +38,20 @@ export function parseShareUrl(url: string) {
 export function parseImportedNotationInput(input: string) {
   const text = String(input || "").trim();
   if (!text) {
-    return { notation: "", name: "", description: "" };
+    return { notation: "", name: "", description: "", isShareUrl: false };
   }
 
   try {
     const parsed = parseShareUrl(text);
     if (parsed.notation) {
-      return parsed;
+      return {
+        ...parsed,
+        isShareUrl: true,
+      };
     }
   } catch {
     // Not a share URL. Fall through and treat the input as raw notation.
   }
 
-  return { notation: text, name: "", description: "" };
+  return { notation: text, name: "", description: "", isShareUrl: false };
 }

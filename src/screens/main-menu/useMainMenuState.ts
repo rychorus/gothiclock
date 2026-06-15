@@ -17,14 +17,13 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
     const parsed = parseNotationString(imported.notation);
     const hasLinks = parsed.links.some(Boolean);
     const allLinksKnown = parsed.links.every(Boolean);
-    const nextSharedLinkMetadata = sharedLinkMetadata ?? (
-      imported.notation === text
-        ? null
-        : {
-            name: imported.name || "",
-            description: imported.description || "",
-          }
-    );
+    const shouldShowSolution = showSolution || imported.isShareUrl;
+    const nextSharedLinkMetadata = sharedLinkMetadata ?? (imported.isShareUrl
+      ? {
+          name: imported.name || "",
+          description: imported.description || "",
+        }
+      : null);
     const baseState: AppStateData = {
       ...createInitialAppState(),
       plateCount: parsed.plateCount,
@@ -46,9 +45,10 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
     }
 
     if (allLinksKnown) {
-      if (showSolution) {
+      if (shouldShowSolution) {
         setAppState(() => enterSolutionMode(baseState, {
-          returnState: nextSharedLinkMetadata ? createInitialAppState() : undefined,
+          returnState: imported.isShareUrl ? createInitialAppState() : undefined,
+          solutionOrigin: imported.isShareUrl ? "load" : null,
         }));
         return;
       }
