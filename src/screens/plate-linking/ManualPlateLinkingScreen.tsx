@@ -5,13 +5,15 @@ export function ManualPlateLinkingScreen({ appState, currentSolutionChunk, testi
   const manualState = appState.manualLinkingState;
   const isPickingDriver = manualState?.phase !== "define-links";
   const selectedDriver = manualState?.selectedDriver ?? null;
-  const isAllCompleted = Boolean(manualState && manualState.links.every(Boolean));
+  const isAllCompleted = Boolean(
+    manualState
+    && (manualState.links.every(Boolean) || manualState.completedDrivers.length >= appState.plateCount),
+  );
   const hasDefinedLink = Boolean(
     manualState && selectedDriver !== null
       ? manualState.links[selectedDriver]?.some((value, index) => index !== selectedDriver && value !== 0)
       : false,
   );
-
   return (
     <>
       <LockStage
@@ -34,7 +36,7 @@ export function ManualPlateLinkingScreen({ appState, currentSolutionChunk, testi
         <button
           className="action-button primary"
           type="button"
-          disabled={isPickingDriver && selectedDriver === null}
+          disabled={isPickingDriver && selectedDriver === null && !isAllCompleted}
           onClick={isAllCompleted ? actions.solveManualLinking : actions.nextManualLinkingStep}
         >
           {isAllCompleted ? (

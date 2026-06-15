@@ -127,8 +127,15 @@ export function useLockpickApp() {
     }
   }, [appState]);
 
-  const notationText = buildNotationString(appState);
-    const currentSavedLock = savedLocks.find((lock) => lock.id === appState.currentSaveId) || null;
+  const notationSource = appState.mode === "manual_linking" && appState.manualLinkingState
+    ? {
+        plateCount: appState.plateCount,
+        offsets: appState.manualLinkingState.offsets,
+        links: appState.manualLinkingState.links,
+      }
+    : appState;
+  const notationText = buildNotationString(notationSource);
+  const currentSavedLock = savedLocks.find((lock) => lock.id === appState.currentSaveId) || null;
   return {
     appState,
     modal,

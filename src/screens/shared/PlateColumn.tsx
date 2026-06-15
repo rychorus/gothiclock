@@ -45,11 +45,11 @@ export function PlateColumn({
     && manualDriverIndex !== index
     && manualLinkingState?.links[manualDriverIndex]?.[index],
   );
-  const manualLinkRelation = isManualDefineMode && manualDriverIndex !== null && manualDriverIndex !== index
-    ? manualLinkingState?.links[manualDriverIndex]?.[index] ?? 0
+  const manualMovedOffset = isManualDefineMode && manualDriverIndex !== null && manualDriverIndex !== index
+    ? manualLinkingState?.offsets[index] ?? 0
     : 0;
-  const isManualLinkedLeft = isManualDefineMode && manualLinkRelation === -1;
-  const isManualLinkedRight = isManualDefineMode && manualLinkRelation === 1;
+  const isManualLinkedLeft = isManualDefineMode && manualMovedOffset < 0;
+  const isManualLinkedRight = isManualDefineMode && manualMovedOffset > 0;
   const displayOffset = isManualPickMode
     ? (isManualActiveDriver ? selectedDirectionDelta : 0)
     : isManualDefineMode && isManualActiveDriver
@@ -138,7 +138,7 @@ export function PlateColumn({
     }
 
     if (isManualDefineMode && isManualLinked) {
-      nextClasses.push(manualLinkRelation === 1 ? "is-manual-linked-same" : "is-manual-linked-opposite");
+      nextClasses.push(manualMovedOffset > 0 ? "is-manual-linked-same" : "is-manual-linked-opposite");
     }
 
     if (offset === 0) {
@@ -156,7 +156,7 @@ export function PlateColumn({
     isManualLinked,
     isManualPickMode,
     linkingPromptTask,
-    manualLinkRelation,
+    manualMovedOffset,
     mode,
     offset,
     selection,
