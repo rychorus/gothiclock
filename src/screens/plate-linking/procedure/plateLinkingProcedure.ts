@@ -30,6 +30,13 @@ function createProcedureState(state: AppStateData): PlateLinkingProcedureState {
   };
 }
 
+function areAllUncompletedPlatesCentered(state: AppStateData, procedure: PlateLinkingProcedureState): boolean {
+  return state.offsets.every((offset, index) => (
+    procedure.completedDrivers.includes(index)
+    || offset === 0
+  ));
+}
+
 function pushProcedureHistory(
   state: AppStateData,
   procedure: PlateLinkingProcedureState,
@@ -226,6 +233,26 @@ function beginNextPrompt(
   procedure: PlateLinkingProcedureState,
   currentDriver?: number,
 ): AppStateData {
+  if (areAllUncompletedPlatesCentered(state, procedure)) {
+    const startOffsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
+    const returnState: AppStateData = {
+      ...state,
+      solutionReturnState: null,
+    };
+    const solutionState: AppStateData = {
+      ...state,
+      mode: "solution",
+      offsets: startOffsets,
+      linkingPromptTask: null,
+      plateLinkingProcedure: procedure,
+      solutionReturnState: returnState,
+    };
+    return {
+      ...solutionState,
+      solution: buildSolutionPlanForApp(solutionState, startOffsets),
+    };
+  }
+
   const selection = selectNextPlateLinkingDriver(state, procedure, currentDriver);
   if (selection.driver === null) {
     const startOffsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
