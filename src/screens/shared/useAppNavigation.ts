@@ -13,6 +13,20 @@ function getNavigationKey(nextAppState: AppStateData, nextModal: ModalState) {
   return `${nextAppState.mode}|${nextModal.type || "none"}`;
 }
 
+function getNavigationUrl(shouldClearQuery: boolean) {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  const url = new URL(window.location.href);
+  if (shouldClearQuery) {
+    url.search = "";
+    url.hash = "";
+  }
+
+  return url.toString();
+}
+
 export function useAppNavigation({ appState, modal, setAppState, setModalState }: {
   appState: AppStateData;
   modal: ModalState;
@@ -129,7 +143,7 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
       return undefined;
     }
 
-      function handlePopState(event: PopStateEvent) {
+    function handlePopState(event: PopStateEvent) {
       restoringHistoryRef.current = true;
       setAppState(event.state?.appState || createInitialAppState());
       setModalState(event.state?.modal || { type: null });
@@ -145,9 +159,10 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
     }
 
     const nextKey = getNavigationKey(appState, modal);
+    const nextUrl = getNavigationUrl(Boolean(appState.sharedLinkMetadata));
 
     if (!historyReadyRef.current) {
-      window.history.replaceState(snapshotNavigation(appState, modal), "", window.location.href);
+      window.history.replaceState(snapshotNavigation(appState, modal), "", nextUrl);
       historyKeyRef.current = nextKey;
       historyReadyRef.current = true;
       return;
@@ -160,12 +175,12 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
     }
 
     if (historyKeyRef.current !== nextKey) {
-      window.history.pushState(snapshotNavigation(appState, modal), "", window.location.href);
+      window.history.pushState(snapshotNavigation(appState, modal), "", nextUrl);
       historyKeyRef.current = nextKey;
       return;
     }
 
-    window.history.replaceState(snapshotNavigation(appState, modal), "", window.location.href);
+    window.history.replaceState(snapshotNavigation(appState, modal), "", nextUrl);
   }, [appState, modal]);
 
   return {

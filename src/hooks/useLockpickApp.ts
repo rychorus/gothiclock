@@ -12,6 +12,13 @@ import { usePlateLinkingState } from "../screens/plate-linking/usePlateLinkingSt
 import { useSolutionState } from "../screens/solution/useSolutionState";
 import type { AppStateData, ModalState } from "../lib/types";
 
+function getCleanUrl(url: string) {
+  const cleanUrl = new URL(url);
+  cleanUrl.search = "";
+  cleanUrl.hash = "";
+  return cleanUrl.toString();
+}
+
 export function useLockpickApp() {
   const [appState, setAppState] = useState<AppStateData>(createInitialAppState());
   const [modal, setModalState] = useState<ModalState>({ type: null });
@@ -58,6 +65,7 @@ export function useLockpickApp() {
     suppressDraftAutosaveRef.current = true;
 
     try {
+      window.history.replaceState(window.history.state, "", getCleanUrl(window.location.href));
       mainMenu.importNotation(sharedUrl.notation, {
         showSolution: true,
         sharedLinkMetadata: {

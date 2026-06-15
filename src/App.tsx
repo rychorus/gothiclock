@@ -19,7 +19,29 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!("serviceWorker" in navigator) || (!window.isSecureContext && !getIsLocalhost())) {
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+
+    if (getIsLocalhost()) {
+      navigator.serviceWorker.getRegistrations?.().then((registrations) => {
+        registrations.forEach((registration) => {
+          registration.unregister();
+        });
+      }).catch((error) => {
+        console.error("Service worker cleanup failed", error);
+      });
+
+      if ("caches" in window) {
+        caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))).catch((error) => {
+          console.error("Cache cleanup failed", error);
+        });
+      }
+
+      return;
+    }
+
+    if (!window.isSecureContext) {
       return;
     }
 

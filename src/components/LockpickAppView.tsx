@@ -9,12 +9,26 @@ import { PlateSetupScreen } from "../screens/plate-setup/PlateSetupScreen";
 import { PlateLinkingScreen } from "../screens/plate-linking/PlateLinkingScreen";
 import { SolutionScreen } from "../screens/solution/SolutionScreen";
 
+const LOAD_SCREEN_SHOW_DRAFTS_STORAGE_KEY = "gothic-lockpick.load-screen.show-drafts";
+
+function getPersistedShowDrafts() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    return window.localStorage.getItem(LOAD_SCREEN_SHOW_DRAFTS_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
 export function LockpickAppView({ app, appVersion }) {
   const { appState, modal, savedLocks, currentSavedLock, currentSolutionChunk, testingFeedback, powershellCode, actions, selectors } = app;
   const [isTopMenuOpen, setIsTopMenuOpen] = useState(false);
   const [isLoadSearchOpen, setIsLoadSearchOpen] = useState(false);
   const [isLoadFilterOpen, setIsLoadFilterOpen] = useState(false);
-  const [showDrafts, setShowDrafts] = useState(false);
+  const [showDrafts, setShowDrafts] = useState(getPersistedShowDrafts);
   const [loadSearchQuery, setLoadSearchQuery] = useState("");
   const topMenuRef = useRef(null);
   const loadSearchRef = useRef(null);
@@ -130,6 +144,18 @@ export function LockpickAppView({ app, appVersion }) {
     setLoadSearchQuery("");
     return undefined;
   }, [appState.mode]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(LOAD_SCREEN_SHOW_DRAFTS_STORAGE_KEY, String(showDrafts));
+    } catch {
+      // Ignore storage failures and keep the preference in memory only.
+    }
+  }, [showDrafts]);
 
   useEffect(() => {
     if (!isLoadSearchOpen || appState.mode !== "load") {
