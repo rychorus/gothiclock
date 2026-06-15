@@ -16,6 +16,7 @@ export function useLockpickApp() {
   const [appState, setAppState] = useState<AppStateData>(createInitialAppState());
   const [modal, setModalState] = useState<ModalState>({ type: null });
   const appliedSharedNotationRef = useRef(false);
+  const suppressDraftAutosaveRef = useRef(false);
 
   const navigation = useAppNavigation({ appState, modal, setAppState, setModalState });
   const mainMenu = useMainMenuState({
@@ -54,6 +55,8 @@ export function useLockpickApp() {
       return;
     }
 
+    suppressDraftAutosaveRef.current = true;
+
     try {
       mainMenu.importNotation(sharedUrl.notation, {
         showSolution: true,
@@ -68,6 +71,16 @@ export function useLockpickApp() {
   }, [mainMenu]);
 
   useEffect(() => {
+    if (appState.sharedLinkMetadata) {
+      suppressDraftAutosaveRef.current = true;
+    } else if (appState.mode === "menu") {
+      suppressDraftAutosaveRef.current = false;
+    }
+
+    if (suppressDraftAutosaveRef.current) {
+      return;
+    }
+
     const autoSavedLockId = syncFinalLockProgress(appState);
     if (autoSavedLockId) {
       setAppState((current) => (current.currentSaveId === autoSavedLockId ? current : { ...current, currentSaveId: autoSavedLockId }));
