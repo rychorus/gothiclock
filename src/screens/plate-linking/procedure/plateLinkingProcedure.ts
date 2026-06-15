@@ -266,7 +266,7 @@ function beginNextPrompt(
       offsets: startOffsets,
       linkingPromptTask: null,
       plateLinkingProcedure: procedure,
-      solutionReturnState: returnState,
+      solutionReturnState: state.solutionReturnState ?? returnState,
     };
     const solution = buildSolutionPlanForApp(solutionState, startOffsets);
     if (solution.moves !== null) {
@@ -290,7 +290,7 @@ function beginNextPrompt(
       offsets: startOffsets,
       linkingPromptTask: null,
       plateLinkingProcedure: selection.procedure,
-      solutionReturnState: returnState,
+      solutionReturnState: state.solutionReturnState ?? returnState,
     };
     return {
       ...solutionState,

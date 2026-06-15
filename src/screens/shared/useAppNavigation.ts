@@ -27,6 +27,35 @@ function getNavigationUrl(shouldClearQuery: boolean) {
   return url.toString();
 }
 
+function getSolutionBackState(appState: AppStateData): AppStateData | null {
+  if (appState.sharedLinkMetadata) {
+    return createInitialAppState();
+  }
+
+  if (appState.solutionReturnState) {
+    return {
+      ...appState.solutionReturnState,
+      solutionOrigin: null,
+      solutionReturnState: null,
+    };
+  }
+
+  if (appState.solutionOrigin === "load") {
+    return {
+      ...appState,
+      mode: "load",
+      linkingPromptTask: null,
+      plateLinkingProcedure: null,
+      solution: null,
+      solutionOrigin: null,
+      solutionReturnState: null,
+      sharedLinkMetadata: null,
+    };
+  }
+
+  return null;
+}
+
 export function useAppNavigation({ appState, modal, setAppState, setModalState }: {
   appState: AppStateData;
   modal: ModalState;
@@ -62,12 +91,9 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
     }
 
     if (appState.mode === "solution") {
-      if (appState.solutionReturnState) {
-        setAppState({
-          ...appState.solutionReturnState,
-          solutionOrigin: null,
-          solutionReturnState: null,
-        });
+      const nextState = getSolutionBackState(appState);
+      if (nextState) {
+        setAppState(nextState);
         return;
       }
 
@@ -109,17 +135,14 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
   }
 
   function goBackHeader() {
-    if (appState.mode === "solution" && appState.solutionReturnState) {
-      setAppState({
-        ...appState.solutionReturnState,
-        solutionOrigin: null,
-        solutionReturnState: null,
-      });
-      setModalState({ type: null });
-      return;
-    }
+    if (appState.mode === "solution") {
+      const nextState = getSolutionBackState(appState);
+      if (nextState) {
+        setAppState(nextState);
+        setModalState({ type: null });
+        return;
+      }
 
-    if (appState.mode === "solution" && appState.solutionOrigin === "load") {
       setAppState(createInitialAppState());
       setModalState({ type: null });
       return;
