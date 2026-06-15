@@ -2218,6 +2218,20 @@ body.is-resizing .plate-track {
     padding-top: 0.7rem;
   }
 
+  .count-picker {
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+  }
+
+  .count-button {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    padding-left: 0.45rem;
+    padding-right: 0.45rem;
+  }
+
   .lock-stage {
     padding-top: 1.55rem;
   }
