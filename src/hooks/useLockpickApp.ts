@@ -19,8 +19,40 @@ function getCleanUrl(url: string) {
   return cleanUrl.toString();
 }
 
+function getInitialAppState(): AppStateData {
+  const initialState = createInitialAppState();
+
+  if (typeof window === "undefined") {
+    return initialState;
+  }
+
+  try {
+    const hasVisitedBefore = window.localStorage.getItem("gothic-lockpick.has-visited-before") === "true";
+    window.localStorage.setItem("gothic-lockpick.has-visited-before", "true");
+
+    const sharedUrl = parseShareUrl(window.location.href);
+    if (sharedUrl.notation) {
+      return initialState;
+    }
+
+    if (!hasVisitedBefore) {
+      return {
+        ...initialState,
+        mode: "setup",
+      };
+    }
+  } catch {
+    return {
+      ...initialState,
+      mode: "setup",
+    };
+  }
+
+  return initialState;
+}
+
 export function useLockpickApp() {
-  const [appState, setAppState] = useState<AppStateData>(createInitialAppState());
+  const [appState, setAppState] = useState<AppStateData>(getInitialAppState);
   const [modal, setModalState] = useState<ModalState>({ type: null });
   const appliedSharedNotationRef = useRef(false);
   const suppressDraftAutosaveRef = useRef(false);
