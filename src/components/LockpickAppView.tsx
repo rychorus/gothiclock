@@ -10,10 +10,82 @@ import { PlateLinkingScreen } from "../screens/plate-linking/PlateLinkingScreen"
 import { SolutionScreen } from "../screens/solution/SolutionScreen";
 
 export function LockpickAppView({ app, appVersion }) {
-  const { appState, modal, savedLocks, currentSolutionChunk, testingFeedback, powershellCode, actions, selectors } = app;
+  const { appState, modal, savedLocks, currentSavedLock, currentSolutionChunk, testingFeedback, powershellCode, actions, selectors } = app;
   const [isTopMenuOpen, setIsTopMenuOpen] = useState(false);
+  const [isLoadSearchOpen, setIsLoadSearchOpen] = useState(false);
+  const [isLoadFilterOpen, setIsLoadFilterOpen] = useState(false);
+  const [showDrafts, setShowDrafts] = useState(false);
+  const [loadSearchQuery, setLoadSearchQuery] = useState("");
   const topMenuRef = useRef(null);
-  const heroTitle = getHeroTitle(appState.mode);
+  const loadSearchRef = useRef(null);
+  const loadFilterRef = useRef(null);
+  const heroTitle = appState.mode === "solution" && currentSavedLock && !currentSavedLock.isDraft
+    ? `${currentSavedLock.name} Solution`
+    : getHeroTitle(appState.mode);
+  const headerRight = (() => {
+    if (appState.mode === "menu") {
+      return <span className="app-version" aria-label="App version" title={`Current version: ${appVersion}`}>{appVersion}</span>;
+    }
+
+    if (appState.mode === "load") {
+      return (
+        <div className="hero-menu-wrap hero-menu-wrap--load">
+          <button
+            className="solution-toggle-icon hero-menu-toggle"
+            type="button"
+            aria-label="Search saved locks"
+            aria-expanded={isLoadSearchOpen}
+            onClick={() => setIsLoadSearchOpen((current) => !current)}
+          >
+            <MaterialIcon name="search" />
+          </button>
+          <div ref={loadFilterRef} className="hero-filter-wrap">
+            <button
+              className="solution-toggle-icon hero-menu-toggle"
+              type="button"
+              aria-label="Filter saved locks"
+              aria-expanded={isLoadFilterOpen}
+              onClick={() => setIsLoadFilterOpen((current) => !current)}
+            >
+              <MaterialIcon name="filter_alt" />
+            </button>
+            <div className="saved-lock-menu hero-menu" hidden={!isLoadFilterOpen}>
+              <button
+                className="saved-lock-menu-item saved-lock-menu-item--toggle"
+                type="button"
+                onClick={() => {
+                  setShowDrafts((current) => !current);
+                  setIsLoadFilterOpen(false);
+                }}
+              >
+                <span className="saved-lock-menu-item-check" aria-hidden="true">
+                  {showDrafts ? <MaterialIcon name="check" /> : null}
+                </span>
+                <span>Show drafts</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (appState.mode === "setup" || appState.mode === "linking") {
+      return (
+        <div ref={topMenuRef} className="hero-menu-wrap">
+          <button className="solution-toggle-icon hero-menu-toggle" type="button" aria-label="Screen menu" aria-expanded={isTopMenuOpen} onClick={() => setIsTopMenuOpen((current) => !current)}>
+            <MaterialIcon name="more_vert" />
+          </button>
+          <div className="saved-lock-menu hero-menu" hidden={!isTopMenuOpen}>
+            <button className="saved-lock-menu-item" type="button" onClick={() => { setIsTopMenuOpen(false); app.setModal({ type: "notation" }); }}>
+              <span>Show notation</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  })();
 
   const modalNode = useMemo(
     () => (
@@ -45,6 +117,41 @@ export function LockpickAppView({ app, appVersion }) {
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [isTopMenuOpen]);
 
+  useEffect(() => {
+    if (appState.mode === "load") {
+      return undefined;
+    }
+
+    setIsLoadSearchOpen(false);
+    setIsLoadFilterOpen(false);
+    setLoadSearchQuery("");
+    return undefined;
+  }, [appState.mode]);
+
+  useEffect(() => {
+    if (!isLoadSearchOpen || appState.mode !== "load") {
+      return undefined;
+    }
+
+    loadSearchRef.current?.focus?.();
+    return undefined;
+  }, [appState.mode, isLoadSearchOpen]);
+
+  useEffect(() => {
+    if (!isLoadFilterOpen || appState.mode !== "load") {
+      return undefined;
+    }
+
+    function handlePointerDown(event) {
+      if (!loadFilterRef.current?.contains(event.target)) {
+        setIsLoadFilterOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [appState.mode, isLoadFilterOpen]);
+
   return (
     <>
       <main className="app-shell">
@@ -53,29 +160,16 @@ export function LockpickAppView({ app, appVersion }) {
             <button
               className="hero-back"
               type="button"
-              aria-label={appState.mode === "testing" ? "Back to solution mode" : appState.mode === "solution" ? "Back to ready to solve" : appState.mode === "ready_to_solve" ? "Back to linking" : appState.mode === "linking" ? "Back to plates setup" : "Back to main menu"}
+              aria-label={appState.mode === "testing" ? "Back to solution" : appState.mode === "solution" || appState.mode === "ready_to_solve" ? "Back to plates linking" : appState.mode === "linking" ? "Back to plates setup" : "Back to main menu"}
               hidden={appState.mode === "menu"}
               onClick={actions.goBackHeader}
             >
               <span></span>
             </button>
-            <p className="hero-title">
-              {heroTitle ? heroTitle : <><span className="hero-title-line">Gothic Remake</span>{" "}<span className="hero-title-line hero-title-line--accent">Lockpick Solver</span></>}
-            </p>
-            {appState.mode === "menu" ? (
-              <span className="app-version" aria-label="App version" title={`Current version: ${appVersion}`}>{appVersion}</span>
-            ) : (appState.mode === "setup" || appState.mode === "linking") ? (
-              <div ref={topMenuRef} className="hero-menu-wrap">
-                <button className="solution-toggle-icon hero-menu-toggle" type="button" aria-label="Screen menu" aria-expanded={isTopMenuOpen} onClick={() => setIsTopMenuOpen((current) => !current)}>
-                  <MaterialIcon name="more_vert" />
-                </button>
-                <div className="saved-lock-menu hero-menu" hidden={!isTopMenuOpen}>
-                  <button className="saved-lock-menu-item" type="button" onClick={() => { setIsTopMenuOpen(false); app.setModal({ type: "notation" }); }}>
-                    <span>Show notation</span>
-                  </button>
-                </div>
-              </div>
-            ) : null}
+          <p className="hero-title">
+            {heroTitle ? heroTitle : <><span className="hero-title-line">Gothic Remake</span>{" "}<span className="hero-title-line hero-title-line--accent">Lockpick Solver</span></>}
+          </p>
+            {headerRight}
           </header>
 
           {appState.mode === "menu" ? (
@@ -92,6 +186,13 @@ export function LockpickAppView({ app, appVersion }) {
               onLoad={app.loadSavedLock}
               onRename={(lockId) => app.setModal({ type: "rename-saved", lockId })}
               onDelete={(lockId) => app.setModal({ type: "delete-saved", lockId })}
+              onShare={(lockId) => app.setModal({ type: "share", lockId })}
+              searchQuery={loadSearchQuery}
+              showDrafts={showDrafts}
+              onSearchQueryChange={setLoadSearchQuery}
+              isSearchOpen={isLoadSearchOpen}
+              onToggleSearch={() => setIsLoadSearchOpen((current) => !current)}
+              searchInputRef={loadSearchRef}
             />
           ) : appState.mode === "setup" ? (
             <PlateSetupScreen

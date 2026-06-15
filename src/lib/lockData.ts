@@ -69,6 +69,7 @@ export function createInitialAppState(): AppStateData {
     plateCount: START_COUNT,
     offsets: Array.from({ length: START_COUNT }, () => 0),
     mode: "menu",
+    solutionOrigin: null,
     linkingStartOffsets: null,
     links: createEmptyLinks(START_COUNT),
     linkDeltas: createEmptyLinkDeltas(START_COUNT),
@@ -90,10 +91,14 @@ export function isTrivialCenteredLock(state: Pick<AppStateData, "linkingStartOff
     && state.solution.moves.length === 0;
 }
 
-export function buildSavedLockRecord(state: Pick<AppStateData, "plateCount" | "mode" | "linkingStartOffsets" | "offsets" | "links" | "linkDeltas">, { id, name, isDraft }: { id: string; name: string; isDraft?: boolean }): SavedLockRecord {
+export function buildSavedLockRecord(
+  state: Pick<AppStateData, "plateCount" | "mode" | "linkingStartOffsets" | "offsets" | "links" | "linkDeltas">,
+  { id, name, description, isDraft }: { id: string; name: string; description: string; isDraft?: boolean },
+): SavedLockRecord {
   return {
     id,
     name,
+    description,
     isDraft: Boolean(isDraft),
     savedAt: new Date().toISOString(),
     plateCount: state.plateCount,

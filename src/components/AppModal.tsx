@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { copyTextToClipboard } from "../lib/clipboard";
 import { Modal } from "./Modal";
 import { SolutionSequence } from "../screens/solution/SolutionSequence";
+import { buildNotationString } from "../lib/notation";
+import { buildShareUrl } from "../screens/shared/shareUrl";
+import type { SavedLockRecord } from "../lib/types";
 
 function getPowershellStartDelaySeconds(powershellCode) {
   const match = powershellCode.match(/Start-Sleep -Seconds (\d+)/i);
@@ -28,19 +31,52 @@ function formatNotationForDisplay(notationText, isExpanded) {
     .join("\n\n");
 }
 
-function LockNameForm({ initialValue, onSubmit, onCancel }) {
-  const [value, setValue] = useState(initialValue);
+function LockDetailsForm({ initialName, initialDescription, onSubmit, onCancel }) {
+  const [name, setName] = useState(initialName);
+  const [description, setDescription] = useState(initialDescription);
+  const nameInputRef = useRef(null);
+
+  useEffect(() => {
+    nameInputRef.current?.focus?.();
+    nameInputRef.current?.select?.();
+  }, []);
 
   return (
-    <label className="modal-field">
-      <span className="modal-field-label">Lock name</span>
-      <input className="modal-input" type="text" value={value} onChange={(event) => setValue(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit(value)} />
+    <div className="modal-form-stack">
+      <label className="modal-field">
+        <span className="modal-field-label">Lock name</span>
+        <input ref={nameInputRef} className="modal-input" type="text" value={name} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit(name, description)} />
+      </label>
+      <label className="modal-field modal-field--spaced-top">
+        <span className="modal-field-label">Description</span>
+        <input className="modal-input" type="text" value={description} onChange={(event) => setDescription(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit(name, description)} />
+      </label>
       <div className="modal-actions">
         <button type="button" className="action-button secondary" onClick={onCancel}>Cancel</button>
-        <button type="button" className="action-button primary" onClick={() => onSubmit(value)}>Save</button>
+        <button type="button" className="action-button primary" onClick={() => onSubmit(name, description)}>Save</button>
       </div>
-    </label>
+    </div>
   );
+}
+
+function buildShareCopyText({ name, description, url }: { name: string; description: string; url: string }) {
+  return [name, description, url].filter(Boolean).join("\n");
+}
+
+function getShareLock(app, modal, savedLocks): SavedLockRecord | null {
+  if (modal.type !== "share") {
+    return null;
+  }
+
+  if (modal.lockId) {
+    return savedLocks.find((lock) => lock.id === modal.lockId) || null;
+  }
+
+  if (app.appState.currentSaveId) {
+    return savedLocks.find((lock) => lock.id === app.appState.currentSaveId) || null;
+  }
+
+  return null;
 }
 
 export function AppModal({ app, modal, savedLocks, solutionChunks, currentSolutionIndex, powershellCode, shareUrl }) {
@@ -59,7 +95,16 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
   }, [modal]);
 
   if (modal.type === "save-current") {
-    return <Modal title="Save lock" onClose={app.closeModal}><LockNameForm initialValue={modal.value} onSubmit={(value) => app.persistWithName(value, false)} onCancel={app.closeModal} /></Modal>;
+    return (
+      <Modal title="Save lock" onClose={app.closeModal}>
+        <LockDetailsForm
+          initialName={modal.value}
+          initialDescription={modal.description}
+          onSubmit={(name, description) => app.persistWithName(name, description, false)}
+          onCancel={app.closeModal}
+        />
+      </Modal>
+    );
   }
 
   if (modal.type === "rename-saved") {
@@ -69,7 +114,16 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
     }
 
     const initialValue = savedLock.name.replace(/^Draft - /, "") || "Untitled lock";
-    return <Modal title="Rename lock" onClose={app.closeModal}><LockNameForm initialValue={initialValue} onSubmit={(value) => app.renameLock(modal.lockId, value)} onCancel={app.closeModal} /></Modal>;
+    return (
+      <Modal title="Edit lock" onClose={app.closeModal}>
+        <LockDetailsForm
+          initialName={initialValue}
+          initialDescription={savedLock.description || ""}
+          onSubmit={(name, description) => app.renameLock(modal.lockId, name, description)}
+          onCancel={app.closeModal}
+        />
+      </Modal>
+    );
   }
 
   if (modal.type === "delete-saved") {
@@ -78,7 +132,7 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
       return null;
     }
 
-    return <Modal title="Delete lock" onClose={app.closeModal} actions={[{ label: "Cancel", className: "secondary", onClick: app.closeModal }, { label: "Delete", className: "danger", onClick: () => app.removeLock(modal.lockId) }]}><p className="modal-note">Delete <strong>{savedLock.name}</strong>?</p></Modal>;
+    return <Modal title="Delete lock" onClose={app.closeModal} actions={[{ label: "Delete", className: "danger", onClick: () => app.removeLock(modal.lockId) }]}><p className="modal-note">Delete <strong>{savedLock.name}</strong>?</p></Modal>;
   }
 
   if (modal.type === "solution-steps") {
@@ -156,9 +210,25 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
   }
 
   if (modal.type === "share") {
+    const shareLock = getShareLock(app, modal, savedLocks);
+    const shareName = shareLock?.name || "Solution";
+    const shareDescription = shareLock?.description || "";
+    const shareLink = shareLock
+      ? buildShareUrl(
+        typeof window !== "undefined" ? window.location.href : "",
+        buildNotationString({
+          plateCount: shareLock.plateCount,
+          offsets: shareLock.currentOffsets,
+          links: shareLock.links,
+        }),
+        { name: shareName, description: shareDescription },
+      )
+      : shareUrl;
+    const shareCopyText = buildShareCopyText({ name: shareName, description: shareDescription, url: shareLink });
+
     return (
       <Modal
-        title="Share solution"
+        title={shareLock ? "Share lock" : "Share solution"}
         onClose={app.closeModal}
         className="modal-card--share"
         actions={[
@@ -166,7 +236,7 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
             label: didCopyShareUrl ? "Link copied" : "Copy link",
             className: "primary",
             onClick: async () => {
-              const copied = await copyTextToClipboard(shareUrl);
+              const copied = await copyTextToClipboard(shareCopyText);
               if (copied) {
                 setDidCopyShareUrl(true);
               }
@@ -174,9 +244,16 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
           },
         ]}
       >
-        <p className="modal-note modal-note--compact modal-note--share">Open this link to load the solution.</p>
+        {shareLock ? (
+          <p className="modal-note modal-note--compact modal-note--share">
+            <strong>{shareName}</strong>
+            {shareDescription ? <span> - {shareDescription}</span> : null}
+          </p>
+        ) : (
+          <p className="modal-note modal-note--compact modal-note--share">Open this link to load the solution.</p>
+        )}
         <div className="modal-field modal-field--share-url">
-          <pre className="modal-code-block">{shareUrl}</pre>
+          <pre className="modal-code-block">{shareCopyText}</pre>
         </div>
       </Modal>
     );

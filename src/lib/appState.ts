@@ -115,6 +115,7 @@ export function loadSavedLockState(state: AppStateData, savedLock: SavedLockReco
     ...state,
     plateCount: savedLock.plateCount,
     offsets: cloneOffsets(savedLock.currentOffsets || savedLock.linkingStartOffsets),
+    solutionOrigin: savedLock.isDraft ? null : "load",
     linkingStartOffsets: savedLock.linkingStartOffsets ? cloneOffsets(savedLock.linkingStartOffsets) : null,
     links: savedLock.links.map((link) => resizeLink(link, savedLock.plateCount)),
     linkDeltas: resizeLinkDeltas(savedLock.linkDeltas, savedLock.plateCount),
@@ -142,6 +143,7 @@ export function enterSolutionMode(state: AppStateData): AppStateData {
   const nextState: AppStateData = {
     ...state,
     mode: "solution",
+    solutionOrigin: null,
     linkingPromptTask: null,
     plateLinkingProcedure: null,
     offsets: startOffsets,

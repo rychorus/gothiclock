@@ -1,4 +1,8 @@
-export function buildShareUrl(baseUrl, notationText) {
+export function buildShareUrl(
+  baseUrl: string,
+  notationText: string,
+  { name, description }: { name?: string; description?: string } = {},
+) {
   if (typeof window === "undefined") {
     return "";
   }
@@ -9,6 +13,14 @@ export function buildShareUrl(baseUrl, notationText) {
 
   if (notationText) {
     shareUrl.searchParams.set("notation", notationText);
+  }
+
+  if (name) {
+    shareUrl.searchParams.set("name", name);
+  }
+
+  if (description) {
+    shareUrl.searchParams.set("description", description);
   }
 
   return shareUrl.toString();

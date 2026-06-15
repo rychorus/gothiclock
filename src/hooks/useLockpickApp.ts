@@ -34,6 +34,7 @@ export function useLockpickApp() {
     })),
   });
   const loadScreen = useLoadScreenState({ appState, setAppState, setModal: navigation.setModal });
+  const savedLocks = loadScreen.savedLocks;
   const plateSetup = usePlateSetupState({ setAppState });
   const plateLinking = usePlateLinkingState({ appState, setAppState });
   const solution = useSolutionState({ appState, setAppState });
@@ -57,10 +58,14 @@ export function useLockpickApp() {
   }, [mainMenu]);
 
   useEffect(() => {
-    syncFinalLockProgress(appState);
+    const autoSavedLockId = syncFinalLockProgress(appState);
+    if (autoSavedLockId) {
+      setAppState((current) => (current.currentSaveId === autoSavedLockId ? current : { ...current, currentSaveId: autoSavedLockId }));
+    }
   }, [appState]);
 
   const notationText = buildNotationString(appState);
+  const currentSavedLock = savedLocks.find((lock) => lock.id === appState.currentSaveId) || null;
 
   return {
     appState,
@@ -71,7 +76,12 @@ export function useLockpickApp() {
     testingFeedback: appState.testingFeedback,
     powershellCode: solution.powershellCode,
     notationText,
-    shareUrl: buildShareUrl(typeof window !== "undefined" ? window.location.href : "", notationText),
+    shareUrl: buildShareUrl(
+      typeof window !== "undefined" ? window.location.href : "",
+      notationText,
+      currentSavedLock ? { name: currentSavedLock.name, description: currentSavedLock.description } : {},
+    ),
+    currentSavedLock,
     wasdSequence: solution.wasdSequence,
     closeModal: navigation.closeModal,
     openLoadLockDialog: mainMenu.openLoadLockDialog,

@@ -54,6 +54,7 @@ export interface CountSnapshot {
 export interface SavedLockRecord {
   id: string;
   name: string;
+  description: string;
   isDraft: boolean;
   savedAt: string;
   plateCount: number;
@@ -66,18 +67,19 @@ export interface SavedLockRecord {
 
 export type ModalState =
   | { type: null }
-  | { type: "save-current"; value: string }
+  | { type: "save-current"; value: string; description: string }
   | { type: "rename-saved"; lockId: string }
   | { type: "delete-saved"; lockId: string }
   | { type: "solution-steps" }
   | { type: "powershell" }
   | { type: "notation" }
-  | { type: "share" };
+  | { type: "share"; lockId?: string };
 
 export interface AppStateData {
   plateCount: number;
   offsets: Offsets;
   mode: AppMode;
+  solutionOrigin: "load" | null;
   linkingStartOffsets: Offsets | null;
   links: PlateLinks;
   linkDeltas: LinkDeltas;

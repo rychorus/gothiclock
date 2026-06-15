@@ -5,9 +5,25 @@ function getStorage() {
   return window.localStorage;
 }
 
+function normalizeSavedLock(lock: Partial<SavedLockRecord>): SavedLockRecord {
+  return {
+    id: lock.id || createLockId(),
+    name: lock.name || "Untitled lock",
+    description: lock.description || "",
+    isDraft: Boolean(lock.isDraft),
+    savedAt: lock.savedAt || new Date().toISOString(),
+    plateCount: lock.plateCount || 0,
+    mode: lock.mode || "menu",
+    linkingStartOffsets: lock.linkingStartOffsets || null,
+    currentOffsets: lock.currentOffsets || [],
+    links: lock.links || [],
+    linkDeltas: lock.linkDeltas || [],
+  };
+}
+
 export function getSavedLocks(): SavedLockRecord[] {
   try {
-    return JSON.parse(getStorage().getItem(STORAGE_KEY) || "[]");
+    return (JSON.parse(getStorage().getItem(STORAGE_KEY) || "[]") as Partial<SavedLockRecord>[]).map(normalizeSavedLock);
   } catch {
     return [];
   }
@@ -49,7 +65,7 @@ function stripLegacyDraftPrefix(name) {
 
 export function persistCurrentLock(
   state: AppStateData,
-  { isDraft, nameOverride }: { isDraft?: boolean; nameOverride?: string } = {},
+  { isDraft, nameOverride, descriptionOverride }: { isDraft?: boolean; nameOverride?: string; descriptionOverride?: string } = {},
 ) {
   const normalizedState = state.linkingStartOffsets || !state.solution?.startOffsets
     ? state
@@ -62,17 +78,19 @@ export function persistCurrentLock(
   const existingLock = getSavedLockById(normalizedState.currentSaveId);
   const fallbackName = stripLegacyDraftPrefix(existingLock?.name) || getDefaultLockName();
   const name = nameOverride?.trim() || fallbackName;
+  const description = descriptionOverride?.trim() || existingLock?.description || "";
   const lockId = normalizedState.currentSaveId || createLockId();
 
-  upsertSavedLock(buildSavedLockRecord(normalizedState, { id: lockId, name, isDraft }));
+  upsertSavedLock(buildSavedLockRecord(normalizedState, { id: lockId, name, description, isDraft }));
   return lockId;
 }
 
-export function renameSavedLock(lockId: string, nextName: string) {
+export function renameSavedLock(lockId: string, nextName: string, nextDescription?: string) {
   const trimmedName = nextName.trim();
   if (!trimmedName) {
     return;
   }
+  const trimmedDescription = nextDescription?.trim() || "";
 
   const nextLocks = getSavedLocks().map((lock) => {
     if (lock.id !== lockId) {
@@ -82,6 +100,7 @@ export function renameSavedLock(lockId: string, nextName: string) {
     return {
       ...lock,
       name: trimmedName,
+      description: trimmedDescription,
       isDraft: false,
       savedAt: new Date().toISOString(),
     };
@@ -95,9 +114,9 @@ export function deleteSavedLock(lockId: string) {
 }
 
 export function syncFinalLockProgress(state: AppStateData) {
-  if ((state.mode !== "solution" && state.mode !== "ready_to_solve") || isTrivialCenteredLock(state)) {
-    return;
+  if (state.mode !== "solution" || isTrivialCenteredLock(state) || state.currentSaveId) {
+    return null;
   }
 
-  persistCurrentLock(state, { isDraft: true });
+  return persistCurrentLock(state, { isDraft: true });
 }

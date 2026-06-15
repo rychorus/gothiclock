@@ -18,11 +18,12 @@ export function useLoadScreenState({ appState, setAppState, setModal }: {
     const fallbackName = existingLock?.isDraft
       ? existingLock.name || getDefaultLockName()
       : existingLock?.name || getDefaultLockName();
-    setModal({ type: "save-current", value: fallbackName });
+    const fallbackDescription = "";
+    setModal({ type: "save-current", value: fallbackName, description: fallbackDescription });
   }
 
-  function persistWithName(name: string, isDraft = false) {
-    const lockId = persistCurrentLock(appState, { isDraft, nameOverride: name });
+  function persistWithName(name: string, description: string, isDraft = false) {
+    const lockId = persistCurrentLock(appState, { isDraft, nameOverride: name, descriptionOverride: description });
     if (lockId) {
       setAppState((current) => ({ ...current, currentSaveId: lockId }));
     }
@@ -43,8 +44,8 @@ export function useLoadScreenState({ appState, setAppState, setModal }: {
     });
   }
 
-  function renameLock(lockId: string, name: string) {
-    renameSavedLock(lockId, name);
+  function renameLock(lockId: string, name: string, description?: string) {
+    renameSavedLock(lockId, name, description);
     setModal({ type: null });
   }
 

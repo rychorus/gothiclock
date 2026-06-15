@@ -1,4 +1,4 @@
-import type { PlateLink } from "../../../lib/types";
+import type { PlateLink, AppStateData } from "../../../lib/types";
 
 export interface DeferredPlateLink {
   driver: number;
@@ -11,4 +11,5 @@ export interface PlateLinkingProcedureState {
   deferredDrivers: DeferredPlateLink[];
   partialLinks: Record<number, PlateLink>;
   lastTriedDeltas: Record<number, number>;
+  history: AppStateData[];
 }

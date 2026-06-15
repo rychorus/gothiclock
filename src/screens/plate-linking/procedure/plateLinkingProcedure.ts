@@ -26,6 +26,20 @@ function createProcedureState(state: AppStateData): PlateLinkingProcedureState {
     deferredDrivers: [],
     partialLinks: {},
     lastTriedDeltas: {},
+    history: [],
+  };
+}
+
+function pushProcedureHistory(
+  state: AppStateData,
+  procedure: PlateLinkingProcedureState,
+): AppStateData {
+  return {
+    ...state,
+    plateLinkingProcedure: {
+      ...procedure,
+      history: [...procedure.history, state],
+    },
   };
 }
 
@@ -341,16 +355,20 @@ export function completePlateLinkingObservation(state: AppStateData): AppStateDa
         [task.driver]: partialLink,
       },
       lastTriedDeltas,
+      history: procedure.history,
     };
-
-    // A coupled plate at the edge prevents the whole attempted movement.
-    return beginNextPrompt(
+    const nextState = pushProcedureHistory(
       {
         ...state,
         offsets: cloneOffsets(task.startOffsets),
-        plateLinkingProcedure: nextProcedure,
       },
       nextProcedure,
+    );
+
+    // A coupled plate at the edge prevents the whole attempted movement.
+    return beginNextPrompt(
+      nextState,
+      nextState.plateLinkingProcedure!,
       task.driver,
     );
   }
@@ -369,16 +387,20 @@ export function completePlateLinkingObservation(state: AppStateData): AppStateDa
         .filter(([driver]) => Number(driver) !== task.driver),
     ),
     lastTriedDeltas,
+    history: procedure.history,
   };
-
-  return beginNextPrompt(
+  const nextState = pushProcedureHistory(
     {
       ...state,
       links,
       linkDeltas,
-      plateLinkingProcedure: nextProcedure,
     },
     nextProcedure,
+  );
+
+  return beginNextPrompt(
+    nextState,
+    nextState.plateLinkingProcedure!,
     task.driver,
   );
 }

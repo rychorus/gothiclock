@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { createInitialAppState, createEmptyLinkDeltas, createEmptyLinks, cloneOffsets } from "../../lib/lockData";
 import { returnToSolutionView } from "../../lib/appState";
-import { startPlateLinkingProcedure } from "../plate-linking/procedure/plateLinkingProcedure";
+import { startFreshPlateLinkingProcedure, startPlateLinkingProcedure } from "../plate-linking/procedure/plateLinkingProcedure";
 import type { AppStateData, ModalState } from "../../lib/types";
 
 function snapshotNavigation(nextAppState: AppStateData, nextModal: ModalState) {
@@ -37,11 +37,6 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
   }
 
   function goBackScreen() {
-    if (typeof window !== "undefined" && window.history?.length > 1) {
-      window.history.back();
-      return;
-    }
-
     if (modal.type) {
       setModalState({ type: null });
       return;
@@ -53,21 +48,18 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
     }
 
     if (appState.mode === "solution") {
-      setAppState((current) => startPlateLinkingProcedure({
+      setAppState((current) => startFreshPlateLinkingProcedure({
         ...current,
         mode: "linking",
         linkingPromptTask: null,
         plateLinkingProcedure: null,
         solution: null,
-        links: createEmptyLinks(current.plateCount),
-        linkDeltas: createEmptyLinkDeltas(current.plateCount),
-        offsets: cloneOffsets(current.linkingStartOffsets || current.offsets),
       }));
       return;
     }
 
     if (appState.mode === "ready_to_solve") {
-      setAppState((current) => startPlateLinkingProcedure({ ...current, mode: "linking" }));
+      setAppState((current) => startFreshPlateLinkingProcedure({ ...current, mode: "linking" }));
       return;
     }
 
@@ -92,6 +84,12 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
   }
 
   function goBackHeader() {
+    if (appState.mode === "solution" && appState.solutionOrigin === "load") {
+      setAppState(createInitialAppState());
+      setModalState({ type: null });
+      return;
+    }
+
     goBackScreen();
   }
 

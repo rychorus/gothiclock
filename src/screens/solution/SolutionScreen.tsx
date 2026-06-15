@@ -92,7 +92,7 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
           <>
             <button className="action-button secondary icon-only" type="button" aria-label="Menu" onClick={actions.goToMainMenu}><MaterialIcon name="home" /></button>
             <button className="action-button primary" type="button" disabled={!solutionChunks.length} onClick={app.saveCurrentLock}><span className="action-button-row"><MaterialIcon name="save" /><span>Save</span></span></button>
-            <button className="action-button secondary icon-only" type="button" aria-label="Share solution" onClick={() => app.setModal({ type: "share" })}><MaterialIcon name="share" /></button>
+            <button className="action-button secondary icon-only" type="button" aria-label="Share solution" onClick={() => app.setModal({ type: "share", lockId: appState.currentSaveId || undefined })}><MaterialIcon name="share" /></button>
           </>
         ) : null}
         {appState.mode === "testing" ? (

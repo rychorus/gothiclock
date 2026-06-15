@@ -124,6 +124,20 @@ export function stepBackPlateLinkingPrompt(state: AppStateData): AppStateData {
     };
   }
 
+  const history = state.plateLinkingProcedure?.history || [];
+  const previousState = history[history.length - 1];
+  if (previousState) {
+    return {
+      ...previousState,
+      plateLinkingProcedure: previousState.plateLinkingProcedure
+        ? {
+            ...previousState.plateLinkingProcedure,
+            history: history.slice(0, -1),
+          }
+        : null,
+    };
+  }
+
   return {
     ...state,
     mode: "setup",

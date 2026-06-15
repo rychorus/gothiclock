@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { MaterialIcon } from "../../lib/icons";
 
 type SavedLock = {
   id: string;
   name: string;
+  description: string;
   isDraft?: boolean;
   plateCount: number;
   savedAt: string;
@@ -83,79 +85,138 @@ function groupLocksByDay(locks: SavedLock[]) {
   return [...groups.values()];
 }
 
-export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }: {
+export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete, onShare, searchQuery, showDrafts }: {
   savedLocks: SavedLock[];
   onLoad: (lockId: string) => void;
   onRename: (lockId: string) => void;
   onDelete: (lockId: string) => void;
+  onShare?: (lockId: string) => void;
+  searchQuery?: string;
+  showDrafts?: boolean;
 }) {
-  const [showDrafts, setShowDrafts] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [openMenuIsUpward, setOpenMenuIsUpward] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [menuPosition, setMenuPosition] = useState(null);
   const listRef = useRef(null);
+  const menuRef = useRef(null);
 
+  const normalizedQuery = (searchQuery || "").trim().toLowerCase();
   const visibleLocks = savedLocks
     .filter((lock) => showDrafts || !lock.isDraft)
+    .filter((lock) => {
+      if (!normalizedQuery) {
+        return true;
+      }
+
+      return [lock.name, lock.description].join(" ").toLowerCase().includes(normalizedQuery);
+    })
     .sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
   const groupedLocks = groupLocksByDay(visibleLocks);
 
   useEffect(() => {
-    if (!openMenuId) {
-      setOpenMenuIsUpward(false);
+    if (!openMenuId || !menuAnchor) {
+      setMenuPosition(null);
       return undefined;
     }
 
-    const frameId = window.requestAnimationFrame(() => {
-      const listElement = listRef.current;
-      const itemElement = listElement?.querySelector(`[data-lock-id="${openMenuId}"]`);
-      const menuElement = itemElement?.querySelector(".saved-lock-menu");
-
-      if (!listElement || !itemElement || !menuElement) {
-        setOpenMenuIsUpward(false);
+    function positionMenu() {
+      const menuElement = menuRef.current;
+      if (!menuElement || !menuAnchor.isConnected) {
         return;
       }
 
-      const listRect = listElement.getBoundingClientRect();
-      const itemRect = itemElement.getBoundingClientRect();
-      const menuHeight = menuElement.getBoundingClientRect().height;
-      const spaceBelow = listRect.bottom - itemRect.bottom;
-      const spaceAbove = itemRect.top - listRect.top;
+      const viewportMargin = 8;
+      const menuGap = 4;
+      const anchorRect = menuAnchor.getBoundingClientRect();
+      const menuRect = menuElement.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - anchorRect.bottom - viewportMargin;
+      const spaceAbove = anchorRect.top - viewportMargin;
+      const opensDownward = spaceBelow >= menuRect.height || spaceBelow >= spaceAbove;
+      const preferredTop = opensDownward
+        ? anchorRect.bottom + menuGap
+        : anchorRect.top - menuRect.height - menuGap;
 
-      setOpenMenuIsUpward(spaceBelow < menuHeight && spaceAbove > spaceBelow);
-    });
+      setMenuPosition({
+        top: Math.max(
+          viewportMargin,
+          Math.min(preferredTop, window.innerHeight - menuRect.height - viewportMargin),
+        ),
+        left: Math.max(
+          viewportMargin,
+          Math.min(anchorRect.right - menuRect.width, window.innerWidth - menuRect.width - viewportMargin),
+        ),
+      });
+    }
 
     function handlePointerDown(event) {
-      if (!listRef.current?.contains(event.target)) {
+      if (!listRef.current?.contains(event.target) && !menuRef.current?.contains(event.target)) {
         setOpenMenuId(null);
+        setMenuAnchor(null);
       }
     }
 
+    const frameId = window.requestAnimationFrame(positionMenu);
+    const listElement = listRef.current;
     document.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("resize", positionMenu);
+    listElement?.addEventListener("scroll", positionMenu);
     return () => {
       window.cancelAnimationFrame(frameId);
       document.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("resize", positionMenu);
+      listElement?.removeEventListener("scroll", positionMenu);
     };
-  }, [openMenuId]);
+  }, [menuAnchor, openMenuId]);
+
+  const openLock = visibleLocks.find((lock) => lock.id === openMenuId) || null;
+  function runMenuAction(action: (lockId: string) => void) {
+    if (!openLock) {
+      return;
+    }
+
+    setOpenMenuId(null);
+    setMenuAnchor(null);
+    action(openLock.id);
+  }
+
+  const menu = openLock && typeof document !== "undefined"
+    ? createPortal(
+        <div
+          ref={menuRef}
+          className="saved-lock-menu saved-lock-menu--portal"
+          style={{
+            top: menuPosition?.top ?? 0,
+            left: menuPosition?.left ?? 0,
+            visibility: menuPosition ? "visible" : "hidden",
+          }}
+        >
+          <button className="saved-lock-menu-item" type="button" onClick={() => runMenuAction(onRename)}>
+            <MaterialIcon name="edit" />
+            <span>Edit</span>
+          </button>
+          {onShare ? (
+            <button className="saved-lock-menu-item" type="button" onClick={() => runMenuAction(onShare)}>
+              <MaterialIcon name="share" />
+              <span>Share</span>
+            </button>
+          ) : null}
+          <button className="saved-lock-menu-item is-danger" type="button" onClick={() => runMenuAction(onDelete)}>
+            <MaterialIcon name="delete" />
+            <span>Delete</span>
+          </button>
+        </div>,
+        document.body,
+      )
+    : null;
 
   return (
     <>
-      <label className="saved-lock-filter">
-        <span>Show drafts</span>
-        <input type="checkbox" checked={showDrafts} onChange={(event) => setShowDrafts(event.target.checked)} />
-        <span className="saved-lock-filter-switch" aria-hidden="true"></span>
-      </label>
-
       <div ref={listRef} className="saved-lock-list" onClick={() => setOpenMenuId(null)}>
         {!visibleLocks.length ? (
           <div className="saved-lock-empty">
             <p className="modal-empty">
-              {savedLocks.length ? "No completed locks yet." : "No saved locks yet."}
+              {normalizedQuery ? "No locks match your search." : savedLocks.length ? "No completed locks yet." : "No saved locks yet."}
             </p>
-            {savedLocks.length ? (
-              <button className="action-button secondary compact" type="button" onClick={() => setShowDrafts(true)}>
-                See drafts
-              </button>
-            ) : null}
           </div>
         ) : (
           groupedLocks.map((group) => (
@@ -173,6 +234,7 @@ export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }: {
                         {lock.isDraft ? <span className="saved-lock-badge">Draft</span> : null}
                       </span>
                       <span className="saved-lock-meta">{lock.plateCount} plates - {getRelativeTimeLabel(lock.savedAt)}</span>
+                      {lock.description ? <span className="saved-lock-description">{lock.description}</span> : null}
                     </button>
 
                     <div className="saved-lock-tools" onClick={(event) => event.stopPropagation()}>
@@ -180,20 +242,20 @@ export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }: {
                         className="saved-lock-menu-toggle"
                         type="button"
                         aria-label="Open lock actions"
-                        onClick={() => setOpenMenuId((current) => (current === lock.id ? null : lock.id))}
+                        aria-expanded={openMenuId === lock.id}
+                        onClick={(event) => {
+                          if (openMenuId === lock.id) {
+                            setOpenMenuId(null);
+                            setMenuAnchor(null);
+                            return;
+                          }
+
+                          setMenuAnchor(event.currentTarget);
+                          setOpenMenuId(lock.id);
+                        }}
                       >
                         <MaterialIcon name="more_vert" />
                       </button>
-                      <div className={`saved-lock-menu${openMenuIsUpward && openMenuId === lock.id ? " is-upward" : ""}`} hidden={openMenuId !== lock.id}>
-                        <button className="saved-lock-menu-item" type="button" onClick={() => onRename(lock.id)}>
-                          <MaterialIcon name="edit" />
-                          <span>Edit</span>
-                        </button>
-                        <button className="saved-lock-menu-item is-danger" type="button" onClick={() => onDelete(lock.id)}>
-                          <MaterialIcon name="delete" />
-                          <span>Delete</span>
-                        </button>
-                      </div>
                     </div>
                   </div>
                 ))}
@@ -202,6 +264,7 @@ export function SavedLocksDialog({ savedLocks, onLoad, onRename, onDelete }: {
           ))
         )}
       </div>
+      {menu}
     </>
   );
 }
