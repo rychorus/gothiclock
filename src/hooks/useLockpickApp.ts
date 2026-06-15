@@ -3,7 +3,7 @@ import { buildNotationString } from "../lib/notation";
 import { createInitialAppState, getUnknownPlates, isTrivialCenteredLock } from "../lib/lockData";
 import { resetTestingMode } from "../lib/appState";
 import { syncFinalLockProgress } from "../lib/lockStorage";
-import { buildShareUrl } from "../screens/shared/shareUrl";
+import { buildShareUrl, parseShareUrl } from "../screens/shared/shareUrl";
 import { useAppNavigation } from "../screens/shared/useAppNavigation";
 import { useMainMenuState } from "../screens/main-menu/useMainMenuState";
 import { useLoadScreenState } from "../screens/load-screen/useLoadScreenState";
@@ -26,6 +26,7 @@ export function useLockpickApp() {
       linkingPromptTask: null,
       plateLinkingProcedure: null,
       solutionReturnState: null,
+      sharedLinkMetadata: null,
     })),
     openImportScreen: () => setAppState((current) => ({
       ...current,
@@ -33,6 +34,7 @@ export function useLockpickApp() {
       linkingPromptTask: null,
       plateLinkingProcedure: null,
       solutionReturnState: null,
+      sharedLinkMetadata: null,
     })),
   });
   const loadScreen = useLoadScreenState({ appState, setAppState, setModal: navigation.setModal });
@@ -47,13 +49,19 @@ export function useLockpickApp() {
     }
 
     appliedSharedNotationRef.current = true;
-    const sharedNotation = new URL(window.location.href).searchParams.get("notation");
-    if (!sharedNotation) {
+    const sharedUrl = parseShareUrl(window.location.href);
+    if (!sharedUrl.notation) {
       return;
     }
 
     try {
-      mainMenu.importNotation(sharedNotation, { showSolution: true });
+      mainMenu.importNotation(sharedUrl.notation, {
+        showSolution: true,
+        sharedLinkMetadata: {
+          name: sharedUrl.name,
+          description: sharedUrl.description,
+        },
+      });
     } catch {
       // Ignore malformed shared URLs and fall back to the normal initial screen.
     }
@@ -67,8 +75,7 @@ export function useLockpickApp() {
   }, [appState]);
 
   const notationText = buildNotationString(appState);
-  const currentSavedLock = savedLocks.find((lock) => lock.id === appState.currentSaveId) || null;
-
+    const currentSavedLock = savedLocks.find((lock) => lock.id === appState.currentSaveId) || null;
   return {
     appState,
     modal,
@@ -81,7 +88,9 @@ export function useLockpickApp() {
     shareUrl: buildShareUrl(
       typeof window !== "undefined" ? window.location.href : "",
       notationText,
-      currentSavedLock ? { name: currentSavedLock.name, description: currentSavedLock.description } : {},
+      currentSavedLock
+        ? { name: currentSavedLock.name, description: currentSavedLock.description }
+        : appState.sharedLinkMetadata || {},
     ),
     currentSavedLock,
     wasdSequence: solution.wasdSequence,

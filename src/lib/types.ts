@@ -51,6 +51,11 @@ export interface CountSnapshot {
   mode: AppMode;
 }
 
+export interface SharedLinkMetadata {
+  name: string;
+  description: string;
+}
+
 export interface SavedLockRecord {
   id: string;
   name: string;
@@ -90,5 +95,6 @@ export interface AppStateData {
   plateLinkingProcedure: PlateLinkingProcedureState | null;
   solution: SolutionPlanData | null;
   currentSaveId: string | null;
+  sharedLinkMetadata: SharedLinkMetadata | null;
   snapshotsByCount: Record<number, CountSnapshot>;
 }

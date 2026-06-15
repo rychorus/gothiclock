@@ -25,3 +25,12 @@ export function buildShareUrl(
 
   return shareUrl.toString();
 }
+
+export function parseShareUrl(url: string) {
+  const sharedUrl = new URL(url);
+  return {
+    notation: sharedUrl.searchParams.get("notation") || "",
+    name: sharedUrl.searchParams.get("name") || "",
+    description: sharedUrl.searchParams.get("description") || "",
+  };
+}

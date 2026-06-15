@@ -151,20 +151,30 @@ export function loadSavedLockState(state: AppStateData, savedLock: SavedLockReco
   } as AppStateData;
 }
 
-export function enterSolutionMode(state: AppStateData): AppStateData {
+export function enterSolutionMode(
+  state: AppStateData,
+  {
+    returnState,
+    solutionOrigin = null,
+  }: {
+    returnState?: AppStateData | null;
+    solutionOrigin?: AppStateData["solutionOrigin"];
+  } = {},
+): AppStateData {
   const startOffsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
-  const returnState: AppStateData = {
+  const solutionReturnState = returnState ?? {
     ...state,
     solutionReturnState: null,
   };
   const nextState: AppStateData = {
     ...state,
     mode: "solution",
-    solutionOrigin: null,
-    solutionReturnState: returnState,
+    solutionOrigin,
+    solutionReturnState,
     linkingPromptTask: null,
     plateLinkingProcedure: null,
     offsets: startOffsets,
+    sharedLinkMetadata: state.sharedLinkMetadata,
   };
 
   return {

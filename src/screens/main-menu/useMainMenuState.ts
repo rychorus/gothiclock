@@ -3,7 +3,7 @@ import { createEmptyLinkDeltas, createInitialAppState } from "../../lib/lockData
 import { parseNotationString } from "../../lib/notation";
 import { enterSolutionMode } from "../../lib/appState";
 import { startPlateLinkingProcedure } from "../plate-linking/procedure/plateLinkingProcedure";
-import type { AppStateData } from "../../lib/types";
+import type { AppStateData, SharedLinkMetadata } from "../../lib/types";
 import type { Dispatch, SetStateAction } from "react";
 
 export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen }: {
@@ -11,7 +11,7 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
   openLoadScreen: () => void;
   openImportScreen: () => void;
 }) {
-  function applyNotationText(text: string, { showSolution = false }: { showSolution?: boolean } = {}) {
+  function applyNotationText(text: string, { showSolution = false, sharedLinkMetadata = null }: { showSolution?: boolean; sharedLinkMetadata?: SharedLinkMetadata | null } = {}) {
     const parsed = parseNotationString(text);
     const hasLinks = parsed.links.some(Boolean);
     const allLinksKnown = parsed.links.every(Boolean);
@@ -25,6 +25,7 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
       linkingPromptTask: null,
       plateLinkingProcedure: null,
       currentSaveId: null,
+      sharedLinkMetadata,
       snapshotsByCount: {},
       mode: hasLinks ? "linking" : "setup",
     };
@@ -36,7 +37,9 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
 
     if (allLinksKnown) {
       if (showSolution) {
-        setAppState(() => enterSolutionMode(baseState));
+        setAppState(() => enterSolutionMode(baseState, {
+          returnState: sharedLinkMetadata ? createInitialAppState() : undefined,
+        }));
         return;
       }
 

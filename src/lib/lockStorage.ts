@@ -118,7 +118,12 @@ export function deleteAllDraftLocks() {
 }
 
 export function syncFinalLockProgress(state: AppStateData) {
-  if (state.mode !== "solution" || isTrivialCenteredLock(state) || state.currentSaveId) {
+  if (
+    state.mode !== "solution"
+    || isTrivialCenteredLock(state)
+    || state.currentSaveId
+    || state.sharedLinkMetadata
+  ) {
     return null;
   }
 

@@ -79,6 +79,7 @@ export function createInitialAppState(): AppStateData {
     plateLinkingProcedure: null,
     solution: null,
     currentSaveId: null,
+    sharedLinkMetadata: null,
     snapshotsByCount: {},
   };
 }

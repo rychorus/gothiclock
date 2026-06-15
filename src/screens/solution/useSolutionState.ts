@@ -23,6 +23,7 @@ export function useSolutionState({ appState, setAppState }: {
       linkingPromptTask: null,
       plateLinkingProcedure: null,
       solutionReturnState: null,
+      sharedLinkMetadata: null,
     })),
   }), [appState, currentSolutionChunk, powershellCode, setAppState]);
 }

@@ -59,10 +59,6 @@ function LockDetailsForm({ initialName, initialDescription, onSubmit, onCancel, 
   );
 }
 
-function buildShareCopyText({ name, description, url }: { name: string; description: string; url: string }) {
-  return [name, description, url].filter(Boolean).join("\n");
-}
-
 function getShareLock(app, modal, savedLocks): SavedLockRecord | null {
   if (modal.type !== "share") {
     return null;
@@ -85,6 +81,8 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
   const [didCopyShareUrl, setDidCopyShareUrl] = useState(false);
   const [showPowershellHelp, setShowPowershellHelp] = useState(false);
   const [isNotationExpanded, setIsNotationExpanded] = useState(true);
+  const [shareName, setShareName] = useState("Solution");
+  const [shareDescription, setShareDescription] = useState("");
 
   useEffect(() => {
     setDidCopyPowershell(false);
@@ -92,6 +90,16 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
     setDidCopyShareUrl(false);
     setShowPowershellHelp(false);
     setIsNotationExpanded(true);
+    if (modal.type === "share") {
+      const shareLock = getShareLock(app, modal, savedLocks);
+      const nextShareName = shareLock?.name || app.appState.sharedLinkMetadata?.name || "Solution";
+      const nextShareDescription = shareLock?.description || app.appState.sharedLinkMetadata?.description || "";
+      setShareName(nextShareName);
+      setShareDescription(nextShareDescription);
+    } else {
+      setShareName("Solution");
+      setShareDescription("");
+    }
   }, [modal]);
 
   if (modal.type === "save-current") {
@@ -237,8 +245,6 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
 
   if (modal.type === "share") {
     const shareLock = getShareLock(app, modal, savedLocks);
-    const shareName = shareLock?.name || "Solution";
-    const shareDescription = shareLock?.description || "";
     const shareLink = shareLock
       ? buildShareUrl(
         typeof window !== "undefined" ? window.location.href : "",
@@ -249,8 +255,12 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
         }),
         { name: shareName, description: shareDescription },
       )
-      : shareUrl;
-    const shareCopyText = buildShareCopyText({ name: shareName, description: shareDescription, url: shareLink });
+      : buildShareUrl(
+        typeof window !== "undefined" ? window.location.href : "",
+        app.notationText,
+        { name: shareName, description: shareDescription },
+      );
+    const shareCopyText = shareLink;
 
     return (
       <Modal
@@ -270,15 +280,28 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
           },
         ]}
       >
-        {shareLock ? (
-          <p className="modal-note modal-note--compact modal-note--share">
-            <strong>{shareName}</strong>
-            {shareDescription ? <span> - {shareDescription}</span> : null}
-          </p>
-        ) : (
-          <p className="modal-note modal-note--compact modal-note--share">Open this link to load the solution.</p>
-        )}
+        <div className="modal-form-stack modal-form-stack--share">
+          <label className="modal-field">
+            <span className="modal-field-label">Name</span>
+            <input
+              className="modal-input"
+              type="text"
+              value={shareName}
+              onChange={(event) => setShareName(event.target.value)}
+            />
+          </label>
+          <label className="modal-field modal-field--spaced-top">
+            <span className="modal-field-label">Description</span>
+            <input
+              className="modal-input"
+              type="text"
+              value={shareDescription}
+              onChange={(event) => setShareDescription(event.target.value)}
+            />
+          </label>
+        </div>
         <div className="modal-field modal-field--share-url">
+          <span className="modal-field-label">Link</span>
           <pre className="modal-code-block">{shareCopyText}</pre>
         </div>
       </Modal>

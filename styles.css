@@ -1445,6 +1445,10 @@ body.is-setup-mode .count-picker {
   padding-bottom: 0.35rem;
 }
 
+.modal-field--share-url .modal-field-label {
+  margin-top: 0.4rem;
+}
+
 .modal-keyword {
   display: inline-block;
   padding: 0.04rem 0.35rem;

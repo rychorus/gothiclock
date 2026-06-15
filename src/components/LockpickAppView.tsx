@@ -19,9 +19,12 @@ export function LockpickAppView({ app, appVersion }) {
   const topMenuRef = useRef(null);
   const loadSearchRef = useRef(null);
   const loadFilterRef = useRef(null);
+  const sharedSolutionName = appState.sharedLinkMetadata?.name;
   const heroTitle = appState.mode === "solution" && currentSavedLock && !currentSavedLock.isDraft
     ? `${currentSavedLock.name} Solution`
-    : getHeroTitle(appState.mode);
+    : appState.mode === "solution" && sharedSolutionName
+      ? `${sharedSolutionName} Solution`
+      : getHeroTitle(appState.mode);
   const headerRight = (() => {
     if (appState.mode === "menu") {
       return <span className="app-version" aria-label="App version" title={`Current version: ${appVersion}`}>{appVersion}</span>;
