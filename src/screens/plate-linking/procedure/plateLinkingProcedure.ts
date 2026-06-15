@@ -30,10 +30,31 @@ function createProcedureState(state: AppStateData): PlateLinkingProcedureState {
   };
 }
 
-function areAllUncompletedPlatesCentered(state: AppStateData, procedure: PlateLinkingProcedureState): boolean {
-  return state.offsets.every((offset, index) => (
-    procedure.completedDrivers.includes(index)
-    || offset === 0
+function hasKnownIncomingLink(
+  state: AppStateData,
+  procedure: PlateLinkingProcedureState,
+  targetIndex: number,
+): boolean {
+  const knownLinks: Array<{ sourceIndex: number; link: PlateLink }> = [
+    ...state.links
+      .map((link, sourceIndex) => (link ? { sourceIndex, link } : null))
+      .filter((entry): entry is { sourceIndex: number; link: PlateLink } => Boolean(entry)),
+    ...Object.entries(procedure.partialLinks)
+      .map(([sourceIndex, link]) => ({ sourceIndex: Number(sourceIndex), link })),
+  ];
+
+  return knownLinks.some(({ sourceIndex, link }) => (
+    sourceIndex !== targetIndex && link[targetIndex] !== 0
+  ));
+}
+
+function shouldProceedToSolution(state: AppStateData, procedure: PlateLinkingProcedureState): boolean {
+  const unresolvedPlates = state.offsets
+    .map((offset, index) => ({ offset, index }))
+    .filter(({ index }) => !procedure.completedDrivers.includes(index));
+
+  return unresolvedPlates.every(({ index, offset }) => (
+    offset === 0 && !hasKnownIncomingLink(state, procedure, index)
   ));
 }
 
@@ -233,7 +254,7 @@ function beginNextPrompt(
   procedure: PlateLinkingProcedureState,
   currentDriver?: number,
 ): AppStateData {
-  if (areAllUncompletedPlatesCentered(state, procedure)) {
+  if (shouldProceedToSolution(state, procedure)) {
     const startOffsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
     const returnState: AppStateData = {
       ...state,
@@ -247,10 +268,13 @@ function beginNextPrompt(
       plateLinkingProcedure: procedure,
       solutionReturnState: returnState,
     };
-    return {
-      ...solutionState,
-      solution: buildSolutionPlanForApp(solutionState, startOffsets),
-    };
+    const solution = buildSolutionPlanForApp(solutionState, startOffsets);
+    if (solution.moves !== null) {
+      return {
+        ...solutionState,
+        solution,
+      };
+    }
   }
 
   const selection = selectNextPlateLinkingDriver(state, procedure, currentDriver);

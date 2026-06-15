@@ -9,6 +9,7 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
   const solutionChunks = appState.solution?.chunks ?? [];
   const currentStep = Math.min((appState.solution?.index ?? 0) + 1, solutionChunks.length || 1);
   const moves = appState.solution?.moves;
+  const hasSolution = moves !== null;
 
   useEffect(() => {
     if (!isSolutionMenuOpen) {
@@ -56,7 +57,14 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
         showResetButton
       />
 
-      {appState.mode !== "testing" ? (
+      {!hasSolution ? (
+        <section className="bottom-panel">
+          <div className="controls-heading bottom-panel-heading">
+            <p className="controls-title is-solution">No solution</p>
+          </div>
+          <p className="controls-copy">No solution was found for this lock.</p>
+        </section>
+      ) : appState.mode !== "testing" ? (
         <section className="bottom-panel">
           <div className="controls-heading bottom-panel-heading">
             <div className="solution-progress-nav" aria-label="Solution step navigation">
