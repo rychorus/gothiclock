@@ -22,6 +22,7 @@ export function useSolutionState({ appState, setAppState }: {
       mode: "menu",
       linkingPromptTask: null,
       plateLinkingProcedure: null,
+      solutionReturnState: null,
     })),
   }), [appState, currentSolutionChunk, powershellCode, setAppState]);
 }

@@ -48,12 +48,22 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
     }
 
     if (appState.mode === "solution") {
+      if (appState.solutionReturnState) {
+        setAppState({
+          ...appState.solutionReturnState,
+          solutionOrigin: null,
+          solutionReturnState: null,
+        });
+        return;
+      }
+
       setAppState((current) => startFreshPlateLinkingProcedure({
         ...current,
         mode: "linking",
         linkingPromptTask: null,
         plateLinkingProcedure: null,
         solution: null,
+        solutionReturnState: null,
       }));
       return;
     }
@@ -74,12 +84,13 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
         linkingPromptTask: null,
         plateLinkingProcedure: null,
         solution: null,
+        solutionReturnState: null,
       }));
       return;
     }
 
     if (appState.mode === "load" || appState.mode === "import" || appState.mode === "setup") {
-      setAppState((current) => ({ ...current, mode: "menu", linkingPromptTask: null }));
+      setAppState((current) => ({ ...current, mode: "menu", linkingPromptTask: null, solutionReturnState: null }));
     }
   }
 

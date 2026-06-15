@@ -229,12 +229,17 @@ function beginNextPrompt(
   const selection = selectNextPlateLinkingDriver(state, procedure, currentDriver);
   if (selection.driver === null) {
     const startOffsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
+    const returnState: AppStateData = {
+      ...state,
+      solutionReturnState: null,
+    };
     const solutionState: AppStateData = {
       ...state,
       mode: "solution",
       offsets: startOffsets,
       linkingPromptTask: null,
       plateLinkingProcedure: selection.procedure,
+      solutionReturnState: returnState,
     };
     return {
       ...solutionState,

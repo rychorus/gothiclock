@@ -80,6 +80,7 @@ export interface AppStateData {
   offsets: Offsets;
   mode: AppMode;
   solutionOrigin: "load" | null;
+  solutionReturnState: AppStateData | null;
   linkingStartOffsets: Offsets | null;
   links: PlateLinks;
   linkDeltas: LinkDeltas;

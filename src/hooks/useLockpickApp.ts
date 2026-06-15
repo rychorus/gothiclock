@@ -25,12 +25,14 @@ export function useLockpickApp() {
       mode: "load",
       linkingPromptTask: null,
       plateLinkingProcedure: null,
+      solutionReturnState: null,
     })),
     openImportScreen: () => setAppState((current) => ({
       ...current,
       mode: "import",
       linkingPromptTask: null,
       plateLinkingProcedure: null,
+      solutionReturnState: null,
     })),
   });
   const loadScreen = useLoadScreenState({ appState, setAppState, setModal: navigation.setModal });

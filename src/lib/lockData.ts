@@ -70,6 +70,7 @@ export function createInitialAppState(): AppStateData {
     offsets: Array.from({ length: START_COUNT }, () => 0),
     mode: "menu",
     solutionOrigin: null,
+    solutionReturnState: null,
     linkingStartOffsets: null,
     links: createEmptyLinks(START_COUNT),
     linkDeltas: createEmptyLinkDeltas(START_COUNT),
