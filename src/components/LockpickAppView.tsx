@@ -7,6 +7,7 @@ import { ImportNotationScreen } from "../screens/main-menu/ImportNotationScreen"
 import { LoadScreen } from "../screens/load-screen/LoadScreen";
 import { PlateSetupScreen } from "../screens/plate-setup/PlateSetupScreen";
 import { PlateLinkingScreen } from "../screens/plate-linking/PlateLinkingScreen";
+import { ManualPlateLinkingScreen } from "../screens/plate-linking/ManualPlateLinkingScreen";
 import { SolutionScreen } from "../screens/solution/SolutionScreen";
 
 const LOAD_SCREEN_SHOW_DRAFTS_STORAGE_KEY = "gothic-lockpick.load-screen.show-drafts";
@@ -86,7 +87,7 @@ export function LockpickAppView({ app, appVersion }) {
       );
     }
 
-    if (appState.mode === "setup" || appState.mode === "linking") {
+    if (appState.mode === "setup" || appState.mode === "linking" || appState.mode === "manual_linking") {
       return (
         <div ref={topMenuRef} className="hero-menu-wrap">
           <button className="solution-toggle-icon hero-menu-toggle" type="button" aria-label="Screen menu" aria-expanded={isTopMenuOpen} onClick={() => setIsTopMenuOpen((current) => !current)}>
@@ -189,7 +190,7 @@ export function LockpickAppView({ app, appVersion }) {
             <button
               className="hero-back"
               type="button"
-              aria-label={appState.mode === "testing" ? "Back to solution" : appState.mode === "solution" || appState.mode === "ready_to_solve" ? "Back to plates linking" : appState.mode === "linking" ? "Back to plates setup" : "Back to main menu"}
+              aria-label={appState.mode === "testing" ? "Back to solution" : appState.mode === "solution" || appState.mode === "ready_to_solve" ? "Back to plates linking" : appState.mode === "manual_linking" ? "Back to guided mode" : appState.mode === "linking" ? "Back to plates setup" : "Back to main menu"}
               hidden={appState.mode === "menu"}
               onClick={actions.goBackHeader}
             >
@@ -226,6 +227,14 @@ export function LockpickAppView({ app, appVersion }) {
             />
           ) : appState.mode === "setup" ? (
             <PlateSetupScreen
+              appState={appState}
+              currentSolutionChunk={currentSolutionChunk}
+              testingFeedback={testingFeedback}
+              selectors={selectors}
+              actions={actions}
+            />
+          ) : appState.mode === "manual_linking" ? (
+            <ManualPlateLinkingScreen
               appState={appState}
               currentSolutionChunk={currentSolutionChunk}
               testingFeedback={testingFeedback}

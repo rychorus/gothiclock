@@ -77,10 +77,25 @@ export function createInitialAppState(): AppStateData {
     testingFeedback: null,
     linkingPromptTask: null,
     plateLinkingProcedure: null,
+    manualLinkingState: null,
     solution: null,
     currentSaveId: null,
     sharedLinkMetadata: null,
     snapshotsByCount: {},
+  };
+}
+
+export function createManualLinkingState(state: Pick<AppStateData, "plateCount" | "offsets" | "links" | "linkDeltas">) {
+  return {
+    phase: "choose-driver" as const,
+    selectedDriver: null,
+    selectedDirection: null,
+    offsets: Array.from({ length: state.plateCount }, () => 0),
+    links: state.links.map((link) => resizeLink(link, state.plateCount)),
+    linkDeltas: resizeLinkDeltas(state.linkDeltas, state.plateCount),
+    completedDrivers: state.links
+      .map((link, index) => (link ? index : -1))
+      .filter((index) => index >= 0),
   };
 }
 

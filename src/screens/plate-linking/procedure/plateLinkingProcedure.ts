@@ -253,6 +253,7 @@ function beginNextPrompt(
   state: AppStateData,
   procedure: PlateLinkingProcedureState,
   currentDriver?: number,
+  preferredDriver?: number | null,
 ): AppStateData {
   if (shouldProceedToSolution(state, procedure)) {
     const startOffsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
@@ -275,6 +276,25 @@ function beginNextPrompt(
         solution,
       };
     }
+  }
+
+  if (
+    typeof preferredDriver === "number"
+    && preferredDriver >= 0
+    && preferredDriver < state.plateCount
+    && !procedure.completedDrivers.includes(preferredDriver)
+  ) {
+    const delta = getProbeDelta(
+      state.offsets[preferredDriver],
+      procedure.lastTriedDeltas[preferredDriver],
+    );
+    return {
+      ...state,
+      mode: "linking",
+      linkingPromptTask: createPlateLinkingPromptTask(state, preferredDriver, delta),
+      plateLinkingProcedure: procedure,
+      solution: null,
+    };
   }
 
   const selection = selectNextPlateLinkingDriver(state, procedure, currentDriver);
@@ -312,6 +332,10 @@ function beginNextPrompt(
 }
 
 export function startPlateLinkingProcedure(state: AppStateData): AppStateData {
+  return startPlateLinkingProcedureFromDriver(state, null);
+}
+
+export function startPlateLinkingProcedureFromDriver(state: AppStateData, preferredDriver: number | null): AppStateData {
   const linkingStartOffsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
   const procedure = createProcedureState(state);
   return beginNextPrompt(
@@ -323,12 +347,14 @@ export function startPlateLinkingProcedure(state: AppStateData): AppStateData {
       solution: null,
     },
     procedure,
+    undefined,
+    preferredDriver,
   );
 }
 
 export function startFreshPlateLinkingProcedure(state: AppStateData): AppStateData {
   const linkingStartOffsets = cloneOffsets(state.offsets);
-  return startPlateLinkingProcedure({
+  return startPlateLinkingProcedureFromDriver({
     ...state,
     linkingStartOffsets,
     links: createEmptyLinks(state.plateCount),
@@ -336,7 +362,7 @@ export function startFreshPlateLinkingProcedure(state: AppStateData): AppStateDa
     linkingPromptTask: null,
     plateLinkingProcedure: null,
     solution: null,
-  });
+  }, null);
 }
 
 function buildObservedLink(state: AppStateData): PlateLink {

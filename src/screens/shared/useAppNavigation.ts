@@ -129,6 +129,34 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
       return;
     }
 
+    if (appState.mode === "manual_linking") {
+      setAppState((current) => {
+        const manual = current.manualLinkingState;
+        const mergedState = manual
+          ? {
+              ...current,
+              mode: "linking",
+              links: manual.links.map((link) => (link ? [...link] : null)),
+              linkDeltas: [...manual.linkDeltas],
+              linkingPromptTask: null,
+              plateLinkingProcedure: null,
+              manualLinkingState: null,
+              solution: null,
+            }
+          : {
+              ...current,
+              mode: "linking",
+              linkingPromptTask: null,
+              plateLinkingProcedure: null,
+              manualLinkingState: null,
+              solution: null,
+            };
+
+        return startPlateLinkingProcedure(mergedState);
+      });
+      return;
+    }
+
     if (appState.mode === "load" || appState.mode === "import" || appState.mode === "setup") {
       setAppState((current) => ({ ...current, mode: "menu", linkingPromptTask: null, solutionReturnState: null }));
     }
@@ -157,6 +185,7 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
     document.body.classList.toggle("is-import-mode", appState.mode === "import");
     document.body.classList.toggle("is-setup-mode", appState.mode === "setup");
     document.body.classList.toggle("is-linking-mode", appState.mode === "linking");
+    document.body.classList.toggle("is-manual-linking-mode", appState.mode === "manual_linking");
     document.body.classList.toggle("is-solution-mode", appState.mode === "solution" || appState.mode === "ready_to_solve" || appState.mode === "testing");
     document.body.classList.toggle("is-testing-mode", appState.mode === "testing");
   }, [appState.mode]);

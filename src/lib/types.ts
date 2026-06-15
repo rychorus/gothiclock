@@ -1,12 +1,24 @@
 import type { PlateLinkingPromptTask } from "../screens/plate-linking/prompt/types";
 import type { PlateLinkingProcedureState } from "../screens/plate-linking/procedure/types";
 
-export type AppMode = "menu" | "load" | "import" | "setup" | "linking" | "ready_to_solve" | "solution" | "testing";
+export type AppMode = "menu" | "load" | "import" | "setup" | "linking" | "manual_linking" | "ready_to_solve" | "solution" | "testing";
 export type Direction = "up" | "down";
 export type PlateLink = number[];
 export type PlateLinks = Array<PlateLink | null>;
 export type Offsets = number[];
 export type LinkDeltas = Array<number | null>;
+
+export type ManualLinkingPhase = "choose-driver" | "define-links";
+
+export interface ManualLinkingState {
+  phase: ManualLinkingPhase;
+  selectedDriver: number | null;
+  selectedDirection: Direction | null;
+  offsets: Offsets;
+  links: PlateLinks;
+  linkDeltas: LinkDeltas;
+  completedDrivers: number[];
+}
 
 export interface TestingFeedbackData {
   id: number;
@@ -93,6 +105,7 @@ export interface AppStateData {
   testingFeedback: TestingFeedbackData | null;
   linkingPromptTask: PlateLinkingPromptTask | null;
   plateLinkingProcedure: PlateLinkingProcedureState | null;
+  manualLinkingState: ManualLinkingState | null;
   solution: SolutionPlanData | null;
   currentSaveId: string | null;
   sharedLinkMetadata: SharedLinkMetadata | null;

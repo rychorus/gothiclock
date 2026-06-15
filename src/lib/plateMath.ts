@@ -10,6 +10,24 @@ export function getOffsetBounds(state, index) {
     return getPlateLinkingOffsetBounds(state, index);
   }
 
+  if (state.mode === "manual_linking") {
+    const manual = state.manualLinkingState;
+    if (!manual) {
+      return { min: state.offsets[index], max: state.offsets[index] };
+    }
+
+    const selectedDriver = manual.selectedDriver;
+    if (manual.phase === "define-links" && selectedDriver !== null && selectedDriver !== undefined) {
+      if (index === selectedDriver) {
+        return { min: manual.offsets[index], max: manual.offsets[index] };
+      }
+
+      return { min: -999, max: 999 };
+    }
+
+    return { min: -999, max: 999 };
+  }
+
   if (state.mode === "testing") {
     return {
       min: clampOffset(state.offsets[index] - 1),
@@ -24,6 +42,14 @@ export function canMove(state, index, direction) {
   const delta = direction === "up" ? -1 : 1;
 
   if (state.mode === "linking" && state.linkingPromptTask?.phase === "observe" && index !== state.linkingPromptTask.driver) {
+    return true;
+  }
+
+  if (state.mode === "manual_linking" && state.manualLinkingState?.phase === "define-links" && index !== state.manualLinkingState.selectedDriver) {
+    return true;
+  }
+
+  if (state.mode === "manual_linking" && state.manualLinkingState?.phase === "choose-driver") {
     return true;
   }
 

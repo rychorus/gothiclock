@@ -17,6 +17,8 @@ export function PlateLinkingScreen({ appState, currentSolutionChunk, testingFeed
         selectors={selectors}
         actions={actions}
         showResetButton
+        showManualButton
+        onOpenManualLinking={actions.startManualLinkingMode}
         instruction={prompt?.message ?? ""}
       />
 

@@ -592,14 +592,23 @@ body.is-testing-mode .lock-stage {
   box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.18);
 }
 
+.stage-instruction.is-manual-mode {
+  letter-spacing: 0.08em;
+}
+
+.lock-stage.is-manual-picking .plates-row {
+  width: fit-content;
+  margin: 0 auto;
+}
+
 .stage-reset {
   z-index: 4;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(23, 16, 11, 0.72);
   color: var(--muted);
-  padding: 0.42rem 0.8rem;
-  font-size: 0.72rem;
+  padding: 0.58rem 1.08rem;
+  font-size: 0.8rem;
   cursor: pointer;
   transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
 }
@@ -629,6 +638,26 @@ body.is-testing-mode .lock-stage {
   transform: translateY(-1px);
   border-color: rgba(227, 167, 77, 0.45);
   background: rgba(45, 30, 19, 0.9);
+  outline: none;
+}
+
+.stage-manual-linking {
+  z-index: 4;
+  border-radius: 999px;
+  border: 1px solid rgba(227, 167, 77, 0.28);
+  background: rgba(45, 30, 19, 0.76);
+  color: var(--text);
+  padding: 0.52rem 1rem;
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.stage-manual-linking:hover,
+.stage-manual-linking:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(227, 167, 77, 0.55);
+  background: rgba(58, 38, 22, 0.92);
   outline: none;
 }
 
@@ -727,6 +756,155 @@ body.is-testing-mode .lock-stage {
     0 0 0 2px rgba(227, 167, 77, 0.9),
     0 0 1.1rem rgba(227, 167, 77, 0.32),
     0 14px 26px rgba(227, 167, 77, 0.2);
+}
+
+.plate-column.is-manual-selection {
+  cursor: pointer;
+}
+
+.plate-column.is-manual-pick {
+  grid-template-columns: 1rem var(--plate-width) var(--plate-track-width) var(--plate-width);
+  column-gap: 0.42rem;
+}
+
+.plate-column.is-manual-pick .plate-selection-checkbox {
+  grid-column: 1;
+}
+
+.plate-column.is-manual-pick .plate-button[data-direction="left"] {
+  grid-column: 2;
+}
+
+.plate-column.is-manual-pick .plate-viewport {
+  grid-column: 3;
+}
+
+.plate-column.is-manual-pick .plate-button[data-direction="right"] {
+  grid-column: 4;
+}
+
+.plate-column.is-manual-pick .plate-body {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
+    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
+    0 10px 22px rgba(0, 0, 0, 0.22);
+}
+
+.plate-column.is-manual-pick:hover .plate-body,
+.plate-column.is-manual-pick:focus-visible .plate-body {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
+    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
+    0 10px 22px rgba(0, 0, 0, 0.22);
+}
+
+.plate-column.is-manual-driver .plate-body {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
+    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
+    0 0 0 2px rgba(227, 167, 77, 0.9),
+    0 0 1.1rem rgba(227, 167, 77, 0.32),
+    0 14px 26px rgba(227, 167, 77, 0.2);
+}
+
+.plate-column.is-manual-selectable .plate-body {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
+    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
+    0 0 0 1px rgba(227, 167, 77, 0.3),
+    0 0 0.9rem rgba(227, 167, 77, 0.18),
+    0 10px 22px rgba(227, 167, 77, 0.12);
+}
+
+.plate-column.is-manual-selectable:hover .plate-body,
+.plate-column.is-manual-selectable:focus-visible .plate-body {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
+    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
+    0 0 0 2px rgba(227, 167, 77, 0.95),
+    0 0 1.35rem rgba(227, 167, 77, 0.45),
+    0 14px 26px rgba(227, 167, 77, 0.22);
+}
+
+.plate-column.is-manual-completed .plate-body {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
+    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
+    0 10px 22px rgba(0, 0, 0, 0.22);
+}
+
+.plate-column.is-manual-completed:hover .plate-body,
+.plate-column.is-manual-completed:focus-visible .plate-body {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
+    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
+    0 10px 22px rgba(0, 0, 0, 0.22);
+}
+
+.lock-stage.is-manual-picking .plate-column.is-manual-completed .plate-body,
+.lock-stage.is-manual-picking .plate-column.is-manual-completed:hover .plate-body,
+.lock-stage.is-manual-picking .plate-column.is-manual-completed:focus-visible .plate-body {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
+    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
+    0 10px 22px rgba(0, 0, 0, 0.22);
+}
+
+.lock-stage.is-manual-defining .plate-column.is-manual-selectable .plate-body,
+.lock-stage.is-manual-defining .plate-column.is-manual-selectable:hover .plate-body,
+.lock-stage.is-manual-defining .plate-column.is-manual-selectable:focus-visible .plate-body,
+.lock-stage.is-manual-defining .plate-column.is-manual-completed .plate-body,
+.lock-stage.is-manual-defining .plate-column.is-manual-completed:hover .plate-body,
+.lock-stage.is-manual-defining .plate-column.is-manual-completed:focus-visible .plate-body {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
+    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
+    0 10px 22px rgba(0, 0, 0, 0.22);
+}
+
+.lock-stage.is-manual-defining .plate-column.is-manual-driver .plate-body,
+.lock-stage.is-manual-defining .plate-column.is-manual-driver:hover .plate-body,
+.lock-stage.is-manual-defining .plate-column.is-manual-driver:focus-visible .plate-body {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
+    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
+    0 0 0 2px rgba(227, 167, 77, 0.9),
+    0 0 1.1rem rgba(227, 167, 77, 0.32),
+    0 14px 26px rgba(227, 167, 77, 0.2);
+}
+
+.plate-column.is-manual-linked-same .plate-body,
+.plate-column.is-manual-linked-same:hover .plate-body,
+.plate-column.is-manual-linked-same:focus-visible .plate-body {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
+    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
+    0 0 0 2px rgba(227, 167, 77, 0.78),
+    0 0 1rem rgba(227, 167, 77, 0.32),
+    0 10px 24px rgba(227, 167, 77, 0.24);
+}
+
+.plate-column.is-manual-linked-opposite .plate-body,
+.plate-column.is-manual-linked-opposite:hover .plate-body,
+.plate-column.is-manual-linked-opposite:focus-visible .plate-body {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
+    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
+    0 0 0 2px rgba(141, 198, 214, 0.8),
+    0 0 1rem rgba(141, 198, 214, 0.3),
+    0 10px 24px rgba(141, 198, 214, 0.22);
 }
 
 .plate-column.is-body-prompt-up .plate-body {
@@ -831,6 +1009,38 @@ body.is-testing-mode .lock-stage {
   background: rgba(141, 198, 214, 0.16);
 }
 
+.plate-button.is-manual-linked-left {
+  border-color: rgba(227, 167, 77, 0.82);
+  background: rgba(227, 167, 77, 0.18);
+  box-shadow: 0 0 0.95rem rgba(227, 167, 77, 0.24);
+}
+
+.plate-button.is-manual-linked-right {
+  border-color: rgba(141, 198, 214, 0.82);
+  background: rgba(141, 198, 214, 0.18);
+  box-shadow: 0 0 0.95rem rgba(141, 198, 214, 0.22);
+}
+
+.plate-selection-checkbox {
+  grid-column: 1;
+  align-self: center;
+  justify-self: center;
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 0.22rem;
+  border: 1px solid rgba(227, 167, 77, 0.55);
+  background: rgba(23, 16, 11, 0.88);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.plate-selection-checkbox.is-checked {
+  border-color: rgba(183, 217, 141, 0.72);
+  background: linear-gradient(135deg, rgba(183, 217, 141, 0.95), rgba(94, 133, 69, 0.95));
+  box-shadow:
+    0 0 0 0.12rem rgba(183, 217, 141, 0.14),
+    inset 0 0 0 0.12rem rgba(255, 255, 255, 0.12);
+}
+
 .plate-button span {
   width: 0.8rem;
   height: 0.8rem;
@@ -857,6 +1067,10 @@ body.is-testing-mode .lock-stage {
   cursor: grab;
   touch-action: none;
   user-select: none;
+}
+
+.plate-column.is-manual-selection .plate-viewport {
+  cursor: pointer;
 }
 
 .plate-direction-cue {
@@ -1147,6 +1361,11 @@ body.is-linking-mode .panel {
   padding-bottom: 0.3rem;
 }
 
+body.is-manual-linking-mode .panel {
+  gap: 0.35rem;
+  padding-bottom: 0.3rem;
+}
+
 body.is-setup-mode .controls-heading {
   margin-top: 0.2rem;
 }
@@ -1165,8 +1384,14 @@ body.is-setup-mode .count-picker {
 }
 
 .stage-inline-actions[data-mode="linking"] {
-  width: fit-content;
-  justify-self: center;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.25rem;
+  padding-bottom: 0.15rem;
 }
 
 .footer-actions[data-mode="solution"],
@@ -1175,6 +1400,11 @@ body.is-setup-mode .count-picker {
 }
 
 .stage-inline-actions .stage-reset {
+  height: 2.48rem;
+  padding: 0 1.05rem;
+}
+
+.stage-inline-actions .stage-manual-linking {
   height: 2.35rem;
   padding: 0 0.95rem;
 }

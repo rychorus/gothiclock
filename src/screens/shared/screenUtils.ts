@@ -3,6 +3,10 @@ export function getHeroTitle(mode) {
     return "Plates Linking";
   }
 
+  if (mode === "manual_linking") {
+    return "Manual Link Input";
+  }
+
   if (mode === "setup") {
     return "Plates Setup";
   }

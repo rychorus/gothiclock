@@ -1,0 +1,54 @@
+import { LockStage } from "../shared/LockStage";
+import { getVisiblePlateLabel } from "../../lib/notation";
+
+export function ManualPlateLinkingScreen({ appState, currentSolutionChunk, testingFeedback, selectors, actions }) {
+  const manualState = appState.manualLinkingState;
+  const isPickingDriver = manualState?.phase !== "define-links";
+  const selectedDriver = manualState?.selectedDriver ?? null;
+  const isAllCompleted = Boolean(manualState && manualState.links.every(Boolean));
+  const hasDefinedLink = Boolean(
+    manualState && selectedDriver !== null
+      ? manualState.links[selectedDriver]?.some((value, index) => index !== selectedDriver && value !== 0)
+      : false,
+  );
+
+  return (
+    <>
+      <LockStage
+        appState={appState}
+        currentSolutionChunk={currentSolutionChunk}
+        testingFeedback={testingFeedback}
+        selectors={selectors}
+        actions={actions}
+        selectionMode={isPickingDriver ? "manual-pick" : "manual-define"}
+        manualDriverIndex={selectedDriver}
+        onSelectPlate={actions.selectManualDriver}
+        instruction={isPickingDriver ? "Choose the first plate to link manually." : `Define links for ${selectedDriver !== null ? getVisiblePlateLabel(selectedDriver, appState.plateCount) : "the selected plate"}.`}
+        instructionClassName="is-manual-mode"
+      />
+
+      <div className="footer-actions" data-mode="manual_linking" data-count="2">
+        <button className="action-button secondary" type="button" onClick={actions.goBackScreen}>
+          Back to guided mode
+        </button>
+        <button
+          className="action-button primary"
+          type="button"
+          disabled={isPickingDriver && selectedDriver === null}
+          onClick={isAllCompleted ? actions.solveManualLinking : actions.nextManualLinkingStep}
+        >
+          {isAllCompleted ? (
+            "Solve"
+          ) : isPickingDriver || hasDefinedLink ? (
+            "Next"
+          ) : (
+            <>
+              <span className="action-button-row"><span>Next</span></span>
+              <span className="action-button-subtitle">nothing else moved</span>
+            </>
+          )}
+        </button>
+      </div>
+    </>
+  );
+}

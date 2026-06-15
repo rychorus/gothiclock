@@ -13,6 +13,9 @@ export function PlateColumn({
   offset,
   mode,
   linkingPromptTask,
+  selectionMode = null,
+  manualDriverIndex = null,
+  manualLinkingState = null,
   currentSolutionMove,
   testingFeedback,
   selection,
@@ -23,6 +26,7 @@ export function PlateColumn({
   canMoveDown,
   onMove,
   onCommitDrag,
+  onSelect,
   bottomNote,
 }) {
   const viewportRef = useRef(null);
@@ -30,6 +34,27 @@ export function PlateColumn({
   const stackRef = useRef(null);
   const dragStateRef = useRef(null);
   const [dragPixels, setDragPixels] = useState(null);
+  const isManualPickMode = selectionMode === "manual-pick";
+  const isManualDefineMode = selectionMode === "manual-define";
+  const isManualActiveDriver = manualDriverIndex !== null && manualDriverIndex === index;
+  const isManualCompleted = Boolean(manualLinkingState?.completedDrivers.includes(index));
+  const selectedDirectionDelta = manualLinkingState?.selectedDirection === "up" ? -1 : manualLinkingState?.selectedDirection === "down" ? 1 : 0;
+  const isManualLinked = Boolean(
+    isManualDefineMode
+    && manualDriverIndex !== null
+    && manualDriverIndex !== index
+    && manualLinkingState?.links[manualDriverIndex]?.[index],
+  );
+  const manualLinkRelation = isManualDefineMode && manualDriverIndex !== null && manualDriverIndex !== index
+    ? manualLinkingState?.links[manualDriverIndex]?.[index] ?? 0
+    : 0;
+  const isManualLinkedLeft = isManualDefineMode && manualLinkRelation === -1;
+  const isManualLinkedRight = isManualDefineMode && manualLinkRelation === 1;
+  const displayOffset = isManualPickMode
+    ? (isManualActiveDriver ? selectedDirectionDelta : 0)
+    : isManualDefineMode && isManualActiveDriver
+      ? selectedDirectionDelta
+      : offset;
 
   const classes = useMemo(() => {
     const nextClasses = ["plate-column"];
@@ -88,12 +113,55 @@ export function PlateColumn({
       nextClasses.push("show-status");
     }
 
+    if (isManualPickMode || isManualDefineMode) {
+      nextClasses.push("is-manual-selection");
+    }
+
+    if (isManualPickMode) {
+      nextClasses.push("is-manual-pick");
+    }
+
+    if (isManualDefineMode) {
+      nextClasses.push("is-manual-define");
+    }
+
+    if (isManualDefineMode && isManualActiveDriver) {
+      nextClasses.push("is-manual-driver");
+    }
+
+    if (isManualPickMode && !isManualCompleted) {
+      nextClasses.push("is-manual-selectable");
+    }
+
+    if (isManualDefineMode && !isManualActiveDriver) {
+      nextClasses.push("is-manual-selectable");
+    }
+
+    if (isManualDefineMode && isManualLinked) {
+      nextClasses.push(manualLinkRelation === 1 ? "is-manual-linked-same" : "is-manual-linked-opposite");
+    }
+
     if (offset === 0) {
       nextClasses.push("is-aligned");
     }
 
     return nextClasses.join(" ");
-  }, [currentSolutionMove, index, isDeferred, isKnown, linkingPromptTask, mode, offset, selection, testingFeedback]);
+  }, [
+    currentSolutionMove,
+    index,
+    isDeferred,
+    isKnown,
+    isManualActiveDriver,
+    isManualDefineMode,
+    isManualLinked,
+    isManualPickMode,
+    linkingPromptTask,
+    manualLinkRelation,
+    mode,
+    offset,
+    selection,
+    testingFeedback,
+  ]);
 
   function measureStepSize() {
     if (!holeRef.current || !stackRef.current) {
@@ -107,6 +175,10 @@ export function PlateColumn({
   }
 
   function handlePointerDown(event) {
+    if (isManualActiveDriver) {
+      return;
+    }
+
     if (bounds.min === bounds.max || !viewportRef.current) {
       return;
     }
@@ -153,17 +225,67 @@ export function PlateColumn({
     viewportRef.current.releasePointerCapture?.(dragState.pointerId);
     dragStateRef.current = null;
     setDragPixels(null);
+
+    if (isManualPickMode) {
+      const selectedDirection = snappedOffset < dragState.startOffset
+        ? "up"
+        : snappedOffset > dragState.startOffset
+          ? "down"
+          : attemptedDirection < 0
+            ? "up"
+            : attemptedDirection > 0
+              ? "down"
+              : null;
+
+      if (selectedDirection) {
+        onMove(index, selectedDirection);
+      }
+      return;
+    }
+
     onCommitDrag(index, snappedOffset, snappedOffset !== dragState.startOffset ? 0 : attemptedDirection);
   }
 
-  const hideMoveButtons = mode === "solution" || mode === "ready_to_solve";
+  function handleSelect(event) {
+    if (!isManualDefineMode) {
+      return;
+    }
+
+    event.preventDefault();
+    onSelect?.(index);
+  }
+
+  function handleKeyDown(event) {
+    if (!isManualDefineMode) {
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onSelect?.(index);
+    }
+  }
+
+  const hideMoveButtons = mode === "solution" || mode === "ready_to_solve" || isManualActiveDriver;
   const leftSuggested = mode === "linking" && linkingPromptTask?.phase === "move" && linkingPromptTask?.driver === index && linkingPromptTask.direction === "up";
   const rightSuggested = mode === "linking" && linkingPromptTask?.phase === "move" && linkingPromptTask?.driver === index && linkingPromptTask.direction === "down";
 
   return (
-    <article className={classes} data-plate-index={index}>
+    <article
+      className={classes}
+      data-plate-index={index}
+      role={isManualDefineMode ? "button" : undefined}
+      tabIndex={isManualDefineMode ? 0 : undefined}
+      aria-label={isManualDefineMode ? `Choose plate ${index + 1}` : undefined}
+      onClick={isManualDefineMode ? handleSelect : undefined}
+      onKeyDown={isManualDefineMode ? handleKeyDown : undefined}
+    >
+      {isManualPickMode ? (
+        <div className={`plate-selection-checkbox${isManualCompleted ? " is-checked" : ""}${isManualActiveDriver ? " is-active-driver" : ""}`} aria-hidden="true"></div>
+      ) : null}
+
       <button
-        className={`plate-button${leftSuggested ? " is-suggested" : ""}`}
+        className={`plate-button${leftSuggested ? " is-suggested" : ""}${isManualLinkedLeft ? " is-manual-linked-left" : ""}`}
         type="button"
         data-direction="left"
         aria-label="Move plate left"
@@ -191,7 +313,7 @@ export function PlateColumn({
             <span className="center-dot"></span>
           </span>
         </div>
-        <div className="plate-track" style={{ transform: getTransformValue(offset, dragPixels) }}>
+        <div className="plate-track" style={{ transform: getTransformValue(displayOffset, dragPixels) }}>
           <div className="plate-body">
             <div ref={stackRef} className="hole-stack">
               {Array.from({ length: 7 }, (_, holeIndex) => (
@@ -207,7 +329,7 @@ export function PlateColumn({
       </div>
 
       <button
-        className={`plate-button${rightSuggested ? " is-suggested" : ""}`}
+        className={`plate-button${rightSuggested ? " is-suggested" : ""}${isManualLinkedRight ? " is-manual-linked-right" : ""}`}
         type="button"
         data-direction="right"
         aria-label="Move plate right"
