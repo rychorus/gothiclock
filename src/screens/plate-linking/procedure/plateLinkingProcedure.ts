@@ -118,17 +118,20 @@ function scoreLinkedCentering(offsets: number[], link: PlateLink) {
 
     const distance = Math.abs(offsets[index]);
     return {
+      maxDistance: Math.max(score.maxDistance, distance),
       totalDistance: score.totalDistance + distance,
       edgeCount: score.edgeCount + (distance === CENTER_INDEX ? 1 : 0),
     };
-  }, { totalDistance: 0, edgeCount: 0 });
+  }, { maxDistance: 0, totalDistance: 0, edgeCount: 0 });
 }
 
 function compareCenteringScores(
   left: ReturnType<typeof scoreLinkedCentering>,
   right: ReturnType<typeof scoreLinkedCentering>,
 ): number {
-  return left.totalDistance - right.totalDistance || left.edgeCount - right.edgeCount;
+  return left.maxDistance - right.maxDistance
+    || left.edgeCount - right.edgeCount
+    || left.totalDistance - right.totalDistance;
 }
 
 function getCenteringDelta(state: AppStateData, driver: number): number | null {
