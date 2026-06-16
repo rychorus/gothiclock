@@ -752,17 +752,6 @@ body.is-testing-mode .lock-stage {
   grid-column: 4;
 }
 
-.plate-column.show-status .plate-status-row {
-  display: flex;
-  position: absolute;
-  right: calc(100% + 0.9rem);
-  top: 50%;
-  transform: translateY(-50%);
-  width: var(--plate-status-width);
-  min-height: var(--plate-lane-height);
-  z-index: 2;
-}
-
 .plate-column.is-driver .plate-body {
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
@@ -938,31 +927,6 @@ body.is-testing-mode .lock-stage {
   animation: nudgeDown 3s ease-in-out infinite;
 }
 
-.plate-column.is-linked-same .plate-body {
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
-    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
-    0 0 0 2px rgba(227, 167, 77, 0.78),
-    0 0 1rem rgba(227, 167, 77, 0.32),
-    0 10px 24px rgba(227, 167, 77, 0.24);
-}
-
-.plate-column.is-linked-opposite .plate-body {
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
-    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
-    0 0 0 2px rgba(141, 198, 214, 0.8),
-    0 0 1rem rgba(141, 198, 214, 0.3),
-    0 10px 24px rgba(141, 198, 214, 0.22);
-}
-
-.plate-column.is-step2-selected .plate-status {
-  border-color: rgba(227, 167, 77, 0.6);
-  background: rgba(227, 167, 77, 0.14);
-}
-
 .plate-column.is-testing-bounce-up .plate-body {
   animation: testingBounceUp 320ms ease-out;
 }
@@ -1042,6 +1006,18 @@ body.is-testing-mode .lock-stage {
   border-color: rgba(227, 167, 77, 0.8);
   background: rgba(227, 167, 77, 0.14);
   animation: pulseHint 9s ease-in-out infinite;
+}
+
+.plate-button.is-observed-left {
+  border-color: rgba(227, 167, 77, 0.82);
+  background: rgba(227, 167, 77, 0.18);
+  box-shadow: 0 0 0.95rem rgba(227, 167, 77, 0.24);
+}
+
+.plate-button.is-observed-right {
+  border-color: rgba(141, 198, 214, 0.82);
+  background: rgba(141, 198, 214, 0.18);
+  box-shadow: 0 0 0.95rem rgba(141, 198, 214, 0.22);
 }
 
 .plate-button.is-same {
@@ -1145,9 +1121,16 @@ body.is-testing-mode .lock-stage {
 }
 
 .plate-status-row {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
+  position: absolute;
+  left: calc(-1 * (var(--plate-status-width) + 0.25rem));
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--plate-status-width);
+  min-height: var(--plate-lane-height);
+  z-index: 4;
 }
 
 .plate-status {
@@ -1175,6 +1158,9 @@ body.is-testing-mode .lock-stage {
 .plate-column.is-known .plate-status {
   border-color: rgba(183, 217, 141, 0.48);
   background: rgba(183, 217, 141, 0.18);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 0 0 0.12rem rgba(183, 217, 141, 0.08);
 }
 
 .plate-column.is-known .plate-status::before {
@@ -1185,44 +1171,6 @@ body.is-testing-mode .lock-stage {
   border-left: 2px solid #f0f7e3;
   border-bottom: 2px solid #f0f7e3;
   transform: rotate(-45deg) translateY(-0.02rem);
-}
-
-.plate-column.is-known .plate-body,
-.plate-column.is-known:hover .plate-body,
-.plate-column.is-known:focus-visible .plate-body {
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
-    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
-    0 0 0 2px rgba(183, 217, 141, 0.9),
-    0 0 1.1rem rgba(183, 217, 141, 0.28),
-    0 12px 24px rgba(183, 217, 141, 0.18);
-}
-
-.plate-column.is-deferred .plate-status {
-  border-color: rgba(227, 167, 77, 0.5);
-  background: rgba(227, 167, 77, 0.16);
-}
-
-.plate-column.is-deferred .plate-status::before {
-  width: 0.72rem;
-  height: 0.12rem;
-  border-radius: 999px;
-  background: #f6d7a2;
-}
-
-.plate-column.is-deferred.is-known .plate-status {
-  border-color: rgba(227, 167, 77, 0.5);
-  background: rgba(227, 167, 77, 0.16);
-}
-
-.plate-column.is-deferred.is-known .plate-status::before {
-  width: 0.72rem;
-  height: 0.12rem;
-  border-radius: 999px;
-  background: #f6d7a2;
-  border: 0;
-  transform: none;
 }
 
 .center-band {
@@ -1302,6 +1250,7 @@ body.is-testing-mode .lock-stage {
 }
 
 .plate-body {
+  position: relative;
   width: var(--plate-body-width);
   height: 100%;
   display: flex;

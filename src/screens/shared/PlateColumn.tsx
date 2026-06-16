@@ -40,15 +40,21 @@ export function PlateColumn({
   const isManualActiveDriver = manualDriverIndex !== null && manualDriverIndex === index;
   const isManualCompleted = Boolean(manualLinkingState?.completedDrivers.includes(index));
   const selectedDirectionDelta = manualLinkingState?.selectedDirection === "up" ? -1 : manualLinkingState?.selectedDirection === "down" ? 1 : 0;
+  const isObservePhase = mode === "linking" && linkingPromptTask?.phase === "observe";
+  const observedOffsetDelta = isObservePhase
+    ? offset - (linkingPromptTask?.baseOffsets?.[index] ?? offset)
+    : 0;
   const isManualLinked = Boolean(
     isManualDefineMode
     && manualDriverIndex !== null
     && manualDriverIndex !== index
     && manualLinkingState?.links[manualDriverIndex]?.[index],
   );
+  const isDriver = linkingPromptTask?.driver === index;
   const manualMovedOffset = isManualDefineMode ? (manualLinkingState?.offsets[index] ?? 0) : 0;
   const isManualLinkedLeft = isManualDefineMode && manualMovedOffset === -1;
   const isManualLinkedRight = isManualDefineMode && manualMovedOffset === 1;
+  const showKnownStatus = mode === "linking" && isKnown && !isDriver;
   const showSolutionLabel = mode === "solution" && Number.isInteger(plateCount) && plateCount > 0;
   const isSolutionLabelActive = showSolutionLabel && currentSolutionMove?.plate === index;
   const plateLabel = showSolutionLabel ? getVisiblePlateLabel(index, plateCount) : "";
@@ -60,7 +66,6 @@ export function PlateColumn({
 
   const classes = useMemo(() => {
     const nextClasses = ["plate-column"];
-    const isDriver = linkingPromptTask?.driver === index;
 
     if (isDriver) {
       nextClasses.push("is-driver");
@@ -70,24 +75,12 @@ export function PlateColumn({
       nextClasses.push("is-driver-focus");
     }
 
-    if (isKnown && mode === "linking" && !isDriver) {
+    if (showKnownStatus) {
       nextClasses.push("is-known");
     }
 
     if (isDeferred && mode === "linking") {
       nextClasses.push("is-deferred");
-    }
-
-    if (selection === linkingPromptTask?.delta && selection !== 0) {
-      nextClasses.push("is-linked-same");
-    }
-
-    if (selection === linkingPromptTask?.delta * -1 && selection !== 0) {
-      nextClasses.push("is-linked-opposite");
-    }
-
-    if (mode === "linking" && linkingPromptTask?.phase === "observe" && selection !== 0) {
-      nextClasses.push("is-step2-selected");
     }
 
     if (mode === "testing" && testingFeedback?.driver === index) {
@@ -109,10 +102,6 @@ export function PlateColumn({
     if (currentSolutionMove?.plate === index) {
       nextClasses.push(currentSolutionMove.direction === "up" ? "is-prompt-up" : "is-prompt-down");
       nextClasses.push(currentSolutionMove.direction === "up" ? "is-body-prompt-up" : "is-body-prompt-down");
-    }
-
-    if (mode === "linking") {
-      nextClasses.push("show-status");
     }
 
     if (isManualPickMode || isManualDefineMode) {
@@ -278,6 +267,8 @@ export function PlateColumn({
     && linkingPromptTask?.driver === index;
   const leftSuggested = isSuggestedPrompt && linkingPromptTask.direction === "up";
   const rightSuggested = isSuggestedPrompt && linkingPromptTask.direction === "down";
+  const leftObserved = isObservePhase && observedOffsetDelta < 0;
+  const rightObserved = isObservePhase && observedOffsetDelta > 0;
 
   return (
     <article
@@ -291,7 +282,7 @@ export function PlateColumn({
     >
       {showSolutionLabel ? <div className={`plate-column-label${isSolutionLabelActive ? " is-active" : ""}`} aria-hidden="true">{plateLabel}</div> : null}
       <button
-        className={`plate-button${leftSuggested ? " is-suggested" : ""}${isManualLinkedLeft ? " is-manual-linked-left" : ""}`}
+        className={`plate-button${leftSuggested ? " is-suggested" : ""}${leftObserved ? " is-observed-left" : ""}${isManualLinkedLeft ? " is-manual-linked-left" : ""}`}
         type="button"
         data-direction="left"
         aria-label="Move plate left"
@@ -321,6 +312,11 @@ export function PlateColumn({
         </div>
         <div className="plate-track" style={{ transform: getTransformValue(displayOffset, dragPixels) }}>
           <div className="plate-body">
+            {showKnownStatus ? (
+              <div className="plate-status-row" aria-hidden="true">
+                <span className="plate-status"></span>
+              </div>
+            ) : null}
             <div ref={stackRef} className="hole-stack">
               {Array.from({ length: 7 }, (_, holeIndex) => (
                 <span
@@ -335,7 +331,7 @@ export function PlateColumn({
       </div>
 
       <button
-        className={`plate-button${rightSuggested ? " is-suggested" : ""}${isManualLinkedRight ? " is-manual-linked-right" : ""}`}
+        className={`plate-button${rightSuggested ? " is-suggested" : ""}${rightObserved ? " is-observed-right" : ""}${isManualLinkedRight ? " is-manual-linked-right" : ""}`}
         type="button"
         data-direction="right"
         aria-label="Move plate right"
@@ -346,9 +342,6 @@ export function PlateColumn({
         <span></span>
       </button>
 
-      <div className="plate-status-row">
-        <span className="plate-status" aria-hidden="true"></span>
-      </div>
     </article>
   );
 }
