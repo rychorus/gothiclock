@@ -91,6 +91,8 @@ export type ModalState =
   | { type: "solution-steps" }
   | { type: "powershell" }
   | { type: "notation" }
+  | { type: "import-locks" }
+  | { type: "delete-all-saved" }
   | { type: "share"; lockId?: string };
 
 export interface AppStateData {

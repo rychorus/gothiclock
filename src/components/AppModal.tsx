@@ -59,6 +59,102 @@ function LockDetailsForm({ initialName, initialDescription, onSubmit, onCancel, 
   );
 }
 
+function ImportLocksForm({ onImport, onCancel }) {
+  const [importText, setImportText] = useState("");
+  const [importError, setImportError] = useState("");
+  const [loadedFileName, setLoadedFileName] = useState("");
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    setImportText("");
+    setImportError("");
+    setLoadedFileName("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, []);
+
+  function readFile(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImportText(String(reader.result || ""));
+      setLoadedFileName(file.name);
+      setImportError("");
+    };
+    reader.onerror = () => {
+      setImportError("Could not read the selected file.");
+    };
+    reader.readAsText(file);
+  }
+
+  function handleFileChange(event) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    readFile(file);
+  }
+
+  function handleDrop(event) {
+    event.preventDefault();
+    const file = event.dataTransfer.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    readFile(file);
+  }
+
+  function handleDragOver(event) {
+    event.preventDefault();
+  }
+
+  return (
+    <div className="modal-form-stack" onDrop={handleDrop} onDragOver={handleDragOver}>
+      <label className="modal-field">
+        <span className="modal-field-label">Paste share link(s)</span>
+        <textarea
+          className="modal-input modal-input--textarea"
+          value={importText}
+          onChange={(event) => {
+            setImportText(event.target.value);
+            setImportError("");
+          }}
+          placeholder={"https://..."}
+          rows={8}
+        />
+      </label>
+      <div className="modal-field modal-field--spaced-top">
+        <span className="modal-field-label">Or upload a text file</span>
+        <input ref={fileInputRef} type="file" accept=".txt,text/plain" hidden onChange={handleFileChange} />
+        <button type="button" className="action-button secondary compact" onClick={() => fileInputRef.current?.click?.()}>
+          Upload file
+        </button>
+        {loadedFileName ? <p className="modal-note modal-note--compact">{loadedFileName}</p> : null}
+      </div>
+      {importError ? <p className="modal-note import-notation-error">{importError}</p> : null}
+      <div className="modal-actions">
+        <button type="button" className="action-button secondary" onClick={onCancel}>Cancel</button>
+        <button
+          type="button"
+          className="action-button primary"
+          onClick={() => {
+            try {
+              onImport(importText);
+              setImportError("");
+            } catch (error) {
+              setImportError(error instanceof Error ? error.message : "Could not import locks.");
+            }
+          }}
+        >
+          Import locks
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function getShareLock(app, modal, savedLocks): SavedLockRecord | null {
   if (modal.type !== "share") {
     return null;
@@ -165,6 +261,39 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
         <p className="modal-note">
           Delete {draftCount} draft{draftCount === 1 ? "" : "s"}?
         </p>
+      </Modal>
+    );
+  }
+
+  if (modal.type === "delete-all-saved") {
+    const savedLockCount = savedLocks.length;
+    if (!savedLockCount) {
+      return null;
+    }
+
+    return (
+      <Modal
+        title="Delete all saved locks"
+        onClose={app.closeModal}
+        actions={[
+          {
+            label: "Delete all",
+            className: "danger",
+            onClick: () => app.removeAllSavedLocks(),
+          },
+        ]}
+      >
+        <p className="modal-note">
+          Delete all {savedLockCount} saved lock{savedLockCount === 1 ? "" : "s"}? This cannot be undone.
+        </p>
+      </Modal>
+    );
+  }
+
+  if (modal.type === "import-locks") {
+    return (
+      <Modal title="Import locks" onClose={app.closeModal} className="modal-card--notation">
+        <ImportLocksForm onImport={(text) => { app.importLocks(text); app.closeModal(); }} onCancel={app.closeModal} />
       </Modal>
     );
   }

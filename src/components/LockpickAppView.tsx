@@ -29,11 +29,13 @@ export function LockpickAppView({ app, appVersion }) {
   const [isTopMenuOpen, setIsTopMenuOpen] = useState(false);
   const [isLoadSearchOpen, setIsLoadSearchOpen] = useState(false);
   const [isLoadFilterOpen, setIsLoadFilterOpen] = useState(false);
+  const [isLoadActionsOpen, setIsLoadActionsOpen] = useState(false);
   const [showDrafts, setShowDrafts] = useState(getPersistedShowDrafts);
   const [loadSearchQuery, setLoadSearchQuery] = useState("");
   const topMenuRef = useRef(null);
   const loadSearchRef = useRef(null);
   const loadFilterRef = useRef(null);
+  const loadActionsRef = useRef(null);
   const sharedSolutionName = appState.sharedLinkMetadata?.name;
   const heroTitle = appState.mode === "solution" && currentSavedLock && !currentSavedLock.isDraft
     ? `${currentSavedLock.name} Solution`
@@ -80,6 +82,51 @@ export function LockpickAppView({ app, appVersion }) {
                   {showDrafts ? <MaterialIcon name="check" /> : null}
                 </span>
                 <span>Show drafts</span>
+              </button>
+            </div>
+          </div>
+          <div ref={loadActionsRef} className="hero-filter-wrap">
+            <button
+              className="solution-toggle-icon hero-menu-toggle"
+              type="button"
+              aria-label="Saved lock actions"
+              aria-expanded={isLoadActionsOpen}
+              onClick={() => setIsLoadActionsOpen((current) => !current)}
+            >
+              <MaterialIcon name="more_vert" />
+            </button>
+            <div className="saved-lock-menu hero-menu" hidden={!isLoadActionsOpen}>
+              <button
+                className="saved-lock-menu-item"
+                type="button"
+                onClick={() => {
+                  setIsLoadActionsOpen(false);
+                  app.setModal({ type: "import-locks" });
+                }}
+              >
+                <span>Import Locks</span>
+              </button>
+              <button
+                className="saved-lock-menu-item"
+                type="button"
+                onClick={() => {
+                  setIsLoadActionsOpen(false);
+                  app.exportAllSavedLocks();
+                }}
+                disabled={!savedLocks.length}
+              >
+                <span>Export all saved locks</span>
+              </button>
+              <button
+                className="saved-lock-menu-item is-danger"
+                type="button"
+                onClick={() => {
+                  setIsLoadActionsOpen(false);
+                  app.setModal({ type: "delete-all-saved" });
+                }}
+                disabled={!savedLocks.length}
+              >
+                <span>Delete all saved locks</span>
               </button>
             </div>
           </div>
@@ -142,6 +189,7 @@ export function LockpickAppView({ app, appVersion }) {
 
     setIsLoadSearchOpen(false);
     setIsLoadFilterOpen(false);
+    setIsLoadActionsOpen(false);
     setLoadSearchQuery("");
     return undefined;
   }, [appState.mode]);
@@ -168,7 +216,7 @@ export function LockpickAppView({ app, appVersion }) {
   }, [appState.mode, isLoadSearchOpen]);
 
   useEffect(() => {
-    if (!isLoadFilterOpen || appState.mode !== "load") {
+    if (!(isLoadFilterOpen || isLoadActionsOpen) || appState.mode !== "load") {
       return undefined;
     }
 
@@ -176,11 +224,14 @@ export function LockpickAppView({ app, appVersion }) {
       if (!loadFilterRef.current?.contains(event.target)) {
         setIsLoadFilterOpen(false);
       }
+      if (!loadActionsRef.current?.contains(event.target)) {
+        setIsLoadActionsOpen(false);
+      }
     }
 
     document.addEventListener("pointerdown", handlePointerDown);
     return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [appState.mode, isLoadFilterOpen]);
+  }, [appState.mode, isLoadFilterOpen, isLoadActionsOpen]);
 
   return (
     <>

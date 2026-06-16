@@ -12,7 +12,7 @@ export function ImportNotationScreen({ onCancel, onImport }) {
   return (
     <section className="controls-card controls-card--import-screen" aria-live="polite">
       <label className="import-notation-field">
-        <span className="controls-title">Paste Notation or Link</span>
+        <span className="controls-title">Paste Notation or Share Link(s)</span>
         <textarea
           className="import-notation-input"
           value={importText}
@@ -20,8 +20,11 @@ export function ImportNotationScreen({ onCancel, onImport }) {
             setImportText(event.target.value);
             setImportError("");
           }}
-          placeholder={"P1=4 P2=4 P3=4\n\nP1>P2 P2>P3- P3>"}
+          placeholder={"P1=4 P2=4 P3=4\n\nP1>P2 P2>P3- P3>\n\nOr paste one or more share links"}
         />
+        <p className="modal-note modal-note--compact import-notation-hint">
+          Share links can be pasted anywhere in the text. If you paste multiple links, they will be imported as saved locks.
+        </p>
       </label>
       {importError ? <p className="modal-note import-notation-error">{importError}</p> : null}
       <div className="import-notation-actions">

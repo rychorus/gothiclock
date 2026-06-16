@@ -101,6 +101,14 @@ export function getModalAnalyticsName(modal: ModalState) {
     return "Notation";
   }
 
+  if (modal.type === "import-locks") {
+    return "Import Locks";
+  }
+
+  if (modal.type === "delete-all-saved") {
+    return "Delete All Saved Locks";
+  }
+
   if (modal.type === "share") {
     return "Share";
   }

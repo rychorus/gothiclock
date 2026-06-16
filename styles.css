@@ -1905,6 +1905,15 @@ body.is-setup-mode .count-picker {
   padding: 0.72rem 0.85rem;
 }
 
+.modal-input--textarea {
+  min-height: 10rem;
+  resize: vertical;
+}
+
+.modal-form-stack > .modal-field--spaced-top {
+  margin-top: 0.9rem;
+}
+
 .modal-input:focus-visible {
   outline: none;
   border-color: rgba(227, 167, 77, 0.55);

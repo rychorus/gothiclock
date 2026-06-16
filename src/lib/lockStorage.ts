@@ -1,4 +1,6 @@
 import { STORAGE_KEY, buildSavedLockRecord, cloneOffsets, createLockId, isTrivialCenteredLock } from "./lockData";
+import { buildNotationString } from "./notation";
+import { buildShareUrl } from "../screens/shared/shareUrl";
 import type { AppStateData, SavedLockRecord } from "./types";
 
 function getStorage() {
@@ -31,6 +33,10 @@ export function getSavedLocks(): SavedLockRecord[] {
 
 export function setSavedLocks(locks: SavedLockRecord[]) {
   getStorage().setItem(STORAGE_KEY, JSON.stringify(locks));
+}
+
+export function deleteAllSavedLocks() {
+  setSavedLocks([]);
 }
 
 export function getSavedLockById(lockId: string | null | undefined): SavedLockRecord | null {
@@ -83,6 +89,26 @@ export function persistCurrentLock(
 
   upsertSavedLock(buildSavedLockRecord(normalizedState, { id: lockId, name, description, isDraft }));
   return lockId;
+}
+
+export function buildSavedLocksExportText(locks: SavedLockRecord[], baseUrl: string) {
+  return locks.map((lock) => {
+    const url = buildShareUrl(
+      baseUrl,
+      buildNotationString({
+        plateCount: lock.plateCount,
+        offsets: lock.currentOffsets,
+        links: lock.links,
+      }),
+      { name: lock.name, description: lock.description },
+    );
+
+    return [
+      lock.name,
+      lock.description || "",
+      url,
+    ].filter(Boolean).join("\n");
+  }).join("\n\n");
 }
 
 export function renameSavedLock(lockId: string, nextName: string, nextDescription?: string) {

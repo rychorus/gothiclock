@@ -35,10 +35,46 @@ export function parseShareUrl(url: string) {
   };
 }
 
+function stripTrailingUrlPunctuation(url: string) {
+  return url.replace(/[),.;:!?]+$/g, "");
+}
+
+export function extractImportedShareUrls(input: string) {
+  const urlMatches = String(input || "")
+    .match(/https?:\/\/[^\s<>"'`]+/gi) || [];
+
+  return [...new Set(urlMatches.map(stripTrailingUrlPunctuation))]
+    .map((url) => {
+      try {
+        const parsed = parseShareUrl(url);
+        if (!parsed.notation) {
+          return null;
+        }
+
+        return {
+          url,
+          ...parsed,
+        };
+      } catch {
+        return null;
+      }
+    })
+    .filter((entry): entry is { url: string; notation: string; name: string; description: string } => Boolean(entry));
+}
+
 export function parseImportedNotationInput(input: string) {
   const text = String(input || "").trim();
   if (!text) {
     return { notation: "", name: "", description: "", isShareUrl: false };
+  }
+
+  const importedShareUrls = extractImportedShareUrls(text);
+  if (importedShareUrls.length > 0) {
+    const firstShareUrl = importedShareUrls[0];
+    return {
+      ...firstShareUrl,
+      isShareUrl: true,
+    };
   }
 
   try {
