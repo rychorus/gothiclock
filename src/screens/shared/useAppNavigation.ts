@@ -43,7 +43,7 @@ function getSolutionBackState(appState: AppStateData): AppStateData | null {
   if (appState.solutionOrigin === "load") {
     return {
       ...appState,
-      mode: "load",
+      mode: "setup",
       linkingPromptTask: null,
       plateLinkingProcedure: null,
       solution: null,

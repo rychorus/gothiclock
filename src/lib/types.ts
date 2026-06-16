@@ -93,7 +93,8 @@ export type ModalState =
   | { type: "notation" }
   | { type: "import-locks" }
   | { type: "delete-all-saved" }
-  | { type: "share"; lockId?: string };
+  | { type: "share"; lockId?: string }
+  | { type: "start-linking-match"; lockId: string };
 
 export interface AppStateData {
   plateCount: number;

@@ -82,7 +82,7 @@ export function useLockpickApp() {
   });
   const loadScreen = useLoadScreenState({ appState, setAppState, setModal: navigation.setModal });
   const savedLocks = loadScreen.savedLocks;
-  const plateSetup = usePlateSetupState({ setAppState });
+  const plateSetup = usePlateSetupState({ appState, setAppState, setModal: navigation.setModal });
   const plateLinking = usePlateLinkingState({ appState, setAppState });
   const solution = useSolutionState({ appState, setAppState });
 
@@ -224,6 +224,7 @@ export function useLockpickApp() {
       setPlateCount: plateSetup.setPlateCount,
       startOver: plateSetup.startOver,
       startLinkingMode: plateSetup.startLinkingMode,
+      continueLinkingMode: plateSetup.continueLinkingMode,
       startManualLinkingMode: plateLinking.startManualLinkingMode,
       selectManualDriver: plateLinking.selectManualDriver,
       nextManualLinkingStep: plateLinking.nextManualLinkingStep,

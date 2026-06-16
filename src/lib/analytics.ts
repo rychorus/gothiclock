@@ -113,6 +113,10 @@ export function getModalAnalyticsName(modal: ModalState) {
     return "Share";
   }
 
+  if (modal.type === "start-linking-match") {
+    return "Start Linking Match";
+  }
+
   return null;
 }
 

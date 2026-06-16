@@ -1801,6 +1801,27 @@ body.is-setup-mode .count-picker {
   padding-bottom: 0.15rem;
 }
 
+.modal-note--spaced-top {
+  margin-top: 1.8rem;
+}
+
+.modal-footer--spaced {
+  margin-top: 1.8rem;
+}
+
+.modal-note--emphasis {
+  color: var(--text);
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.modal-note--boxed {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(227, 167, 77, 0.3);
+  border-radius: 0.75rem;
+  background: rgba(227, 167, 77, 0.07);
+}
+
 .modal-field--share-url {
   padding-bottom: 0.35rem;
 }
@@ -1825,8 +1846,26 @@ body.is-setup-mode .count-picker {
   display: flex;
   justify-content: center;
   gap: 0.65rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   flex: 0 0 auto;
+}
+
+.modal-actions--fit {
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.modal-actions--fit .action-button {
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  flex: 1 1 11rem;
+}
+
+@media (max-width: 540px) {
+  .modal-actions--fit .action-button {
+    flex-basis: 100%;
+  }
 }
 
 .modal-close {

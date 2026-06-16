@@ -1,4 +1,4 @@
-export function Modal({ title, onClose, actions = [], children, className = "", bodyClassName = "" }) {
+export function Modal({ title, onClose, actions = [], children, footer = null, className = "", bodyClassName = "", footerClassName = "", actionsClassName = "" }) {
   return (
     <div className="modal-shell">
       <div className="modal-backdrop" onClick={onClose}></div>
@@ -10,7 +10,8 @@ export function Modal({ title, onClose, actions = [], children, className = "", 
           </button>
         </header>
         <div className={`modal-body${bodyClassName ? ` ${bodyClassName}` : ""}`}>{children}</div>
-        <div className="modal-actions" hidden={!actions.length}>
+        {footer ? <div className={`modal-footer${footerClassName ? ` ${footerClassName}` : ""}`}>{footer}</div> : null}
+        <div className={`modal-actions${actionsClassName ? ` ${actionsClassName}` : ""}`} hidden={!actions.length}>
           {actions.map((action) => (
             <button
               key={action.label}

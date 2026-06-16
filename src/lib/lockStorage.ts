@@ -47,6 +47,14 @@ export function getSavedLockById(lockId: string | null | undefined): SavedLockRe
   return getSavedLocks().find((lock) => lock.id === lockId) || null;
 }
 
+export function findSavedLockMatchingSetup(state: Pick<AppStateData, "plateCount" | "offsets">, locks = getSavedLocks()): SavedLockRecord | null {
+  return locks
+    .filter((lock) => lock.plateCount === state.plateCount)
+    .filter((lock) => lock.currentOffsets.length === state.offsets.length)
+    .filter((lock) => lock.currentOffsets.every((offset, index) => offset === state.offsets[index]))
+    .sort((left, right) => new Date(right.savedAt).getTime() - new Date(left.savedAt).getTime())[0] || null;
+}
+
 export function upsertSavedLock(lockRecord: SavedLockRecord) {
   const savedLocks = getSavedLocks();
   const nextLocks = savedLocks.filter((lock) => lock.id !== lockRecord.id);

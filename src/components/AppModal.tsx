@@ -171,6 +171,14 @@ function getShareLock(app, modal, savedLocks): SavedLockRecord | null {
   return null;
 }
 
+function getStartLinkingMatch(app, modal, savedLocks): SavedLockRecord | null {
+  if (modal.type !== "start-linking-match") {
+    return null;
+  }
+
+  return savedLocks.find((lock) => lock.id === modal.lockId) || null;
+}
+
 export function AppModal({ app, modal, savedLocks, solutionChunks, currentSolutionIndex, powershellCode, shareUrl }) {
   const [didCopyPowershell, setDidCopyPowershell] = useState(false);
   const [didCopyNotation, setDidCopyNotation] = useState(false);
@@ -286,6 +294,54 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
         <p className="modal-note">
           Delete all {savedLockCount} saved lock{savedLockCount === 1 ? "" : "s"}? This cannot be undone.
         </p>
+      </Modal>
+    );
+  }
+
+  if (modal.type === "start-linking-match") {
+    const matchingLock = getStartLinkingMatch(app, modal, savedLocks);
+    if (!matchingLock) {
+      return null;
+    }
+
+    return (
+      <Modal
+        title="Match found for this setup"
+        onClose={app.closeModal}
+        footer={<p className="modal-note modal-note--compact">Do you want to load this saved lock?</p>}
+        footerClassName="modal-footer--spaced"
+        actionsClassName="modal-actions--fit"
+        actions={[
+          {
+            label: "Open save",
+            className: "primary",
+            onClick: () => {
+              app.loadSavedLock(matchingLock.id);
+              app.setModal({ type: null });
+            },
+          },
+          {
+            label: "Continue linking",
+            className: "secondary",
+            onClick: () => {
+              app.actions.continueLinkingMode();
+              app.setModal({ type: null });
+            },
+          },
+        ]}
+      >
+        <div className="modal-form-stack modal-form-stack--share">
+          <div className="modal-field">
+            <span className="modal-field-label">Name</span>
+            <p className="modal-note modal-note--emphasis modal-note--boxed">{matchingLock.name}</p>
+          </div>
+          {matchingLock.description ? (
+            <div className="modal-field modal-field--spaced-top">
+              <span className="modal-field-label">Description</span>
+              <p className="modal-note modal-note--emphasis modal-note--boxed">{matchingLock.description}</p>
+            </div>
+          ) : null}
+        </div>
       </Modal>
     );
   }
