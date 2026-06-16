@@ -48,7 +48,7 @@ export function formatSolutionStepInstruction(
   }
 
   if (chunk.type === "reset") {
-    return "Reset";
+    return "Reset the lock";
   }
 
   if (chunk.type === "solved") {

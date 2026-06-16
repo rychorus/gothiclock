@@ -50,6 +50,7 @@ export function PlateColumn({
   const isManualLinkedLeft = isManualDefineMode && manualMovedOffset === -1;
   const isManualLinkedRight = isManualDefineMode && manualMovedOffset === 1;
   const showSolutionLabel = mode === "solution" && Number.isInteger(plateCount) && plateCount > 0;
+  const isSolutionLabelActive = showSolutionLabel && currentSolutionMove?.plate === index;
   const plateLabel = showSolutionLabel ? getVisiblePlateLabel(index, plateCount) : "";
   const displayOffset = isManualPickMode
     ? (isManualActiveDriver ? selectedDirectionDelta : 0)
@@ -288,7 +289,7 @@ export function PlateColumn({
       onClick={isManualDefineMode ? handleSelect : undefined}
       onKeyDown={isManualDefineMode ? handleKeyDown : undefined}
     >
-      {showSolutionLabel ? <div className="plate-column-label" aria-hidden="true">{plateLabel}</div> : null}
+      {showSolutionLabel ? <div className={`plate-column-label${isSolutionLabelActive ? " is-active" : ""}`} aria-hidden="true">{plateLabel}</div> : null}
       <button
         className={`plate-button${leftSuggested ? " is-suggested" : ""}${isManualLinkedLeft ? " is-manual-linked-left" : ""}`}
         type="button"

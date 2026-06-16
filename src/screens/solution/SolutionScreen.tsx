@@ -11,6 +11,7 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
   const currentStep = Math.min((appState.solution?.index ?? 0) + 1, solutionChunks.length || 1);
   const moves = appState.solution?.moves;
   const hasSolution = moves !== null;
+  const isResetStep = currentSolutionChunk?.type === "reset";
 
   useEffect(() => {
     if (!isSolutionMenuOpen) {
@@ -73,10 +74,13 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
                 <button className="solution-nav-button" type="button" aria-label="Previous solution step" disabled={(appState.solution?.index ?? 0) <= 0} onClick={() => actions.setSolutionStep((appState.solution?.index ?? 0) - 1)}>
                   <MaterialIcon name="chevron_left" />
                 </button>
-                <p className="controls-title is-solution">{currentStep} of {solutionChunks.length || 1}</p>
-                <button className="solution-nav-button" type="button" aria-label="Next solution step" disabled={(appState.solution?.index ?? 0) >= solutionChunks.length - 1} onClick={() => actions.setSolutionStep((appState.solution?.index ?? 0) + 1)}>
-                  <MaterialIcon name="chevron_right" />
-                </button>
+                <p className="controls-title is-solution">Step {currentStep} of {solutionChunks.length || 1}</p>
+                <div className="solution-next-wrap">
+                  {isResetStep ? <div className="solution-next-tooltip">Press to show next step</div> : null}
+                  <button className={`solution-nav-button${isResetStep ? " is-next-emphasized" : ""}`} type="button" aria-label="Next solution step" disabled={(appState.solution?.index ?? 0) >= solutionChunks.length - 1} onClick={() => actions.setSolutionStep((appState.solution?.index ?? 0) + 1)}>
+                    <MaterialIcon name="chevron_right" />
+                  </button>
+                </div>
               </div>
               <p className="solution-step-instruction">
                 {formatSolutionStepInstruction(currentSolutionChunk, appState.plateCount)}
