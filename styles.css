@@ -576,6 +576,8 @@ body.is-testing-mode .lock-stage {
 .stage-instruction.is-setup-mode {
   top: 0.82rem;
   font-size: 1rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
 }
 
 .stage-instruction.is-linking-mode {

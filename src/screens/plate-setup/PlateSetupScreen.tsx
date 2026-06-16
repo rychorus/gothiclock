@@ -29,6 +29,8 @@ export function PlateSetupScreen({ appState, currentSolutionChunk, testingFeedba
         testingFeedback={testingFeedback}
         selectors={selectors}
         actions={actions}
+        instruction="Arrange the plates as shown on the lock"
+        instructionClassName="is-setup-mode"
       />
 
       <div className="footer-actions" hidden={false} data-mode={appState.mode} data-count="1">
