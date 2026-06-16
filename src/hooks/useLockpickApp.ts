@@ -3,6 +3,7 @@ import { buildNotationString } from "../lib/notation";
 import { createInitialAppState, getUnknownPlates, isTrivialCenteredLock } from "../lib/lockData";
 import { resetTestingMode } from "../lib/appState";
 import { syncFinalLockProgress } from "../lib/lockStorage";
+import { getModalAnalyticsName, getScreenAnalyticsName, trackButtonClick, trackModalView, trackScreenView } from "../lib/analytics";
 import { buildShareUrl, parseShareUrl } from "../screens/shared/shareUrl";
 import { useAppNavigation } from "../screens/shared/useAppNavigation";
 import { useMainMenuState } from "../screens/main-menu/useMainMenuState";
@@ -56,6 +57,8 @@ export function useLockpickApp() {
   const [modal, setModalState] = useState<ModalState>({ type: null });
   const appliedSharedNotationRef = useRef(false);
   const suppressDraftAutosaveRef = useRef(false);
+  const currentScreenRef = useRef(getScreenAnalyticsName(appState.mode));
+  const currentModalRef = useRef(getModalAnalyticsName(modal));
 
   const navigation = useAppNavigation({ appState, modal, setAppState, setModalState });
   const mainMenu = useMainMenuState({
@@ -126,6 +129,51 @@ export function useLockpickApp() {
       setAppState((current) => (current.currentSaveId === autoSavedLockId ? current : { ...current, currentSaveId: autoSavedLockId }));
     }
   }, [appState]);
+
+  useEffect(() => {
+    const nextScreenName = getScreenAnalyticsName(appState.mode);
+    currentScreenRef.current = nextScreenName;
+    trackScreenView(nextScreenName);
+  }, [appState.mode]);
+
+  useEffect(() => {
+    const nextModalName = getModalAnalyticsName(modal);
+    currentModalRef.current = nextModalName;
+    trackModalView(nextModalName);
+  }, [modal]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    function handleClick(event: MouseEvent) {
+      const target = event.target instanceof Element ? event.target : null;
+      const button = target?.closest("button");
+      if (!button) {
+        return;
+      }
+
+      const rawLabel = button.getAttribute("aria-label")
+        || button.getAttribute("data-analytics-label")
+        || button.textContent
+        || "Button";
+      const label = rawLabel.trim().replace(/\s+/g, " ");
+      if (!label) {
+        return;
+      }
+
+      trackButtonClick({
+        label,
+        screen: currentScreenRef.current,
+        modal: currentModalRef.current,
+        context: button.getAttribute("data-analytics-context"),
+      });
+    }
+
+    document.addEventListener("click", handleClick, true);
+    return () => document.removeEventListener("click", handleClick, true);
+  }, []);
 
   const notationSource = appState.mode === "manual_linking" && appState.manualLinkingState
     ? {
