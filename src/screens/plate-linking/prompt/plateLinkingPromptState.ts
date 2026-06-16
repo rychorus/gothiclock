@@ -25,6 +25,17 @@ export function createPlateLinkingPromptTask(
   };
 }
 
+export function createPlateLinkingCenterPromptTask(
+  state: AppStateData,
+  driver: number,
+  delta: number,
+): PlateLinkingPromptTask {
+  return {
+    ...createPlateLinkingPromptTask(state, driver, delta),
+    phase: "center",
+  };
+}
+
 export function advancePlateLinkingPrompt(state: AppStateData): AppStateData {
   if (state.mode !== "linking" || state.linkingPromptTask?.phase !== "move") {
     return state;
@@ -110,6 +121,22 @@ export function stepBackPlateLinkingPrompt(state: AppStateData): AppStateData {
     return state;
   }
 
+  if (state.linkingPromptTask.phase === "center") {
+    const history = state.plateLinkingProcedure?.history || [];
+    const previousState = history[history.length - 1];
+    if (previousState) {
+      return {
+        ...previousState,
+        plateLinkingProcedure: previousState.plateLinkingProcedure
+          ? {
+              ...previousState.plateLinkingProcedure,
+              history: history.slice(0, -1),
+            }
+          : null,
+      };
+    }
+  }
+
   if (state.linkingPromptTask.phase !== "move") {
     return {
       ...state,
@@ -156,7 +183,7 @@ export function getPlateLinkingOffsetBounds(state: AppStateData, index: number) 
     return { min: state.offsets[index], max: state.offsets[index] };
   }
 
-  if (state.linkingPromptTask.phase === "move" || state.linkingPromptTask.phase === "complete" || index === state.linkingPromptTask.driver) {
+  if (state.linkingPromptTask.phase === "move" || state.linkingPromptTask.phase === "center" || state.linkingPromptTask.phase === "complete" || index === state.linkingPromptTask.driver) {
     return { min: state.offsets[index], max: state.offsets[index] };
   }
 

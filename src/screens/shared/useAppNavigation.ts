@@ -135,7 +135,7 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
         const mergedState = manual
           ? {
               ...current,
-              mode: "linking",
+              mode: "linking" as const,
               links: manual.links.map((link) => (link ? [...link] : null)),
               linkDeltas: [...manual.linkDeltas],
               linkingPromptTask: null,
@@ -145,7 +145,7 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
             }
           : {
               ...current,
-              mode: "linking",
+              mode: "linking" as const,
               linkingPromptTask: null,
               plateLinkingProcedure: null,
               manualLinkingState: null,

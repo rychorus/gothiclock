@@ -98,7 +98,7 @@ export function PlateColumn({
       nextClasses.push(linkingPromptTask.direction === "up" ? "is-prompt-up" : "is-prompt-down");
     }
 
-    if (mode === "linking" && linkingPromptTask?.phase === "move" && isDriver) {
+    if (mode === "linking" && (linkingPromptTask?.phase === "move" || linkingPromptTask?.phase === "center") && isDriver) {
       nextClasses.push(linkingPromptTask.direction === "up" ? "is-body-prompt-up" : "is-body-prompt-down");
     }
 
@@ -269,8 +269,11 @@ export function PlateColumn({
   }
 
   const hideMoveButtons = mode === "solution" || mode === "ready_to_solve" || isManualActiveDriver;
-  const leftSuggested = mode === "linking" && linkingPromptTask?.phase === "move" && linkingPromptTask?.driver === index && linkingPromptTask.direction === "up";
-  const rightSuggested = mode === "linking" && linkingPromptTask?.phase === "move" && linkingPromptTask?.driver === index && linkingPromptTask.direction === "down";
+  const isSuggestedPrompt = mode === "linking"
+    && (linkingPromptTask?.phase === "move" || linkingPromptTask?.phase === "center")
+    && linkingPromptTask?.driver === index;
+  const leftSuggested = isSuggestedPrompt && linkingPromptTask.direction === "up";
+  const rightSuggested = isSuggestedPrompt && linkingPromptTask.direction === "down";
 
   return (
     <article

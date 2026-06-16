@@ -1,6 +1,6 @@
 import type { Direction, Offsets } from "../../../lib/types";
 
-export type PlateLinkingPromptPhase = "move" | "observe" | "complete";
+export type PlateLinkingPromptPhase = "move" | "observe" | "center" | "complete";
 
 export interface PlateLinkingPromptTask {
   phase: PlateLinkingPromptPhase;

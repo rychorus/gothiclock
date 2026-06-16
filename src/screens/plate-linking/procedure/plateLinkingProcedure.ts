@@ -7,7 +7,7 @@ import {
 } from "../../../lib/lockData";
 import { buildSolutionPlanForApp } from "../../../lib/solution";
 import type { AppStateData, PlateLink } from "../../../lib/types";
-import { createPlateLinkingPromptTask } from "../prompt/plateLinkingPromptState";
+import { createPlateLinkingCenterPromptTask, createPlateLinkingPromptTask } from "../prompt/plateLinkingPromptState";
 import type {
   DeferredPlateLink,
   PlateLinkingProcedureState,
@@ -89,6 +89,69 @@ export function findFarthestPlate(
 function canApplyDelta(offset: number, delta: number): boolean {
   const nextOffset = offset + delta;
   return nextOffset >= -CENTER_INDEX && nextOffset <= CENTER_INDEX;
+}
+
+function canApplyLinkedDelta(offsets: number[], link: PlateLink, delta: number): boolean {
+  return link.every((relation, index) => {
+    if (relation === 0) {
+      return true;
+    }
+
+    const nextOffset = offsets[index] + relation * delta;
+    return nextOffset >= -CENTER_INDEX && nextOffset <= CENTER_INDEX;
+  });
+}
+
+function applyLinkedDelta(offsets: number[], link: PlateLink, delta: number): number[] {
+  return offsets.map((offset, index) => (
+    link[index] === 0
+      ? offset
+      : offset + link[index] * delta
+  ));
+}
+
+function scoreLinkedCentering(offsets: number[], link: PlateLink) {
+  return link.reduce((score, relation, index) => {
+    if (relation === 0) {
+      return score;
+    }
+
+    const distance = Math.abs(offsets[index]);
+    return {
+      totalDistance: score.totalDistance + distance,
+      edgeCount: score.edgeCount + (distance === CENTER_INDEX ? 1 : 0),
+    };
+  }, { totalDistance: 0, edgeCount: 0 });
+}
+
+function compareCenteringScores(
+  left: ReturnType<typeof scoreLinkedCentering>,
+  right: ReturnType<typeof scoreLinkedCentering>,
+): number {
+  return left.totalDistance - right.totalDistance || left.edgeCount - right.edgeCount;
+}
+
+function getCenteringDelta(state: AppStateData, driver: number): number | null {
+  const link = state.links[driver];
+  if (!link) {
+    return null;
+  }
+
+  const currentScore = scoreLinkedCentering(state.offsets, link);
+  const candidates = [-1, 1]
+    .filter((delta) => canApplyLinkedDelta(state.offsets, link, delta))
+    .map((delta) => ({
+      delta,
+      score: scoreLinkedCentering(applyLinkedDelta(state.offsets, link, delta), link),
+    }))
+    .filter(({ score }) => compareCenteringScores(score, currentScore) < 0)
+    .sort((left, right) => (
+      compareCenteringScores(left.score, right.score)
+      || Math.abs(state.offsets[driver] + left.delta) - Math.abs(state.offsets[driver] + right.delta)
+      || left.delta - right.delta
+    ));
+
+  return candidates[0]?.delta ?? null;
 }
 
 function getProbeDelta(offset: number, lastTriedDelta?: number): number {
@@ -331,6 +394,56 @@ function beginNextPrompt(
   };
 }
 
+function beginCenteringPromptOrNext(
+  state: AppStateData,
+  procedure: PlateLinkingProcedureState,
+  completedDriver: number,
+): AppStateData {
+  if (shouldProceedToSolution(state, procedure)) {
+    return beginNextPrompt(state, procedure, completedDriver);
+  }
+
+  const delta = getCenteringDelta(state, completedDriver);
+  if (delta === null) {
+    return beginNextPrompt(state, procedure, completedDriver);
+  }
+
+  return {
+    ...state,
+    mode: "linking",
+    linkingPromptTask: createPlateLinkingCenterPromptTask(state, completedDriver, delta),
+    plateLinkingProcedure: procedure,
+    solution: null,
+  };
+}
+
+export function advancePlateLinkingCenterPrompt(state: AppStateData): AppStateData {
+  const task = state.linkingPromptTask;
+  const procedure = state.plateLinkingProcedure;
+  const link = task ? state.links[task.driver] : null;
+  if (state.mode !== "linking" || task?.phase !== "center" || !procedure || !link) {
+    return state;
+  }
+
+  if (!canApplyLinkedDelta(state.offsets, link, task.delta)) {
+    return beginNextPrompt(state, procedure, task.driver);
+  }
+
+  const nextState = pushProcedureHistory(
+    {
+      ...state,
+      offsets: applyLinkedDelta(state.offsets, link, task.delta),
+    },
+    procedure,
+  );
+
+  return beginCenteringPromptOrNext(
+    nextState,
+    nextState.plateLinkingProcedure!,
+    task.driver,
+  );
+}
+
 export function startPlateLinkingProcedure(state: AppStateData): AppStateData {
   return startPlateLinkingProcedureFromDriver(state, null);
 }
@@ -480,7 +593,7 @@ export function completePlateLinkingObservation(state: AppStateData): AppStateDa
     nextProcedure,
   );
 
-  return beginNextPrompt(
+  return beginCenteringPromptOrNext(
     nextState,
     nextState.plateLinkingProcedure!,
     task.driver,

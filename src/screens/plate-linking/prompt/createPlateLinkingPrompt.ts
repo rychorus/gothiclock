@@ -13,6 +13,17 @@ export function createPlateLinkingPrompt(task: PlateLinkingPromptTask, plateCoun
     };
   }
 
+  if (task.phase === "center") {
+    const direction = task.direction === "up" ? "left" : "right";
+    return {
+      kind: "center",
+      message: `Move plate ${plateNumber} ${direction}`,
+      hint: "This puts that plate and the plates linked to it closer to center.",
+      plateIndex: task.driver,
+      direction: task.direction,
+    };
+  }
+
   const direction = task.direction === "up" ? "left" : "right";
   return {
     kind: "move",

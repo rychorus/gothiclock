@@ -243,6 +243,6 @@ export function getManualOffsetBounds(state: AppStateData, index: number) {
   return { min: -1, max: 1 };
 }
 
-export function canMoveManual() {
+export function canMoveManual(_state: AppStateData, _index: number, _direction: "up" | "down") {
   return true;
 }
