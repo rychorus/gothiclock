@@ -44,6 +44,7 @@ export function PlateColumn({
   const observedOffsetDelta = isObservePhase
     ? offset - (linkingPromptTask?.baseOffsets?.[index] ?? offset)
     : 0;
+  const blockedObservationDelta = isObservePhase ? (linkingPromptTask?.blockedObservations?.[index] ?? 0) : 0;
   const isManualLinked = Boolean(
     isManualDefineMode
     && manualDriverIndex !== null
@@ -267,8 +268,8 @@ export function PlateColumn({
     && linkingPromptTask?.driver === index;
   const leftSuggested = isSuggestedPrompt && linkingPromptTask.direction === "up";
   const rightSuggested = isSuggestedPrompt && linkingPromptTask.direction === "down";
-  const leftObserved = isObservePhase && observedOffsetDelta < 0;
-  const rightObserved = isObservePhase && observedOffsetDelta > 0;
+  const leftObserved = isObservePhase && (observedOffsetDelta < 0 || blockedObservationDelta < 0);
+  const rightObserved = isObservePhase && (observedOffsetDelta > 0 || blockedObservationDelta > 0);
 
   return (
     <article
