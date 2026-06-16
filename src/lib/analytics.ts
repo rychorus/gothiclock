@@ -20,6 +20,14 @@ function sendAnalyticsEvent(eventName: string, params: AnalyticsParams) {
   });
 }
 
+function slugifyAnalyticsValue(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
 export function getScreenAnalyticsName(mode: AppMode) {
   if (mode === "menu") {
     return "Main Menu";
@@ -101,7 +109,8 @@ export function getModalAnalyticsName(modal: ModalState) {
 }
 
 export function trackScreenView(screenName: string) {
-  sendAnalyticsEvent("screen_view", { screen_name: screenName });
+  const screenSlug = slugifyAnalyticsValue(screenName);
+  sendAnalyticsEvent(`screen_view_${screenSlug}`, { screen_name: screenName });
 }
 
 export function trackModalView(modalName: string | null) {
@@ -118,7 +127,17 @@ export function trackButtonClick(params: {
   modal?: string | null;
   context?: string | null;
 }) {
-  sendAnalyticsEvent("button_click", {
+  const screenSlug = slugifyAnalyticsValue(params.screen);
+  const labelSlug = slugifyAnalyticsValue(params.label);
+  const contextSlug = params.context ? slugifyAnalyticsValue(params.context) : "";
+  const eventName = [
+    "button_click",
+    screenSlug,
+    contextSlug,
+    labelSlug,
+  ].filter(Boolean).join("_");
+
+  sendAnalyticsEvent(eventName, {
     button_label: params.label,
     screen_name: params.screen,
     modal_name: params.modal || null,
