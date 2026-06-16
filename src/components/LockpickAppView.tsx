@@ -28,13 +28,11 @@ export function LockpickAppView({ app, appVersion }) {
   const { appState, modal, savedLocks, currentSavedLock, currentSolutionChunk, testingFeedback, powershellCode, actions, selectors } = app;
   const [isTopMenuOpen, setIsTopMenuOpen] = useState(false);
   const [isLoadSearchOpen, setIsLoadSearchOpen] = useState(false);
-  const [isLoadFilterOpen, setIsLoadFilterOpen] = useState(false);
   const [isLoadActionsOpen, setIsLoadActionsOpen] = useState(false);
   const [showDrafts, setShowDrafts] = useState(getPersistedShowDrafts);
   const [loadSearchQuery, setLoadSearchQuery] = useState("");
   const topMenuRef = useRef(null);
   const loadSearchRef = useRef(null);
-  const loadFilterRef = useRef(null);
   const loadActionsRef = useRef(null);
   const sharedSolutionName = appState.sharedLinkMetadata?.name;
   const heroTitle = appState.mode === "solution" && currentSavedLock && !currentSavedLock.isDraft
@@ -59,32 +57,6 @@ export function LockpickAppView({ app, appVersion }) {
           >
             <MaterialIcon name="search" />
           </button>
-          <div ref={loadFilterRef} className="hero-filter-wrap">
-            <button
-              className="solution-toggle-icon hero-menu-toggle"
-              type="button"
-              aria-label="Filter saved locks"
-              aria-expanded={isLoadFilterOpen}
-              onClick={() => setIsLoadFilterOpen((current) => !current)}
-            >
-              <MaterialIcon name="filter_alt" />
-            </button>
-            <div className="saved-lock-menu hero-menu" hidden={!isLoadFilterOpen}>
-              <button
-                className="saved-lock-menu-item saved-lock-menu-item--toggle"
-                type="button"
-                onClick={() => {
-                  setShowDrafts((current) => !current);
-                  setIsLoadFilterOpen(false);
-                }}
-              >
-                <span className="saved-lock-menu-item-check" aria-hidden="true">
-                  {showDrafts ? <MaterialIcon name="check" /> : null}
-                </span>
-                <span>Show drafts</span>
-              </button>
-            </div>
-          </div>
           <div ref={loadActionsRef} className="hero-filter-wrap">
             <button
               className="solution-toggle-icon hero-menu-toggle"
@@ -96,6 +68,19 @@ export function LockpickAppView({ app, appVersion }) {
               <MaterialIcon name="more_vert" />
             </button>
             <div className="saved-lock-menu hero-menu" hidden={!isLoadActionsOpen}>
+              <button
+                className="saved-lock-menu-item saved-lock-menu-item--toggle"
+                type="button"
+                onClick={() => {
+                  setShowDrafts((current) => !current);
+                  setIsLoadActionsOpen(false);
+                }}
+              >
+                <span className={`saved-lock-menu-item-check${showDrafts ? " is-visible" : ""}`} aria-hidden="true">
+                  {showDrafts ? <MaterialIcon name="check" /> : null}
+                </span>
+                <span>Show drafts</span>
+              </button>
               <button
                 className="saved-lock-menu-item"
                 type="button"
@@ -188,7 +173,6 @@ export function LockpickAppView({ app, appVersion }) {
     }
 
     setIsLoadSearchOpen(false);
-    setIsLoadFilterOpen(false);
     setIsLoadActionsOpen(false);
     setLoadSearchQuery("");
     return undefined;
@@ -216,14 +200,11 @@ export function LockpickAppView({ app, appVersion }) {
   }, [appState.mode, isLoadSearchOpen]);
 
   useEffect(() => {
-    if (!(isLoadFilterOpen || isLoadActionsOpen) || appState.mode !== "load") {
+    if (!isLoadActionsOpen || appState.mode !== "load") {
       return undefined;
     }
 
     function handlePointerDown(event) {
-      if (!loadFilterRef.current?.contains(event.target)) {
-        setIsLoadFilterOpen(false);
-      }
       if (!loadActionsRef.current?.contains(event.target)) {
         setIsLoadActionsOpen(false);
       }
@@ -231,7 +212,7 @@ export function LockpickAppView({ app, appVersion }) {
 
     document.addEventListener("pointerdown", handlePointerDown);
     return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [appState.mode, isLoadFilterOpen, isLoadActionsOpen]);
+  }, [appState.mode, isLoadActionsOpen]);
 
   return (
     <>

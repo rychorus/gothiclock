@@ -2260,15 +2260,22 @@ body.is-resizing .plate-track {
 
 .saved-lock-menu-item--toggle {
   width: 100%;
+  gap: 0;
 }
 
 .saved-lock-menu-item-check {
-  width: 1rem;
+  width: 0;
   height: 1rem;
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
+  overflow: hidden;
   color: #f6dfb2;
+}
+
+.saved-lock-menu-item-check.is-visible {
+  width: 1rem;
+  margin-right: 0.55rem;
 }
 
 .saved-lock-menu-item-check .material-icon {
