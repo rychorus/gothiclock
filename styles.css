@@ -647,10 +647,10 @@ body.is-testing-mode .lock-stage {
 .stage-manual-linking {
   z-index: 4;
   border-radius: 999px;
-  border: 1px solid rgba(227, 167, 77, 0.28);
-  background: rgba(45, 30, 19, 0.76);
-  color: var(--text);
-  padding: 0.52rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: transparent;
+  color: var(--muted);
+  padding: 0.5rem 0.96rem;
   font-size: 0.74rem;
   cursor: pointer;
   transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
@@ -659,8 +659,8 @@ body.is-testing-mode .lock-stage {
 .stage-manual-linking:hover,
 .stage-manual-linking:focus-visible {
   transform: translateY(-1px);
-  border-color: rgba(227, 167, 77, 0.55);
-  background: rgba(58, 38, 22, 0.92);
+  border-color: rgba(227, 167, 77, 0.24);
+  background: rgba(255, 255, 255, 0.02);
   outline: none;
 }
 
@@ -944,6 +944,11 @@ body.is-testing-mode .lock-stage {
     0 0 0 2px rgba(141, 198, 214, 0.82),
     0 0 1rem rgba(141, 198, 214, 0.34),
     0 10px 24px rgba(141, 198, 214, 0.22);
+}
+
+.plate-column.is-observe-blocked-left .plate-body,
+.plate-column.is-observe-blocked-right .plate-body {
+  animation: testingBlockedShake 360ms ease-in-out;
 }
 
 .plate-button {

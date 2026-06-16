@@ -22,6 +22,7 @@ export function createPlateLinkingPromptTask(
     baseOffsets: null,
     observations: Array.from({ length: state.plateCount }, () => 0),
     blockedObservations: Array.from({ length: state.plateCount }, () => 0),
+    blockedObservationCounts: Array.from({ length: state.plateCount }, () => 0),
   };
 }
 
@@ -55,6 +56,7 @@ export function advancePlateLinkingPrompt(state: AppStateData): AppStateData {
       baseOffsets: cloneOffsets(offsets),
       observations: Array.from({ length: state.plateCount }, () => 0),
       blockedObservations: Array.from({ length: state.plateCount }, () => 0),
+      blockedObservationCounts: Array.from({ length: state.plateCount }, () => 0),
     },
   };
 }
@@ -84,6 +86,9 @@ export function updatePlateLinkingObservation(
       blockedObservations: state.linkingPromptTask.blockedObservations.map((value, observationIndex) => (
         observationIndex === index ? 0 : value
       )),
+      blockedObservationCounts: state.linkingPromptTask.blockedObservationCounts.map((value, observationIndex) => (
+        observationIndex === index ? 0 : value
+      )),
     },
   };
 }
@@ -111,6 +116,9 @@ export function recordBlockedPlateLinkingObservation(
       )),
       blockedObservations: state.linkingPromptTask.blockedObservations.map((value, observationIndex) => (
         observationIndex === index ? Math.sign(attemptedDelta) : value
+      )),
+      blockedObservationCounts: state.linkingPromptTask.blockedObservationCounts.map((value, observationIndex) => (
+        observationIndex === index ? value + 1 : value
       )),
     },
   };
@@ -147,6 +155,7 @@ export function stepBackPlateLinkingPrompt(state: AppStateData): AppStateData {
         baseOffsets: null,
         observations: Array.from({ length: state.plateCount }, () => 0),
         blockedObservations: Array.from({ length: state.plateCount }, () => 0),
+        blockedObservationCounts: Array.from({ length: state.plateCount }, () => 0),
       },
     };
   }

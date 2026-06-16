@@ -45,6 +45,7 @@ export function PlateColumn({
     ? offset - (linkingPromptTask?.baseOffsets?.[index] ?? offset)
     : 0;
   const blockedObservationDelta = isObservePhase ? (linkingPromptTask?.blockedObservations?.[index] ?? 0) : 0;
+  const blockedObservationCount = isObservePhase ? (linkingPromptTask?.blockedObservationCounts?.[index] ?? 0) : 0;
   const isManualLinked = Boolean(
     isManualDefineMode
     && manualDriverIndex !== null
@@ -90,6 +91,12 @@ export function PlateColumn({
 
     if (mode === "testing" && testingFeedback?.blockedPlates?.includes(index)) {
       nextClasses.push("is-testing-blocked");
+    }
+
+    if (blockedObservationCount > 0 && blockedObservationDelta !== 0) {
+      nextClasses.push("is-observe-blocked");
+      nextClasses.push(blockedObservationDelta < 0 ? "is-observe-blocked-left" : "is-observe-blocked-right");
+      nextClasses.push(`is-observe-blocked-${blockedObservationCount}`);
     }
 
     if (mode === "linking" && isDriver) {
@@ -151,6 +158,8 @@ export function PlateColumn({
     isManualDefineMode,
     isManualLinked,
     isManualPickMode,
+    blockedObservationCount,
+    blockedObservationDelta,
     linkingPromptTask,
     manualMovedOffset,
     mode,
