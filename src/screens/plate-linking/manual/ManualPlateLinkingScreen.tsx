@@ -31,39 +31,46 @@ export function ManualPlateLinkingScreen({ appState, currentSolutionChunk, testi
         instructionClassName="is-manual-mode"
       />
 
-      <div className="manual-linking-reset-wrap">
-        <button className="action-button secondary" type="button" onClick={actions.resetManualLinking}>
-          <span className="action-button-row">
-            <MaterialIcon name="restart_alt" />
-            <span>Reset all</span>
-          </span>
-        </button>
-      </div>
+      <div className="manual-linking-bottom-actions">
+        <div className="manual-linking-reset-wrap">
+          <button className="action-button secondary" type="button" onClick={actions.resetManualLinking}>
+            <span className="action-button-row">
+              <MaterialIcon name="restart_alt" />
+              <span>Reset all</span>
+            </span>
+          </button>
+        </div>
 
-      <div className="footer-actions" data-mode="manual_linking" data-count="2">
-        <button className="action-button secondary" type="button" onClick={actions.goBackScreen}>
-          <span className="action-button-row">
-            <MaterialIcon name="chevron_left" />
-            <span>Guided Mode</span>
-          </span>
-        </button>
-        <button
-          className="action-button primary"
-          type="button"
-          disabled={isPickingDriver && selectedDriver === null && !isAllCompleted}
-          onClick={isAllCompleted ? actions.solveManualLinking : actions.nextManualLinkingStep}
-        >
-          {isAllCompleted ? (
-            "Solve"
-          ) : isPickingDriver || hasDefinedLink ? (
-            "Next"
-          ) : (
-            <>
-              <span className="action-button-row"><span>Next</span></span>
-              <span className="action-button-subtitle">nothing else moved</span>
-            </>
-          )}
-        </button>
+        <div className="footer-actions" data-mode="manual_linking" data-count="2">
+          <button
+            className="action-button secondary"
+            type="button"
+            disabled={isPickingDriver || selectedDriver === null}
+            onClick={actions.cancelManualLinkingSelection}
+          >
+            <span className="action-button-row">
+              <MaterialIcon name="close" />
+              <span>Cancel</span>
+            </span>
+          </button>
+          <button
+            className="action-button primary"
+            type="button"
+            disabled={isPickingDriver && selectedDriver === null && !isAllCompleted}
+            onClick={isAllCompleted ? actions.solveManualLinking : actions.nextManualLinkingStep}
+          >
+            {isAllCompleted ? (
+              "Solve"
+            ) : isPickingDriver || hasDefinedLink ? (
+              "Next"
+            ) : (
+              <>
+                <span className="action-button-row"><span>Next</span></span>
+                <span className="action-button-subtitle">nothing else moved</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </>
   );

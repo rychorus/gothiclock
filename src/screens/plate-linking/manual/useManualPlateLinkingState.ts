@@ -150,6 +150,40 @@ export function nextManualLinkingStep(current: AppStateData): AppStateData {
   };
 }
 
+export function cancelManualLinkingSelection(current: AppStateData): AppStateData {
+  if (current.mode !== "manual_linking" || !current.manualLinkingState) {
+    return current;
+  }
+
+  const selectedDriver = current.manualLinkingState.selectedDriver;
+  if (selectedDriver === null) {
+    return current;
+  }
+
+  const links = current.manualLinkingState.links.map((link, index) => (
+    index === selectedDriver ? null : link
+  ));
+  const linkDeltas = current.manualLinkingState.linkDeltas.map((value, index) => (
+    index === selectedDriver ? null : value
+  ));
+  const completedDrivers = current.manualLinkingState.completedDrivers.filter((index) => index !== selectedDriver);
+
+  return {
+    ...current,
+    manualLinkingState: {
+      ...current.manualLinkingState,
+      phase: "choose-driver",
+      selectedDriver: null,
+      selectedDirection: null,
+      offsets: Array.from({ length: current.plateCount }, () => 0),
+      links,
+      linkDeltas,
+      completedDrivers,
+    },
+    solution: null,
+  };
+}
+
 export function solveManualLinking(current: AppStateData): AppStateData {
   if (current.mode !== "manual_linking" || !current.manualLinkingState) {
     return current;
@@ -181,9 +215,16 @@ export function resetManualLinking(current: AppStateData): AppStateData {
     return current;
   }
 
+  const blankState = createManualLinkingState(current);
+
   return {
     ...current,
-    manualLinkingState: createManualLinkingState(current),
+    manualLinkingState: {
+      ...blankState,
+      links: Array.from({ length: current.plateCount }, () => null),
+      linkDeltas: Array.from({ length: current.plateCount }, () => null),
+      completedDrivers: [],
+    },
     solution: null,
   };
 }

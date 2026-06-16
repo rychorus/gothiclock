@@ -18,6 +18,7 @@ import {
   canMoveManual,
   getManualOffsetBounds,
   getManualViewState,
+  cancelManualLinkingSelection as cancelManualLinkingSelectionState,
   nextManualLinkingStep as nextManualLinkingStepState,
   selectManualDriver as selectManualDriverState,
   setManualLinkRelation,
@@ -133,6 +134,10 @@ export function usePlateLinkingState({ appState, setAppState }: {
     setAppState(resetManualLinkingState);
   }
 
+  function cancelManualLinkingSelection() {
+    setAppState(cancelManualLinkingSelectionState);
+  }
+
   return useMemo(() => ({
     movePlate,
     commitDrag,
@@ -141,6 +146,7 @@ export function usePlateLinkingState({ appState, setAppState }: {
     nextManualLinkingStep,
     solveManualLinking,
     resetManualLinking,
+    cancelManualLinkingSelection,
     stepBackPlateLinkingPrompt: () => setAppState(stepBackPlateLinkingPrompt),
     resetPlateLinkingPrompt: () => setAppState(resetPlateLinkingProcedure),
     advancePlateLinkingPrompt: () => setAppState(advancePlateLinkingPrompt),
