@@ -27,7 +27,7 @@ export function ManualPlateLinkingScreen({ appState, currentSolutionChunk, testi
         selectionMode={isPickingDriver ? "manual-pick" : "manual-define"}
         manualDriverIndex={selectedDriver}
         onSelectPlate={actions.selectManualDriver}
-        instruction={isPickingDriver ? "Move a plate to link" : `Define links for ${selectedDriver !== null ? getVisiblePlateLabel(selectedDriver, appState.plateCount) : "the selected plate"}.`}
+        instruction={isPickingDriver ? "Move a plate to link" : `What moves with ${selectedDriver !== null ? getVisiblePlateLabel(selectedDriver, appState.plateCount) : "the selected plate"}?`}
         instructionClassName="is-manual-mode"
       />
 
