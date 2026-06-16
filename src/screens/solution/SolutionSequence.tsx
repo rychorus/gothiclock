@@ -1,3 +1,6 @@
+import { MaterialIcon } from "../../lib/icons";
+import { getVisiblePlateLabel } from "../../lib/notation";
+
 export function SolutionSequence({ chunks, currentIndex, onSelect, className = "solution-sequence is-collapsed" }) {
   if (!Array.isArray(chunks) || !chunks.length) {
     return null;
@@ -21,12 +24,10 @@ export function SolutionSequence({ chunks, currentIndex, onSelect, className = "
             data-solution-step={index}
             onClick={() => onSelect(index)}
           >
-            {chunk.keyGroups.map(({ key, count }) => (
-              <span className="solution-key-group" key={`${chunk.id}-${key}-${count}`}>
-                <span className="solution-key">{key}</span>
-                {count > 1 ? <span className="solution-key-count">&times;{count}</span> : null}
-              </span>
-            ))}
+            <span className="solution-step-label">{chunk.type === "move" && chunk.move ? getVisiblePlateLabel(chunk.move.plate, chunk.offsets.length) : chunk.label}</span>
+            {chunk.type === "move" && chunk.move ? (
+              <MaterialIcon name={chunk.move.direction === "up" ? "arrow_back" : "arrow_forward"} />
+            ) : null}
           </button>
         );
       })}

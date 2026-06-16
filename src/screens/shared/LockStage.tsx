@@ -15,7 +15,6 @@ export function LockStage({
   instruction = "",
   instructionClassName = "",
 }) {
-  const showResetNote = appState.mode === "solution" && currentSolutionChunk?.type === "reset";
   const hasStageControls = showResetButton || showManualButton;
   const isManualPicking = selectionMode === "manual-pick";
   const isManualDefining = selectionMode === "manual-define";
@@ -31,7 +30,7 @@ export function LockStage({
         {instruction ? <div className={`stage-instruction${appState.mode === "linking" || appState.mode === "manual_linking" ? " is-linking-mode" : ""}${appState.mode === "manual_linking" ? " is-manual-mode" : ""}${instructionClassName ? ` ${instructionClassName}` : ""}`} aria-live="polite">{instruction}</div> : null}
         <div className="plates-row" aria-label="Lock plates">
           {visibleOffsets.map((offset, index) => (
-            <PlateColumn
+              <PlateColumn
               key={index}
               index={index}
               offset={offset}
@@ -48,13 +47,13 @@ export function LockStage({
                 appState.plateLinkingProcedure?.deferredDrivers
                   .some((entry) => entry.driver === index),
               )}
+              plateCount={appState.plateCount}
               bounds={selectors.getOffsetBounds(index)}
               canMoveUp={selectors.canMove(index, "up")}
               canMoveDown={selectors.canMove(index, "down")}
               onMove={actions.movePlate}
               onCommitDrag={actions.commitDrag}
               onSelect={onSelectPlate}
-              bottomNote={showResetNote && index === appState.offsets.length - 1 ? "Reset The Lock" : ""}
             />
           ))}
         </div>

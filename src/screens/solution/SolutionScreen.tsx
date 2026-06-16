@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MaterialIcon } from "../../lib/icons";
+import { formatSolutionStepInstruction } from "../../lib/solution";
 import { LockStage } from "../shared/LockStage";
 import { SolutionSequence } from "./SolutionSequence";
 
@@ -67,14 +68,19 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
       ) : appState.mode !== "testing" ? (
         <section className="bottom-panel">
           <div className="controls-heading bottom-panel-heading">
-            <div className="solution-progress-nav" aria-label="Solution step navigation">
-              <button className="solution-nav-button" type="button" aria-label="Previous solution step" disabled={(appState.solution?.index ?? 0) <= 0} onClick={() => actions.setSolutionStep((appState.solution?.index ?? 0) - 1)}>
-                <MaterialIcon name="chevron_left" />
-              </button>
-              <p className="controls-title is-solution">{currentStep} of {solutionChunks.length || 1}</p>
-              <button className="solution-nav-button" type="button" aria-label="Next solution step" disabled={(appState.solution?.index ?? 0) >= solutionChunks.length - 1} onClick={() => actions.setSolutionStep((appState.solution?.index ?? 0) + 1)}>
-                <MaterialIcon name="chevron_right" />
-              </button>
+            <div className="solution-step-header">
+              <div className="solution-progress-nav" aria-label="Solution step navigation">
+                <button className="solution-nav-button" type="button" aria-label="Previous solution step" disabled={(appState.solution?.index ?? 0) <= 0} onClick={() => actions.setSolutionStep((appState.solution?.index ?? 0) - 1)}>
+                  <MaterialIcon name="chevron_left" />
+                </button>
+                <p className="controls-title is-solution">{currentStep} of {solutionChunks.length || 1}</p>
+                <button className="solution-nav-button" type="button" aria-label="Next solution step" disabled={(appState.solution?.index ?? 0) >= solutionChunks.length - 1} onClick={() => actions.setSolutionStep((appState.solution?.index ?? 0) + 1)}>
+                  <MaterialIcon name="chevron_right" />
+                </button>
+              </div>
+              <p className="solution-step-instruction">
+                {formatSolutionStepInstruction(currentSolutionChunk, appState.plateCount)}
+              </p>
             </div>
             <div ref={solutionMenuRef} className="solution-menu-wrap">
               <button className="solution-toggle-icon" type="button" aria-label="Solution actions" aria-expanded={isSolutionMenuOpen} onClick={() => setIsSolutionMenuOpen((current) => !current)}>

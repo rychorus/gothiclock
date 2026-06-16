@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { getVisiblePlateLabel } from "../../lib/notation";
 
 function getTransformValue(offset, dragPixels) {
   if (dragPixels !== null) {
@@ -21,13 +22,13 @@ export function PlateColumn({
   selection,
   isKnown,
   isDeferred,
+  plateCount,
   bounds,
   canMoveUp,
   canMoveDown,
   onMove,
   onCommitDrag,
   onSelect,
-  bottomNote,
 }) {
   const viewportRef = useRef(null);
   const holeRef = useRef(null);
@@ -48,6 +49,8 @@ export function PlateColumn({
   const manualMovedOffset = isManualDefineMode ? (manualLinkingState?.offsets[index] ?? 0) : 0;
   const isManualLinkedLeft = isManualDefineMode && manualMovedOffset === -1;
   const isManualLinkedRight = isManualDefineMode && manualMovedOffset === 1;
+  const showSolutionLabel = mode === "solution" && Number.isInteger(plateCount) && plateCount > 0;
+  const plateLabel = showSolutionLabel ? getVisiblePlateLabel(index, plateCount) : "";
   const displayOffset = isManualPickMode
     ? (isManualActiveDriver ? selectedDirectionDelta : 0)
     : isManualDefineMode && isManualActiveDriver
@@ -277,7 +280,7 @@ export function PlateColumn({
 
   return (
     <article
-      className={classes}
+      className={`${classes}${showSolutionLabel ? " is-solution-labeled" : ""}`}
       data-plate-index={index}
       role={isManualDefineMode ? "button" : undefined}
       tabIndex={isManualDefineMode ? 0 : undefined}
@@ -285,6 +288,7 @@ export function PlateColumn({
       onClick={isManualDefineMode ? handleSelect : undefined}
       onKeyDown={isManualDefineMode ? handleKeyDown : undefined}
     >
+      {showSolutionLabel ? <div className="plate-column-label" aria-hidden="true">{plateLabel}</div> : null}
       <button
         className={`plate-button${leftSuggested ? " is-suggested" : ""}${isManualLinkedLeft ? " is-manual-linked-left" : ""}`}
         type="button"
@@ -344,8 +348,6 @@ export function PlateColumn({
       <div className="plate-status-row">
         <span className="plate-status" aria-hidden="true"></span>
       </div>
-
-      {bottomNote ? <div className="plate-column-note" aria-live="polite">{bottomNote}</div> : null}
     </article>
   );
 }

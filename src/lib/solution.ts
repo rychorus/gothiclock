@@ -1,4 +1,5 @@
 import { CENTER_INDEX, cloneOffsets } from "./lockData";
+import { getVisiblePlateLabel } from "./notation";
 import type {
   AppStateData,
   Offsets,
@@ -32,6 +33,37 @@ export function formatKeyGroups(groups: Array<{ key: string; count: number }>): 
   return groups.map(({ key, count }) => (count > 1 ? `${key}\u00d7${count}` : key)).join(" ");
 }
 
+export function formatSolutionStepLabel(move: SolutionMoveData, plateCount: number): string {
+  const plateLabel = getVisiblePlateLabel(move.plate, plateCount);
+  const directionLabel = move.direction === "up" ? "<" : ">";
+  return `${plateLabel} ${directionLabel}`;
+}
+
+export function formatSolutionStepInstruction(
+  chunk: Pick<SolutionChunkData, "type" | "move"> | null | undefined,
+  plateCount: number,
+): string {
+  if (!chunk) {
+    return "";
+  }
+
+  if (chunk.type === "reset") {
+    return "Reset";
+  }
+
+  if (chunk.type === "solved") {
+    return "Solved";
+  }
+
+  if (!chunk.move) {
+    return "";
+  }
+
+  const plateNumber = plateCount - chunk.move.plate;
+  const directionLabel = chunk.move.direction === "up" ? "Left" : "Right";
+  return `Move Plate ${plateNumber} ${directionLabel}`;
+}
+
 export function buildSolutionChunks(
   moves: SolutionMoveData[],
   startOffsets: Offsets,
@@ -40,7 +72,7 @@ export function buildSolutionChunks(
   const chunks: SolutionChunkData[] = [{
     id: "reset",
     type: "reset",
-    label: "R",
+    label: "Reset",
     keys: ["R"],
     keyGroups: [{ key: "R", count: 1 }],
     offsets: cloneOffsets(startOffsets),
@@ -75,7 +107,7 @@ export function buildSolutionChunks(
     chunks.push({
       id: `move-${index}`,
       type: "move",
-      label: formatKeyGroups(groupConsecutiveKeys(keys)),
+      label: formatSolutionStepLabel(move, links.length),
       keys,
       keyGroups: groupConsecutiveKeys(keys),
       offsets: cloneOffsets(offsets),
