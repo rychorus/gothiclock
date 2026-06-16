@@ -4,7 +4,7 @@ export function getHeroTitle(mode) {
   }
 
   if (mode === "manual_linking") {
-    return "Manual Link Input";
+    return "Manual Linking";
   }
 
   if (mode === "setup") {

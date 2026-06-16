@@ -177,6 +177,7 @@ export function useLockpickApp() {
       selectManualDriver: plateLinking.selectManualDriver,
       nextManualLinkingStep: plateLinking.nextManualLinkingStep,
       solveManualLinking: plateLinking.solveManualLinking,
+      resetManualLinking: plateLinking.resetManualLinking,
       stepBackPlateLinkingPrompt: plateLinking.stepBackPlateLinkingPrompt,
       resetPlateLinkingPrompt: plateLinking.resetPlateLinkingPrompt,
       advancePlateLinkingPrompt: plateLinking.advancePlateLinkingPrompt,

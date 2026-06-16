@@ -1,5 +1,6 @@
-import { LockStage } from "../shared/LockStage";
-import { getVisiblePlateLabel } from "../../lib/notation";
+import { MaterialIcon } from "../../../lib/icons";
+import { LockStage } from "../../shared/LockStage";
+import { getVisiblePlateLabel } from "../../../lib/notation";
 
 export function ManualPlateLinkingScreen({ appState, currentSolutionChunk, testingFeedback, selectors, actions }) {
   const manualState = appState.manualLinkingState;
@@ -14,6 +15,7 @@ export function ManualPlateLinkingScreen({ appState, currentSolutionChunk, testi
       ? manualState.links[selectedDriver]?.some((value, index) => index !== selectedDriver && value !== 0)
       : false,
   );
+
   return (
     <>
       <LockStage
@@ -25,13 +27,25 @@ export function ManualPlateLinkingScreen({ appState, currentSolutionChunk, testi
         selectionMode={isPickingDriver ? "manual-pick" : "manual-define"}
         manualDriverIndex={selectedDriver}
         onSelectPlate={actions.selectManualDriver}
-        instruction={isPickingDriver ? "Choose the first plate to link manually." : `Define links for ${selectedDriver !== null ? getVisiblePlateLabel(selectedDriver, appState.plateCount) : "the selected plate"}.`}
+        instruction={isPickingDriver ? "Choose plate to link manually." : `Define links for ${selectedDriver !== null ? getVisiblePlateLabel(selectedDriver, appState.plateCount) : "the selected plate"}.`}
         instructionClassName="is-manual-mode"
       />
 
+      <div className="manual-linking-reset-wrap">
+        <button className="action-button secondary" type="button" onClick={actions.resetManualLinking}>
+          <span className="action-button-row">
+            <MaterialIcon name="restart_alt" />
+            <span>Reset all</span>
+          </span>
+        </button>
+      </div>
+
       <div className="footer-actions" data-mode="manual_linking" data-count="2">
         <button className="action-button secondary" type="button" onClick={actions.goBackScreen}>
-          Back to guided mode
+          <span className="action-button-row">
+            <MaterialIcon name="chevron_left" />
+            <span>Guided Mode</span>
+          </span>
         </button>
         <button
           className="action-button primary"

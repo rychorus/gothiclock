@@ -404,6 +404,12 @@ body.is-solution-mode .hero-title {
   letter-spacing: 0.04em;
 }
 
+body.is-manual-linking-mode .hero-title {
+  color: rgba(244, 234, 216, 0.92);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+}
+
 body.is-load-mode .hero-title {
   color: var(--text);
   font-size: 1.2rem;
@@ -763,24 +769,20 @@ body.is-testing-mode .lock-stage {
 }
 
 .plate-column.is-manual-pick {
-  grid-template-columns: 1rem var(--plate-width) var(--plate-track-width) var(--plate-width);
+  grid-template-columns: var(--plate-width) var(--plate-track-width) var(--plate-width);
   column-gap: 0.42rem;
 }
 
-.plate-column.is-manual-pick .plate-selection-checkbox {
+.plate-column.is-manual-pick .plate-button[data-direction="left"] {
   grid-column: 1;
 }
 
-.plate-column.is-manual-pick .plate-button[data-direction="left"] {
+.plate-column.is-manual-pick .plate-viewport {
   grid-column: 2;
 }
 
-.plate-column.is-manual-pick .plate-viewport {
-  grid-column: 3;
-}
-
 .plate-column.is-manual-pick .plate-button[data-direction="right"] {
-  grid-column: 4;
+  grid-column: 3;
 }
 
 .plate-column.is-manual-pick .plate-body {
@@ -836,7 +838,9 @@ body.is-testing-mode .lock-stage {
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
     inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
-    0 10px 22px rgba(0, 0, 0, 0.22);
+    0 0 0 2px rgba(183, 217, 141, 0.9),
+    0 0 1.1rem rgba(183, 217, 141, 0.28),
+    0 12px 24px rgba(183, 217, 141, 0.18);
 }
 
 .plate-column.is-manual-completed:hover .plate-body,
@@ -845,7 +849,9 @@ body.is-testing-mode .lock-stage {
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
     inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
-    0 10px 22px rgba(0, 0, 0, 0.22);
+    0 0 0 2px rgba(183, 217, 141, 0.9),
+    0 0 1.1rem rgba(183, 217, 141, 0.28),
+    0 12px 24px rgba(183, 217, 141, 0.18);
 }
 
 .lock-stage.is-manual-picking .plate-column.is-manual-completed .plate-body,
@@ -855,15 +861,14 @@ body.is-testing-mode .lock-stage {
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
     inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
-    0 10px 22px rgba(0, 0, 0, 0.22);
+    0 0 0 2px rgba(183, 217, 141, 0.9),
+    0 0 1.1rem rgba(183, 217, 141, 0.28),
+    0 12px 24px rgba(183, 217, 141, 0.18);
 }
 
 .lock-stage.is-manual-defining .plate-column.is-manual-selectable .plate-body,
 .lock-stage.is-manual-defining .plate-column.is-manual-selectable:hover .plate-body,
-.lock-stage.is-manual-defining .plate-column.is-manual-selectable:focus-visible .plate-body,
-.lock-stage.is-manual-defining .plate-column.is-manual-completed .plate-body,
-.lock-stage.is-manual-defining .plate-column.is-manual-completed:hover .plate-body,
-.lock-stage.is-manual-defining .plate-column.is-manual-completed:focus-visible .plate-body {
+.lock-stage.is-manual-defining .plate-column.is-manual-selectable:focus-visible .plate-body {
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
@@ -981,6 +986,28 @@ body.is-testing-mode .lock-stage {
   outline: none;
 }
 
+.lock-stage.is-manual-defining .plate-button:hover,
+.lock-stage.is-manual-defining .plate-button:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: none;
+  outline: none;
+}
+
+.lock-stage.is-manual-defining .plate-button[data-direction="left"]:hover,
+.lock-stage.is-manual-defining .plate-button[data-direction="left"]:focus-visible {
+  border-color: rgba(227, 167, 77, 0.82);
+  background: rgba(227, 167, 77, 0.18);
+  box-shadow: 0 0 0.95rem rgba(227, 167, 77, 0.24);
+}
+
+.lock-stage.is-manual-defining .plate-button[data-direction="right"]:hover,
+.lock-stage.is-manual-defining .plate-button[data-direction="right"]:focus-visible {
+  border-color: rgba(141, 198, 214, 0.82);
+  background: rgba(141, 198, 214, 0.18);
+  box-shadow: 0 0 0.95rem rgba(141, 198, 214, 0.22);
+}
+
 .plate-button[disabled] {
   opacity: 0.28;
   cursor: default;
@@ -1019,26 +1046,6 @@ body.is-testing-mode .lock-stage {
   border-color: rgba(141, 198, 214, 0.82);
   background: rgba(141, 198, 214, 0.18);
   box-shadow: 0 0 0.95rem rgba(141, 198, 214, 0.22);
-}
-
-.plate-selection-checkbox {
-  grid-column: 1;
-  align-self: center;
-  justify-self: center;
-  width: 0.95rem;
-  height: 0.95rem;
-  border-radius: 0.22rem;
-  border: 1px solid rgba(227, 167, 77, 0.55);
-  background: rgba(23, 16, 11, 0.88);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-}
-
-.plate-selection-checkbox.is-checked {
-  border-color: rgba(183, 217, 141, 0.72);
-  background: linear-gradient(135deg, rgba(183, 217, 141, 0.95), rgba(94, 133, 69, 0.95));
-  box-shadow:
-    0 0 0 0.12rem rgba(183, 217, 141, 0.14),
-    inset 0 0 0 0.12rem rgba(255, 255, 255, 0.12);
 }
 
 .plate-button span {
@@ -2223,6 +2230,36 @@ body.is-resizing .plate-track {
   padding: 0.72rem 1.2rem;
   cursor: pointer;
   transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, opacity 140ms ease;
+}
+
+.manual-linking-reset-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0.15rem 0 0.75rem;
+}
+
+.manual-linking-reset-wrap .action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  height: auto;
+  padding: 0.42rem 0.78rem;
+  font-size: 0.76rem;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.manual-linking-reset-wrap .action-button-row {
+  gap: 0.32rem;
+}
+
+.manual-linking-reset-wrap .material-icon {
+  width: 0.9rem;
+  height: 0.9rem;
 }
 
 .action-button-row {

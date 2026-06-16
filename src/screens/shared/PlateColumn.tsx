@@ -45,11 +45,9 @@ export function PlateColumn({
     && manualDriverIndex !== index
     && manualLinkingState?.links[manualDriverIndex]?.[index],
   );
-  const manualMovedOffset = isManualDefineMode && manualDriverIndex !== null && manualDriverIndex !== index
-    ? manualLinkingState?.offsets[index] ?? 0
-    : 0;
-  const isManualLinkedLeft = isManualDefineMode && manualMovedOffset < 0;
-  const isManualLinkedRight = isManualDefineMode && manualMovedOffset > 0;
+  const manualMovedOffset = isManualDefineMode ? (manualLinkingState?.offsets[index] ?? 0) : 0;
+  const isManualLinkedLeft = isManualDefineMode && manualMovedOffset === -1;
+  const isManualLinkedRight = isManualDefineMode && manualMovedOffset === 1;
   const displayOffset = isManualPickMode
     ? (isManualActiveDriver ? selectedDirectionDelta : 0)
     : isManualDefineMode && isManualActiveDriver
@@ -129,7 +127,11 @@ export function PlateColumn({
       nextClasses.push("is-manual-driver");
     }
 
-    if (isManualPickMode && !isManualCompleted) {
+    if (isManualPickMode && isManualCompleted) {
+      nextClasses.push("is-manual-completed");
+    }
+
+    if (isManualPickMode) {
       nextClasses.push("is-manual-selectable");
     }
 
@@ -137,7 +139,7 @@ export function PlateColumn({
       nextClasses.push("is-manual-selectable");
     }
 
-    if (isManualDefineMode && isManualLinked) {
+    if (isManualDefineMode && isManualLinked && manualMovedOffset !== 0) {
       nextClasses.push(manualMovedOffset > 0 ? "is-manual-linked-same" : "is-manual-linked-opposite");
     }
 
@@ -280,10 +282,6 @@ export function PlateColumn({
       onClick={isManualDefineMode ? handleSelect : undefined}
       onKeyDown={isManualDefineMode ? handleKeyDown : undefined}
     >
-      {isManualPickMode ? (
-        <div className={`plate-selection-checkbox${isManualCompleted ? " is-checked" : ""}${isManualActiveDriver ? " is-active-driver" : ""}`} aria-hidden="true"></div>
-      ) : null}
-
       <button
         className={`plate-button${leftSuggested ? " is-suggested" : ""}${isManualLinkedLeft ? " is-manual-linked-left" : ""}`}
         type="button"

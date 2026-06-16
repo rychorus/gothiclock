@@ -7,7 +7,7 @@ import { ImportNotationScreen } from "../screens/main-menu/ImportNotationScreen"
 import { LoadScreen } from "../screens/load-screen/LoadScreen";
 import { PlateSetupScreen } from "../screens/plate-setup/PlateSetupScreen";
 import { PlateLinkingScreen } from "../screens/plate-linking/PlateLinkingScreen";
-import { ManualPlateLinkingScreen } from "../screens/plate-linking/ManualPlateLinkingScreen";
+import { ManualPlateLinkingScreen } from "../screens/plate-linking/manual/ManualPlateLinkingScreen";
 import { SolutionScreen } from "../screens/solution/SolutionScreen";
 
 const LOAD_SCREEN_SHOW_DRAFTS_STORAGE_KEY = "gothic-lockpick.load-screen.show-drafts";
