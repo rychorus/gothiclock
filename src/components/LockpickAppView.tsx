@@ -239,6 +239,12 @@ export function LockpickAppView({ app, appVersion }) {
               onStartNewLock={actions.startNewLock}
               onOpenLoadLock={app.openLoadLockDialog}
               onOpenImportNotation={app.openImportNotationDialog}
+              onSubmitFeedback={() => {
+                const url = new URL("https://docs.google.com/forms/d/e/1FAIpQLScd_IAOM_28xDOemnu8HFfaVpZqYZSYa64G4Pjyfj0K0ybFSQ/viewform");
+                url.searchParams.set("usp", "pp_url");
+                url.searchParams.set("entry.379668700", appVersion);
+                window.open(url.toString(), "_blank", "noopener,noreferrer");
+              }}
             />
           ) : appState.mode === "import" ? (
             <ImportNotationScreen onCancel={actions.goToMainMenu} onImport={app.importNotation} />

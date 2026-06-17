@@ -134,6 +134,7 @@
 .controls-card {
   padding: 0.8rem 0 0;
   display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: 0.55rem;
   position: relative;
   border-top: 1px solid var(--divider);
@@ -268,6 +269,17 @@
 .menu-actions {
   display: grid;
   gap: 0.65rem;
+  width: 100%;
+  max-width: 22rem; /* This now controls how wide the stack of buttons gets */
+}
+
+.menu-actions-wrap {
+  display: flex;
+  align-items: flex-start; /* Pushes the buttons to the top */
+  justify-content: center;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-top: 1.5rem; /* Adds the top margin - feel free to adjust this value! */
 }
 
 body.is-menu-mode .menu-actions {
@@ -275,13 +287,42 @@ body.is-menu-mode .menu-actions {
 }
 
 body.is-menu-mode .menu-actions .action-button {
-  width: min(100%, 18.5rem);
-  min-width: min(18.5rem, 100%);
-  max-width: 18.5rem;
+  width: min(100%, 22rem);
+  min-width: min(22rem, 100%);
+  max-width: 22rem;
 }
 
 .menu-actions .action-button:first-child {
   margin-top: 0.55rem;
+}
+
+.menu-footer-links {
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  margin-top: auto;
+  padding: 0.2rem 0 0.05rem;
+}
+
+.menu-footer-link {
+  border: 1px solid rgba(244, 234, 216, 0.18);
+  background: transparent;
+  border-radius: 999px;
+  color: rgba(244, 234, 216, 0.62);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem; /* Increased size */
+  letter-spacing: 0.02em;
+  padding: 0.4rem 0.85rem; /* Increased padding */
+  transition: color 140ms ease, opacity 140ms ease, transform 140ms ease;
+}
+
+.menu-footer-link:hover,
+.menu-footer-link:focus-visible {
+  color: rgba(244, 234, 216, 0.86);
+  border-color: rgba(244, 234, 216, 0.3);
+  outline: none;
+  transform: translateY(-1px);
 }
 
 .import-notation-field {
@@ -371,6 +412,15 @@ body.is-import-mode .hero-title {
 
 body.is-menu-mode .controls-card {
   padding-top: 0.15rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+body.is-menu-mode .panel {
+  overflow: hidden;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 body.is-load-mode .panel {
