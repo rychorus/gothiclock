@@ -158,16 +158,6 @@
     0 14px 26px rgba(227, 167, 77, 0.2);
 }
 
-.plate-column.is-manual-selectable .plate-body {
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
-    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
-    0 0 0 1px rgba(227, 167, 77, 0.3),
-    0 0 0.9rem rgba(227, 167, 77, 0.18),
-    0 10px 22px rgba(227, 167, 77, 0.12);
-}
-
 .plate-column.is-manual-selectable:hover .plate-body,
 .plate-column.is-manual-selectable:focus-visible .plate-body {
   box-shadow:
@@ -244,30 +234,6 @@
     0 14px 26px rgba(227, 167, 77, 0.2);
 }
 
-.plate-column.is-manual-linked-same .plate-body,
-.plate-column.is-manual-linked-same:hover .plate-body,
-.plate-column.is-manual-linked-same:focus-visible .plate-body {
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
-    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
-    0 0 0 2px rgba(227, 167, 77, 0.78),
-    0 0 1rem rgba(227, 167, 77, 0.32),
-    0 10px 24px rgba(227, 167, 77, 0.24);
-}
-
-.plate-column.is-manual-linked-opposite .plate-body,
-.plate-column.is-manual-linked-opposite:hover .plate-body,
-.plate-column.is-manual-linked-opposite:focus-visible .plate-body {
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 1rem 1.5rem rgba(255, 255, 255, 0.08),
-    inset 0 -1rem 1.6rem rgba(0, 0, 0, 0.14),
-    0 0 0 2px rgba(141, 198, 214, 0.8),
-    0 0 1rem rgba(141, 198, 214, 0.3),
-    0 10px 24px rgba(141, 198, 214, 0.22);
-}
-
 .plate-column.is-body-prompt-up .plate-body {
   animation: nudgeUp 3s ease-in-out infinite;
 }
@@ -315,18 +281,21 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.plate-button:hover,
-.plate-button:focus-visible {
+.plate-button:hover:not(.is-suggested):not(.is-observed-left):not(.is-observed-right),
+.plate-button:focus-visible:not(.is-suggested):not(.is-observed-left):not(.is-observed-right) {
   transform: translateY(-1px);
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.18);
   outline: none;
 }
 
-.lock-stage.is-manual-defining .plate-button:hover,
-.lock-stage.is-manual-defining .plate-button:focus-visible {
+.lock-stage.is-manual-defining .plate-button:hover:not(.is-suggested):not(.is-observed-left):not(.is-observed-right),
+.lock-stage.is-manual-defining .plate-button:focus:not(.is-suggested):not(.is-observed-left):not(.is-observed-right),
+.lock-stage.is-manual-defining .plate-button:focus-visible:not(.is-suggested):not(.is-observed-left):not(.is-observed-right),
+.lock-stage.is-manual-defining .plate-button:active:not(.is-suggested):not(.is-observed-left):not(.is-observed-right) {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: none;
   transform: none;
   outline: none;
 }
@@ -356,9 +325,9 @@
 }
 
 .plate-button.is-observed-right {
-  border-color: rgba(141, 198, 214, 0.82);
-  background: rgba(141, 198, 214, 0.18);
-  box-shadow: 0 0 0.95rem rgba(141, 198, 214, 0.22);
+  border-color: rgba(227, 167, 77, 0.82);
+  background: rgba(227, 167, 77, 0.18);
+  box-shadow: 0 0 0.95rem rgba(227, 167, 77, 0.24);
 }
 
 .plate-button span {
