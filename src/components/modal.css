@@ -26,6 +26,10 @@
   flex-direction: column;
 }
 
+.modal-card--import-locks {
+  max-height: min(86dvh, 44rem);
+}
+
 .modal-card--allow-overflow {
   overflow: visible;
 }
@@ -169,9 +173,32 @@
   flex: 1 1 11rem;
 }
 
+.modal-actions--import-locks {
+  width: 100%;
+  flex-wrap: nowrap;
+}
+
+.modal-actions--import-locks .action-button {
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  flex: 1 1 0;
+}
+
 @media (max-width: 540px) {
   .modal-actions--fit .action-button {
     flex-basis: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .modal-actions--import-locks {
+    gap: 0.5rem;
+  }
+
+  .modal-actions--import-locks .action-button {
+    padding-left: 0.7rem;
+    padding-right: 0.7rem;
   }
 }
 
@@ -239,6 +266,10 @@
 .modal-field-label {
   color: var(--muted);
   font-size: 0.8rem;
+}
+
+.import-locks-upload-button {
+  margin-bottom: 0.7rem;
 }
 
 .modal-input {

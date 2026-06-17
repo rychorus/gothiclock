@@ -128,13 +128,13 @@ function ImportLocksForm({ onImport, onCancel }) {
       <div className="modal-field modal-field--spaced-top">
         <span className="modal-field-label">Or upload a text file</span>
         <input ref={fileInputRef} type="file" accept=".txt,text/plain" hidden onChange={handleFileChange} />
-        <button type="button" className="action-button secondary compact" onClick={() => fileInputRef.current?.click?.()}>
+        <button type="button" className="action-button secondary compact import-locks-upload-button" onClick={() => fileInputRef.current?.click?.()}>
           Upload file
         </button>
         {loadedFileName ? <p className="modal-note modal-note--compact">{loadedFileName}</p> : null}
       </div>
       {importError ? <p className="modal-note import-notation-error">{importError}</p> : null}
-      <div className="modal-actions">
+      <div className="modal-actions modal-actions--import-locks">
         <button type="button" className="action-button secondary" onClick={onCancel}>Cancel</button>
         <button
           type="button"
@@ -348,7 +348,7 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
 
   if (modal.type === "import-locks") {
     return (
-      <Modal title="Import locks" onClose={app.closeModal} className="modal-card--notation">
+      <Modal title="Import locks" onClose={app.closeModal} className="modal-card--notation modal-card--import-locks">
         <ImportLocksForm onImport={(text) => { app.importLocks(text); app.closeModal(); }} onCancel={app.closeModal} />
       </Modal>
     );
