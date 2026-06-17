@@ -1,26 +1,34 @@
 .bottom-panel {
-  padding: 0;
+  padding: 0.35rem 0 0;
   display: grid;
   gap: 0.25rem;
   border-top: 1px solid var(--divider);
 }
 
-.bottom-panel-heading {
-  margin-top: -0.52rem;
+.controls-heading.bottom-panel-heading {
+  margin-top: 0.22rem;
   margin-bottom: 0.05rem;
-  display: flex;
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
   width: 100%;
-  justify-content: center;
-  align-items: center;
+  align-items: start;
   gap: 0.6rem;
   min-height: 2.6rem;
   position: relative;
 }
 
+.controls-heading.bottom-panel-heading::before {
+  content: "";
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
 .solution-step-header {
+  grid-column: 2;
   display: grid;
   justify-items: center;
   gap: 0.22rem;
+  min-width: 0;
 }
 
 .bottom-panel-actions {
@@ -39,6 +47,7 @@
 }
 
 .solution-progress-nav {
+  --solution-control-size: 2.5rem;
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
@@ -51,8 +60,8 @@
 }
 
 .solution-nav-button {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: var(--solution-control-size);
+  height: var(--solution-control-size);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.04);
@@ -185,8 +194,8 @@
 }
 
 .solution-toggle-icon {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: var(--solution-control-size, 2.5rem);
+  height: var(--solution-control-size, 2.5rem);
   border: 0;
   border-radius: 0.7rem;
   background: rgba(255, 255, 255, 0.04);
@@ -211,10 +220,10 @@
 }
 
 .solution-menu-wrap {
-  position: absolute;
-  right: 0.4rem;
-  top: 50%;
-  transform: translateY(-50%);
+  --solution-control-size: 2.5rem;
+  grid-column: 3;
+  position: relative;
+  justify-self: end;
 }
 
 .solution-toggle-menu {
@@ -268,4 +277,25 @@
 .solution-dialog-list .solution-step {
   padding: 0.66rem 0.9rem;
   font-size: 0.95rem;
+}
+
+@media (max-width: 640px) {
+  .controls-heading.bottom-panel-heading {
+    margin-top: 0.16rem;
+    grid-template-columns: 2.8rem minmax(0, 1fr) 2.8rem;
+  }
+
+  .controls-heading.bottom-panel-heading::before {
+    width: 2.8rem;
+    height: 2.8rem;
+  }
+
+  .solution-progress-nav,
+  .solution-menu-wrap {
+    --solution-control-size: 2.8rem;
+  }
+
+  .solution-progress-nav {
+    gap: 0.35rem;
+  }
 }
