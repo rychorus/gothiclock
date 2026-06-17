@@ -1,0 +1,64 @@
+html {
+  height: 100%;
+}
+
+:root {
+  --bg-1: #15110e;
+  --bg-2: #261a12;
+  --panel: rgba(32, 22, 15, 0.88);
+  --panel-edge: rgba(255, 222, 173, 0.14);
+  --divider: rgba(227, 167, 77, 0.18);
+  --plate: linear-gradient(180deg, #a89c80 0%, #7f735b 48%, #5d513f 100%);
+  --hole: #201812;
+  --accent: #e3a74d;
+  --accent-soft: rgba(227, 167, 77, 0.18);
+  --text: #f4ead8;
+  --muted: #cfbea7;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  --link-same: #e3a74d;
+  --link-opposite: #8dc6d6;
+  --link-known: #b7d98d;
+  --stage-height: clamp(17rem, 45vh, 24rem);
+  --plate-width: clamp(2.8rem, 10vw, 4.6rem);
+  --hole-size: clamp(0.52rem, 1.7vw, 0.78rem);
+  --hole-gap: clamp(0.62rem, 1.45vh, 0.94rem);
+  --plate-padding-x: 1.28rem;
+  --plate-padding-y: 0.8rem;
+  --travel-steps: 3;
+  --plate-body-height: calc((7 * var(--hole-size)) + (6 * var(--hole-gap)) + (2 * var(--plate-padding-x)));
+  --travel-distance: calc(var(--travel-steps) * (var(--hole-size) + var(--hole-gap)));
+  --plate-overflow-space: max(0px, calc(var(--travel-distance) - ((var(--stage-height) - var(--plate-body-height)) / 2)));
+  --plate-lane-length: clamp(15rem, 54vw, 24rem);
+  --plate-lane-height: max(clamp(3.15rem, 9vw, 4.7rem), calc(var(--plate-body-thickness) + 0.62rem));
+  --plate-body-width: calc((7 * var(--hole-size)) + (6 * var(--hole-gap)) + (2 * var(--plate-padding-x)));
+  --plate-body-thickness: clamp(2.45rem, 6vw, 3.15rem);
+  --plate-status-width: 1.7rem;
+  --plate-side-gap: clamp(0.7rem, 1.8vw, 1rem);
+  --plate-track-width: calc(var(--plate-body-width) + (2 * var(--travel-distance)) + 0.9rem);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top, rgba(227, 167, 77, 0.16), transparent 30%),
+    linear-gradient(180deg, var(--bg-1), var(--bg-2));
+}
+
+button {
+  font: inherit;
+}

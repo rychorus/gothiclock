@@ -1,0 +1,115 @@
+.footer-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.55rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--divider);
+}
+
+@keyframes testingBounceUp {
+  0% { transform: translateX(0); }
+  35% { transform: translateX(calc((var(--hole-size) + var(--hole-gap)) * -0.45)); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes testingBounceDown {
+  0% { transform: translateX(0); }
+  35% { transform: translateX(calc((var(--hole-size) + var(--hole-gap)) * 0.45)); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes testingBlockedShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-0.22rem); }
+  40% { transform: translateX(0.22rem); }
+  60% { transform: translateX(-0.16rem); }
+  80% { transform: translateX(0.16rem); }
+}
+
+.footer-actions[data-mode="linking"] .action-button,
+.footer-actions[data-mode="linking"] .action-button-row {
+  white-space: nowrap;
+}
+
+.footer-actions[data-mode="linking"] {
+  flex-wrap: nowrap;
+  margin-top: auto;
+  padding-top: 0.35rem;
+}
+
+.footer-actions[data-mode="linking"] .action-button {
+  min-width: 0;
+  flex: 1 1 0;
+  min-height: 3.8rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+body.is-linking-mode .panel {
+  gap: 0.35rem;
+  padding-bottom: 0.3rem;
+}
+
+body.is-manual-linking-mode .panel {
+  gap: 0.35rem;
+  padding-bottom: 0.3rem;
+}
+
+body.is-setup-mode .controls-heading {
+  margin-top: 0.2rem;
+}
+
+body.is-setup-mode .count-picker {
+  margin-bottom: 0.2rem;
+}
+
+.stage-inline-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 0.6rem 0 0;
+  padding-top: 0;
+  flex-wrap: wrap;
+}
+
+.stage-inline-actions[data-mode="linking"] {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  min-height: 0;
+  margin-top: 0.1rem;
+  margin-bottom: 0.45rem;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.footer-actions[data-mode="solution"],
+.footer-actions[data-mode="ready_to_solve"] {
+  flex-wrap: nowrap;
+}
+
+.stage-inline-actions .stage-reset {
+  height: 2.48rem;
+  padding: 0 1.05rem;
+}
+
+.stage-inline-actions .stage-manual-linking {
+  height: 2.35rem;
+  padding: 0 0.95rem;
+}
+
+.footer-actions[data-mode="solution"] .action-button,
+.footer-actions[data-mode="ready_to_solve"] .action-button {
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.footer-actions[data-mode="solution"] .action-button.icon-only {
+  flex: 0 0 auto;
+  width: 3.05rem;
+  min-width: 3.05rem;
+}

@@ -1,3 +1,4 @@
+import "./lock-stage.css";
 import { MaterialIcon } from "../../lib/icons";
 import { PlateColumn } from "./PlateColumn";
 

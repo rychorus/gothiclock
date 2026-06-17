@@ -1,3 +1,4 @@
+import "./solution.css";
 import { MaterialIcon } from "../../lib/icons";
 import { getVisiblePlateLabel } from "../../lib/notation";
 

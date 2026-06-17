@@ -1,3 +1,4 @@
+import "./load-screen.css";
 import { SavedLocksDialog } from "./SavedLocksDialog";
 import { MaterialIcon } from "../../lib/icons";
 

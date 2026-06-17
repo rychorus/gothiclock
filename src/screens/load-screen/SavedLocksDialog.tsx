@@ -1,3 +1,4 @@
+import "./saved-locks.css";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { MaterialIcon } from "../../lib/icons";

@@ -1,0 +1,149 @@
+.saved-lock-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+  user-select: none;
+  justify-self: end;
+}
+
+.saved-lock-filter input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.saved-lock-filter-switch {
+  width: 2.2rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  position: relative;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.saved-lock-filter-switch::after {
+  content: "";
+  position: absolute;
+  top: 0.08rem;
+  left: 0.1rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 999px;
+  background: rgba(244, 234, 216, 0.78);
+  transition: transform 140ms ease, background 140ms ease;
+}
+
+.saved-lock-filter input:checked + .saved-lock-filter-switch {
+  background: rgba(227, 167, 77, 0.2);
+  border-color: rgba(227, 167, 77, 0.5);
+}
+
+.saved-lock-filter input:checked + .saved-lock-filter-switch::after {
+  transform: translateX(0.92rem);
+  background: #f6dfb2;
+}
+
+.saved-lock-list {
+  display: grid;
+  gap: 0.9rem;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  overflow: visible;
+  align-content: start;
+}
+
+.controls-card--load-screen {
+  padding-top: 0.95rem;
+  align-content: start;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.controls-card--load-screen .load-screen-search,
+.controls-card--load-screen .saved-locks-dialog {
+  width: min(100%, 42rem);
+  margin-inline: auto;
+}
+
+.controls-card--load-screen .saved-lock-filter {
+  flex: 0 0 auto;
+  margin-bottom: 0.7rem;
+}
+
+.controls-card--load-screen .saved-lock-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.load-screen-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.55rem;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.load-screen-delete-drafts {
+  width: auto;
+  min-width: 0;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.68rem;
+  line-height: 1;
+  min-height: 1.55rem;
+  pointer-events: auto;
+}
+
+.saved-locks-dialog .saved-lock-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+body.is-load-mode .controls-card--load-screen .saved-lock-list {
+  /* Allow saved locks to scroll when the load dialog is tall */
+  max-height: none;
+  min-height: 0;
+  height: auto;
+  overflow: auto;
+  padding-right: 0.25rem;
+}
+
+body.is-load-mode .panel {
+  overflow: hidden;
+}
+
+body.is-load-mode {
+  overflow: hidden;
+}
+
+body.is-load-mode .app-shell {
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body.is-load-mode .panel {
+  min-height: 0;
+  height: calc(100dvh - 1.3rem - env(safe-area-inset-bottom, 0px));
+}
+
+body.is-load-mode .controls-card--load-screen {
+  height: 100%;
+  min-height: 0;
+}
+
+/* Temporarily disable plate transform animations during plate count changes */
+body.is-resizing .plate-track {
+  transition: none !important;
+}

@@ -1,3 +1,5 @@
+import "./modal.css";
+
 export function Modal({ title, onClose, actions = [], children, footer = null, className = "", bodyClassName = "", footerClassName = "", actionsClassName = "" }) {
   return (
     <div className="modal-shell">

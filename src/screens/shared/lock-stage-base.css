@@ -1,0 +1,185 @@
+.lock-stage {
+  position: relative;
+  overflow-x: clip;
+  overflow-y: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: clamp(1.65rem, 3vw, 2rem) 0 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.02)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.012) 0,
+      rgba(255, 255, 255, 0.012) 18px,
+      transparent 18px,
+      transparent 36px
+    );
+  border-top: 1px solid var(--divider);
+}
+
+.lock-stage.has-bottom-instruction {
+  padding-bottom: 3.25rem;
+}
+
+.lock-stage.is-setup-mode {
+  padding-top: clamp(2.25rem, 4vw, 2.75rem);
+}
+
+.lock-stage.is-setup-mode.has-bottom-instruction {
+  padding-bottom: 0.85rem;
+}
+
+.lock-stage.has-stage-controls {
+  padding-top: 3.75rem;
+}
+
+body.is-linking-mode .lock-stage.has-stage-controls {
+  padding-top: 1rem;
+}
+
+.lock-stage.is-solution-compact {
+  --stage-height: clamp(8.8rem, 20vh, 10.75rem);
+  --plate-width: clamp(1.75rem, 5.4vw, 2.45rem);
+  --hole-size: clamp(0.48rem, 1.35vw, 0.68rem);
+  --hole-gap: clamp(0.3rem, 0.66vh, 0.44rem);
+  --plate-padding-x: 1rem;
+  --plate-body-thickness: clamp(2rem, 4.9vw, 2.55rem);
+  --plate-lane-height: max(clamp(2.8rem, 7vw, 3.9rem), calc(var(--plate-body-thickness) + 0.48rem));
+  padding-top: 0.28rem;
+  padding-bottom: 0.12rem;
+}
+
+body.is-testing-mode .lock-stage {
+  --hole-size: clamp(0.5rem, 1.6vw, 0.74rem);
+  --hole-gap: clamp(0.58rem, 1.35vh, 0.88rem);
+  --plate-body-thickness: clamp(2.35rem, 5.8vw, 3rem);
+}
+
+.stage-instruction {
+  position: absolute;
+  top: 0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  min-height: 1rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-align: center;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.stage-instruction.is-setup-mode {
+  top: 0.82rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 1rem);
+  margin: 0;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(23, 16, 11, 0.82);
+  border: 1px solid rgba(227, 167, 77, 0.22);
+  box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.18);
+  font-size: 1rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.stage-instruction.is-linking-mode {
+  position: static;
+  top: auto;
+  left: auto;
+  transform: none;
+  width: max-content;
+  max-width: calc(100% - 1rem);
+  margin: 0 0 0.45rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(23, 16, 11, 0.82);
+  border: 1px solid rgba(227, 167, 77, 0.22);
+  box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.18);
+}
+
+.stage-instruction.is-manual-mode {
+  letter-spacing: 0.08em;
+}
+
+.lock-stage.is-manual-picking .plates-row {
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.stage-reset {
+  z-index: 4;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(23, 16, 11, 0.72);
+  color: var(--muted);
+  padding: 0.58rem 1.08rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.stage-reset-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.stage-reset .material-icon {
+  width: 0.92rem;
+  height: 0.92rem;
+}
+
+.stage-reset:hover,
+.stage-reset:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(227, 167, 77, 0.45);
+  background: rgba(45, 30, 19, 0.9);
+  outline: none;
+}
+
+.stage-start-over {
+  z-index: 4;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(23, 16, 11, 0.72);
+  color: var(--muted);
+  padding: 0.42rem 0.8rem;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.stage-start-over:hover,
+.stage-start-over:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(227, 167, 77, 0.45);
+  background: rgba(45, 30, 19, 0.9);
+  outline: none;
+}
+
+.stage-manual-linking {
+  z-index: 4;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: transparent;
+  color: var(--muted);
+  padding: 0.5rem 0.96rem;
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.stage-manual-linking:hover,
+.stage-manual-linking:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(227, 167, 77, 0.24);
+  background: rgba(255, 255, 255, 0.02);
+  outline: none;
+}
