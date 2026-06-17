@@ -4,7 +4,8 @@
   grid-template-rows: auto minmax(0, 1fr);
   gap: 0.25rem;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
+  border-top: 1px solid var(--divider);  
   border-top: 1px solid var(--divider);
 }
 
