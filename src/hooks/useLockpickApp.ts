@@ -13,6 +13,8 @@ import { usePlateLinkingState } from "../screens/plate-linking/usePlateLinkingSt
 import { useSolutionState } from "../screens/solution/useSolutionState";
 import type { AppStateData, ModalState } from "../lib/types";
 
+const SOLUTION_NEXT_HINT_CLICK_COUNT_STORAGE_KEY = "gothic-lockpick.solution-next-hint-click-count";
+
 function getCleanUrl(url: string) {
   const cleanUrl = new URL(url);
   cleanUrl.search = "";
@@ -52,6 +54,19 @@ function getInitialAppState(): AppStateData {
   return initialState;
 }
 
+function getPersistedSolutionNextHintClickCount() {
+  if (typeof window === "undefined") {
+    return 0;
+  }
+
+  try {
+    const value = Number(window.localStorage.getItem(SOLUTION_NEXT_HINT_CLICK_COUNT_STORAGE_KEY));
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+  } catch {
+    return 0;
+  }
+}
+
 export function useLockpickApp() {
   const [appState, setAppState] = useState<AppStateData>(getInitialAppState);
   const [modal, setModalState] = useState<ModalState>({ type: null });
@@ -59,6 +74,7 @@ export function useLockpickApp() {
   const suppressDraftAutosaveRef = useRef(false);
   const currentScreenRef = useRef(getScreenAnalyticsName(appState.mode));
   const currentModalRef = useRef(getModalAnalyticsName(modal));
+  const [solutionNextHintClickCount, setSolutionNextHintClickCount] = useState(getPersistedSolutionNextHintClickCount);
 
   const navigation = useAppNavigation({ appState, modal, setAppState, setModalState });
   const mainMenu = useMainMenuState({
@@ -144,6 +160,18 @@ export function useLockpickApp() {
 
   useEffect(() => {
     if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(SOLUTION_NEXT_HINT_CLICK_COUNT_STORAGE_KEY, String(solutionNextHintClickCount));
+    } catch {
+      // Ignore storage failures and keep the hint count in memory only.
+    }
+  }, [solutionNextHintClickCount]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
       return undefined;
     }
 
@@ -215,6 +243,8 @@ export function useLockpickApp() {
     exportAllSavedLocks: loadScreen.exportAllSavedLocks,
     importLocks: loadScreen.importLocks,
     persistWithName: loadScreen.persistWithName,
+    solutionNextHintClickCount,
+    incrementSolutionNextHintClickCount: () => setSolutionNextHintClickCount((current) => current + 1),
     setAppState,
     setModal: navigation.setModal,
     goBackScreen: navigation.goBackScreen,

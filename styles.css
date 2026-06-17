@@ -345,7 +345,7 @@ body.is-menu-mode .menu-actions .action-button {
 
 .import-notation-input {
   width: 100%;
-  min-height: 11rem;
+  min-height: 13rem;
   resize: vertical;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 0.85rem;
@@ -353,6 +353,7 @@ body.is-menu-mode .menu-actions .action-button {
   color: var(--text);
   font: inherit;
   padding: 0.75rem 0.85rem;
+  margin-bottom: 1rem;
   line-height: 1.45;
 }
 
@@ -536,8 +537,20 @@ body.is-load-mode .controls-card--load-screen {
   padding-bottom: 3.25rem;
 }
 
+.lock-stage.is-setup-mode {
+  padding-top: clamp(2.25rem, 4vw, 2.75rem);
+}
+
+.lock-stage.is-setup-mode.has-bottom-instruction {
+  padding-bottom: 0.85rem;
+}
+
 .lock-stage.has-stage-controls {
   padding-top: 3.75rem;
+}
+
+body.is-linking-mode .lock-stage.has-stage-controls {
+  padding-top: 1rem;
 }
 
 .lock-stage.is-solution-compact {
@@ -575,6 +588,16 @@ body.is-testing-mode .lock-stage {
 
 .stage-instruction.is-setup-mode {
   top: 0.82rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 1rem);
+  margin: 0;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(23, 16, 11, 0.82);
+  border: 1px solid rgba(227, 167, 77, 0.22);
+  box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.18);
   font-size: 1rem;
   text-transform: none;
   letter-spacing: 0.02em;
@@ -587,7 +610,7 @@ body.is-testing-mode .lock-stage {
   transform: none;
   width: max-content;
   max-width: calc(100% - 1rem);
-  margin-bottom: 0.75rem;
+  margin: 0 0 0.45rem;
   padding: 0.3rem 0.55rem;
   border-radius: 999px;
   background: rgba(23, 16, 11, 0.82);
@@ -614,6 +637,17 @@ body.is-testing-mode .lock-stage {
   font-size: 0.8rem;
   cursor: pointer;
   transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.stage-reset-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.stage-reset .material-icon {
+  width: 0.92rem;
+  height: 0.92rem;
 }
 
 .stage-reset:hover,
@@ -1380,14 +1414,14 @@ body.is-setup-mode .count-picker {
 
 .stage-inline-actions[data-mode="linking"] {
   width: 100%;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: flex-start;
-  gap: 0.55rem;
-  min-height: clamp(6.75rem, 12vh, 9.5rem);
-  margin-top: 0.2rem;
-  margin-bottom: 1.15rem;
-  padding-top: 0.2rem;
+  justify-content: center;
+  gap: 0.7rem;
+  min-height: 0;
+  margin-top: 0.1rem;
+  margin-bottom: 0.45rem;
+  padding-top: 0;
   padding-bottom: 0;
 }
 
@@ -1404,7 +1438,6 @@ body.is-setup-mode .count-picker {
 .stage-inline-actions .stage-manual-linking {
   height: 2.35rem;
   padding: 0 0.95rem;
-  margin-top: auto;
 }
 
 .footer-actions[data-mode="solution"] .action-button,

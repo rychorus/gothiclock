@@ -20,10 +20,10 @@ export function ImportNotationScreen({ onCancel, onImport }) {
             setImportText(event.target.value);
             setImportError("");
           }}
-          placeholder={"P1=4 P2=4 P3=4\n\nP1>P2 P2>P3- P3>\n\nOr paste one or more share links"}
+          placeholder={"P1=4\nP2=4\n\nP1>P2\nP2>P3-\nP3>\n\nOr paste links"}
         />
         <p className="modal-note modal-note--compact import-notation-hint">
-          Share links can be pasted anywhere in the text. If you paste multiple links, they will be imported as saved locks.
+          Multiple links will be imported as saved locks
         </p>
       </label>
       {importError ? <p className="modal-note import-notation-error">{importError}</p> : null}

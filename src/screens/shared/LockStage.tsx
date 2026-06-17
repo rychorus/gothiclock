@@ -1,3 +1,4 @@
+import { MaterialIcon } from "../../lib/icons";
 import { PlateColumn } from "./PlateColumn";
 
 export function LockStage({
@@ -26,7 +27,7 @@ export function LockStage({
     : appState.offsets;
   return (
       <>
-      <section className={`lock-stage${appState.mode === "solution" || appState.mode === "ready_to_solve" ? " is-solution-compact" : ""}${hasStageControls ? " has-stage-controls" : ""}${instruction ? " has-bottom-instruction" : ""}${isManualPicking ? " is-manual-picking" : ""}${isManualDefining ? " is-manual-defining" : ""}`} hidden={appState.mode === "menu" || appState.mode === "load" || appState.mode === "import"}>
+      <section className={`lock-stage${appState.mode === "setup" ? " is-setup-mode" : ""}${appState.mode === "solution" || appState.mode === "ready_to_solve" ? " is-solution-compact" : ""}${hasStageControls ? " has-stage-controls" : ""}${instruction ? " has-bottom-instruction" : ""}${isManualPicking ? " is-manual-picking" : ""}${isManualDefining ? " is-manual-defining" : ""}`} hidden={appState.mode === "menu" || appState.mode === "load" || appState.mode === "import"}>
         {instruction ? <div className={`stage-instruction${appState.mode === "linking" || appState.mode === "manual_linking" ? " is-linking-mode" : ""}${appState.mode === "manual_linking" ? " is-manual-mode" : ""}${instructionClassName ? ` ${instructionClassName}` : ""}`} aria-live="polite">{instruction}</div> : null}
         <div className="plates-row" aria-label="Lock plates">
           {visibleOffsets.map((offset, index) => (
@@ -61,14 +62,17 @@ export function LockStage({
 
       {(showResetButton || showManualButton) && (appState.mode === "linking" || appState.mode === "testing") ? (
         <div className="stage-inline-actions" data-mode={appState.mode} data-count={showResetButton && showManualButton ? "2" : "1"}>
-          {showResetButton ? (
-            <button className="stage-reset" type="button" onClick={appState.mode === "testing" ? actions.resetTestingMode : actions.resetPlateLinkingPrompt}>
-              Reset
-            </button>
-          ) : null}
           {showManualButton ? (
             <button className="stage-manual-linking" type="button" onClick={onOpenManualLinking}>
-              Manually input links
+              Manually Link
+            </button>
+          ) : null}
+          {showResetButton ? (
+            <button className="stage-reset" type="button" onClick={appState.mode === "testing" ? actions.resetTestingMode : actions.resetPlateLinkingPrompt}>
+              <span className="stage-reset-content">
+                <MaterialIcon name="restart_alt" />
+                <span>Reset</span>
+              </span>
             </button>
           ) : null}
         </div>
