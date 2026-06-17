@@ -61,11 +61,11 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
       />
 
       {!hasSolution ? (
-        <section className="bottom-panel">
-          <div className="controls-heading bottom-panel-heading">
-            <p className="controls-title is-solution">No solution</p>
+        <section className="bottom-panel solution-empty-panel">
+          <div className="solution-empty-message" aria-live="polite">
+            <p className="solution-empty-title">No solution</p>
+            <p className="solution-empty-copy">was found for this lock</p>
           </div>
-          <p className="controls-copy">No solution was found for this lock.</p>
         </section>
       ) : appState.mode !== "testing" ? (
         <section className="bottom-panel">
