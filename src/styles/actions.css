@@ -18,6 +18,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  align-self: stretch;
+  width: 100%;
   margin-top: auto;
   padding-bottom: 1rem;
 }

@@ -366,6 +366,16 @@ body.is-load-mode .panel {
   grid-template-rows: auto minmax(0, 1fr);
 }
 
+body.is-solution-mode {
+  overflow: hidden;
+}
+
+body.is-solution-mode .panel {
+  height: calc(100dvh - 1.3rem - env(safe-area-inset-bottom, 0px));
+  overflow: hidden;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
 body.is-load-mode .controls-card--load-screen {
   border-top: 1px solid var(--divider);
   display: grid;

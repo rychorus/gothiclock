@@ -1,7 +1,10 @@
 .bottom-panel {
   padding: 0.35rem 0 0;
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 0.25rem;
+  min-height: 0;
+  overflow: hidden;
   border-top: 1px solid var(--divider);
 }
 
@@ -162,6 +165,7 @@
 
 .solution-step-instruction {
   margin: 0.28rem 0 0;
+  padding-bottom: 0.4rem;
   color: #f3e2bd;
   font-size: 0.92rem;
   font-weight: 600;
@@ -174,7 +178,9 @@
   flex-wrap: wrap;
   justify-content: center;
   margin-top: 0.08rem;
-  max-height: clamp(10.4rem, 29vh, 15rem);
+  width: 100%;
+  min-height: 0;
+  max-height: none;
   overflow-y: auto;
   overflow-x: hidden;
   align-content: flex-start;
@@ -182,10 +188,13 @@
 }
 
 .solution-sequence-wrap {
-  display: grid;
+  display: flex;
   gap: 0.25rem;
   position: relative;
   margin-top: -0.18rem;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .solution-sequence.is-collapsed {

@@ -271,6 +271,11 @@ export function PlateColumn({
     }
   }
 
+  function handleMoveButtonClick(event, direction) {
+    event.stopPropagation();
+    onMove(index, direction);
+  }
+
   const hideMoveButtons = mode === "solution" || mode === "ready_to_solve" || isManualActiveDriver;
   const isSuggestedPrompt = mode === "linking"
     && (linkingPromptTask?.phase === "move" || linkingPromptTask?.phase === "center")
@@ -298,7 +303,7 @@ export function PlateColumn({
         aria-label="Move plate left"
         hidden={hideMoveButtons}
         disabled={!canMoveUp}
-        onClick={() => onMove(index, "up")}
+        onClick={(event) => handleMoveButtonClick(event, "up")}
       >
         <span></span>
       </button>
@@ -347,7 +352,7 @@ export function PlateColumn({
         aria-label="Move plate right"
         hidden={hideMoveButtons}
         disabled={!canMoveDown}
-        onClick={() => onMove(index, "down")}
+        onClick={(event) => handleMoveButtonClick(event, "down")}
       >
         <span></span>
       </button>
