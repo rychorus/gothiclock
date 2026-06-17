@@ -57,6 +57,7 @@ export function PlateColumn({
   const isManualLinkedLeft = isManualDefineMode && manualMovedOffset === -1;
   const isManualLinkedRight = isManualDefineMode && manualMovedOffset === 1;
   const showKnownStatus = mode === "linking" && isKnown && !isDriver;
+  const showCenterMarker = mode !== "manual_linking";
   const showSolutionLabel = mode === "solution" && Number.isInteger(plateCount) && plateCount > 0;
   const isSolutionLabelActive = showSolutionLabel && currentSolutionMove?.plate === index;
   const plateLabel = showSolutionLabel ? getVisiblePlateLabel(index, plateCount) : "";
@@ -319,12 +320,14 @@ export function PlateColumn({
         <div className="plate-direction-cue" aria-hidden="true">
           <span></span>
         </div>
-        <div className="center-band" aria-hidden="true">
-          <span className="center-marker">
-            <span className="center-marker-cap"></span>
-            <span className="center-dot"></span>
-          </span>
-        </div>
+        {showCenterMarker ? (
+          <div className="center-band" aria-hidden="true">
+            <span className="center-marker">
+              <span className="center-marker-cap"></span>
+              <span className="center-dot"></span>
+            </span>
+          </div>
+        ) : null}
         <div className="plate-track" style={{ transform: getTransformValue(displayOffset, dragPixels) }}>
           <div className="plate-body">
             {showKnownStatus ? (
