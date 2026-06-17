@@ -61,4 +61,11 @@ body {
 
 button {
   font: inherit;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  appearance: none;
+}
+
+button.is-touch-pressed {
+  transform: translateY(1px) scale(0.985);
 }
