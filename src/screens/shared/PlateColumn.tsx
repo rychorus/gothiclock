@@ -41,10 +41,12 @@ export function PlateColumn({
   const isManualCompleted = Boolean(manualLinkingState?.completedDrivers.includes(index));
   const selectedDirectionDelta = manualLinkingState?.selectedDirection === "up" ? -1 : manualLinkingState?.selectedDirection === "down" ? 1 : 0;
   const isObservePhase = mode === "linking" && linkingPromptTask?.phase === "observe";
+  const isManualObservePhase = isManualDefineMode;
   const observedOffsetDelta = isObservePhase
     ? offset - (linkingPromptTask?.baseOffsets?.[index] ?? offset)
     : 0;
   const blockedObservationDelta = isObservePhase ? (linkingPromptTask?.blockedObservations?.[index] ?? 0) : 0;
+  const manualBlockedObservationDelta = isManualObservePhase ? (manualLinkingState?.blockedObservations?.[index] ?? 0) : 0;
   const blockedObservationCount = isObservePhase ? (linkingPromptTask?.blockedObservationCounts?.[index] ?? 0) : 0;
   const isManualLinked = Boolean(
     isManualDefineMode
@@ -54,8 +56,6 @@ export function PlateColumn({
   );
   const isDriver = linkingPromptTask?.driver === index;
   const manualMovedOffset = isManualDefineMode ? (manualLinkingState?.offsets[index] ?? 0) : 0;
-  const isManualLinkedLeft = isManualDefineMode && manualMovedOffset === -1;
-  const isManualLinkedRight = isManualDefineMode && manualMovedOffset === 1;
   const showKnownStatus = mode === "linking" && isKnown && !isDriver;
   const showCenterMarker = mode !== "manual_linking";
   const showSolutionLabel = mode === "solution" && Number.isInteger(plateCount) && plateCount > 0;
@@ -283,8 +283,10 @@ export function PlateColumn({
     && linkingPromptTask?.driver === index;
   const leftSuggested = isSuggestedPrompt && linkingPromptTask.direction === "up";
   const rightSuggested = isSuggestedPrompt && linkingPromptTask.direction === "down";
-  const leftObserved = isObservePhase && (observedOffsetDelta < 0 || blockedObservationDelta < 0);
-  const rightObserved = isObservePhase && (observedOffsetDelta > 0 || blockedObservationDelta > 0);
+  const leftObserved = (isObservePhase && (observedOffsetDelta < 0 || blockedObservationDelta < 0))
+    || (isManualObservePhase && (manualMovedOffset < 0 || manualBlockedObservationDelta < 0));
+  const rightObserved = (isObservePhase && (observedOffsetDelta > 0 || blockedObservationDelta > 0))
+    || (isManualObservePhase && (manualMovedOffset > 0 || manualBlockedObservationDelta > 0));
 
   return (
     <article
@@ -298,7 +300,7 @@ export function PlateColumn({
     >
       {showSolutionLabel ? <div className={`plate-column-label${isSolutionLabelActive ? " is-active" : ""}`} aria-hidden="true">{plateLabel}</div> : null}
       <button
-        className={`plate-button${leftSuggested ? " is-suggested" : ""}${leftObserved ? " is-observed-left" : ""}${isManualLinkedLeft ? " is-manual-linked-left" : ""}`}
+        className={`plate-button${leftSuggested ? " is-suggested" : ""}${leftObserved ? " is-observed-left" : ""}`}
         type="button"
         data-direction="left"
         aria-label="Move plate left"
@@ -349,7 +351,7 @@ export function PlateColumn({
       </div>
 
       <button
-        className={`plate-button${rightSuggested ? " is-suggested" : ""}${rightObserved ? " is-observed-right" : ""}${isManualLinkedRight ? " is-manual-linked-right" : ""}`}
+        className={`plate-button${rightSuggested ? " is-suggested" : ""}${rightObserved ? " is-observed-right" : ""}`}
         type="button"
         data-direction="right"
         aria-label="Move plate right"

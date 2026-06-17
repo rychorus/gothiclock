@@ -318,8 +318,8 @@
 .plate-button:hover,
 .plate-button:focus-visible {
   transform: translateY(-1px);
-  background: rgba(227, 167, 77, 0.14);
-  border-color: rgba(227, 167, 77, 0.7);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
   outline: none;
 }
 
@@ -329,20 +329,6 @@
   border-color: rgba(255, 255, 255, 0.12);
   transform: none;
   outline: none;
-}
-
-.lock-stage.is-manual-defining .plate-button[data-direction="left"]:hover,
-.lock-stage.is-manual-defining .plate-button[data-direction="left"]:focus-visible {
-  border-color: rgba(227, 167, 77, 0.82);
-  background: rgba(227, 167, 77, 0.18);
-  box-shadow: 0 0 0.95rem rgba(227, 167, 77, 0.24);
-}
-
-.lock-stage.is-manual-defining .plate-button[data-direction="right"]:hover,
-.lock-stage.is-manual-defining .plate-button[data-direction="right"]:focus-visible {
-  border-color: rgba(141, 198, 214, 0.82);
-  background: rgba(141, 198, 214, 0.18);
-  box-shadow: 0 0 0.95rem rgba(141, 198, 214, 0.22);
 }
 
 .plate-button[disabled] {
@@ -370,28 +356,6 @@
 }
 
 .plate-button.is-observed-right {
-  border-color: rgba(141, 198, 214, 0.82);
-  background: rgba(141, 198, 214, 0.18);
-  box-shadow: 0 0 0.95rem rgba(141, 198, 214, 0.22);
-}
-
-.plate-button.is-same {
-  border-color: rgba(227, 167, 77, 0.75);
-  background: rgba(227, 167, 77, 0.16);
-}
-
-.plate-button.is-opposite {
-  border-color: rgba(141, 198, 214, 0.75);
-  background: rgba(141, 198, 214, 0.16);
-}
-
-.plate-button.is-manual-linked-left {
-  border-color: rgba(227, 167, 77, 0.82);
-  background: rgba(227, 167, 77, 0.18);
-  box-shadow: 0 0 0.95rem rgba(227, 167, 77, 0.24);
-}
-
-.plate-button.is-manual-linked-right {
   border-color: rgba(141, 198, 214, 0.82);
   background: rgba(141, 198, 214, 0.18);
   box-shadow: 0 0 0.95rem rgba(141, 198, 214, 0.22);

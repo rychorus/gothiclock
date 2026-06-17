@@ -49,8 +49,36 @@ export function setManualLinkRelation(current: AppStateData, targetIndex: number
     manualLinkingState: {
       ...manual,
       offsets,
+      blockedObservations: manual.blockedObservations.map((value, index) => (
+        index === targetIndex ? 0 : value
+      )),
       links,
       linkDeltas,
+    },
+  };
+}
+
+export function recordBlockedManualLinkRelation(current: AppStateData, targetIndex: number, attemptedDelta: number) {
+  const manual = current.manualLinkingState;
+  const driver = manual?.selectedDriver;
+  if (
+    !manual
+    || manual.phase !== "define-links"
+    || driver === null
+    || driver === undefined
+    || driver === targetIndex
+    || attemptedDelta === 0
+  ) {
+    return current;
+  }
+
+  return {
+    ...current,
+    manualLinkingState: {
+      ...manual,
+      blockedObservations: manual.blockedObservations.map((value, index) => (
+        index === targetIndex ? Math.sign(attemptedDelta) : value
+      )),
     },
   };
 }
@@ -85,6 +113,7 @@ export function selectManualDriver(current: AppStateData, driver: number, direct
       selectedDriver: driver,
       selectedDirection,
       offsets,
+      blockedObservations: Array.from({ length: current.plateCount }, () => 0),
       linkDeltas: current.manualLinkingState.linkDeltas.map((value, linkIndex) => (
         linkIndex === driver && selectedDirection
           ? (selectedDirection === "up" ? -1 : 1)
@@ -143,6 +172,7 @@ export function nextManualLinkingStep(current: AppStateData): AppStateData {
       selectedDriver: null,
       selectedDirection: null,
       offsets,
+      blockedObservations: Array.from({ length: current.plateCount }, () => 0),
       linkDeltas,
       completedDrivers,
       links,
@@ -176,6 +206,7 @@ export function cancelManualLinkingSelection(current: AppStateData): AppStateDat
       selectedDriver: null,
       selectedDirection: null,
       offsets: Array.from({ length: current.plateCount }, () => 0),
+      blockedObservations: Array.from({ length: current.plateCount }, () => 0),
       links,
       linkDeltas,
       completedDrivers,

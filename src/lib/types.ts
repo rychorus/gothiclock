@@ -15,6 +15,7 @@ export interface ManualLinkingState {
   selectedDriver: number | null;
   selectedDirection: Direction | null;
   offsets: Offsets;
+  blockedObservations: number[];
   links: PlateLinks;
   linkDeltas: LinkDeltas;
   completedDrivers: number[];

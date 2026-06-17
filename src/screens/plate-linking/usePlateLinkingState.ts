@@ -23,6 +23,7 @@ import {
   nextManualLinkingStep as nextManualLinkingStepState,
   selectManualDriver as selectManualDriverState,
   setManualLinkRelation,
+  recordBlockedManualLinkRelation,
   resetManualLinking as resetManualLinkingState,
   solveManualLinking as solveManualLinkingState,
   startManualLinkingMode as startManualLinkingModeState,
@@ -57,6 +58,9 @@ export function usePlateLinkingState({ appState, setAppState }: {
 
         const currentOffset = manual.offsets[index] ?? 0;
         const nextOffset = Math.max(-1, Math.min(1, currentOffset + delta));
+        if (nextOffset === currentOffset) {
+          return recordBlockedManualLinkRelation(current, index, delta);
+        }
         return setManualLinkRelation(current, index, nextOffset);
       });
       return;
@@ -91,20 +95,43 @@ export function usePlateLinkingState({ appState, setAppState }: {
     }
 
     if (appState.mode === "manual_linking") {
-      setAppState((current) => (
-        current.manualLinkingState?.phase === "define-links"
-          ? setManualLinkRelation(current, index, nextOffset)
-          : current
-      ));
+      setAppState((current) => {
+        const manual = current.manualLinkingState;
+        if (manual?.phase !== "define-links") {
+          return current;
+        }
+
+        const currentOffset = manual.offsets[index] ?? 0;
+        const bounds = getManualOffsetBounds(current, index);
+        const isBlockedAttempt = attemptedDelta !== 0
+          && nextOffset === currentOffset
+          && (
+            (attemptedDelta < 0 && currentOffset <= bounds.min)
+            || (attemptedDelta > 0 && currentOffset >= bounds.max)
+          );
+
+        return isBlockedAttempt
+          ? recordBlockedManualLinkRelation(current, index, attemptedDelta)
+          : setManualLinkRelation(current, index, nextOffset);
+      });
       return;
     }
 
     if (appState.mode === "linking") {
-      setAppState((current) => (
-        attemptedDelta !== 0
+      setAppState((current) => {
+        const currentOffset = current.offsets[index] ?? 0;
+        const bounds = getOffsetBounds(getManualViewState(current), index);
+        const isBlockedAttempt = attemptedDelta !== 0
+          && nextOffset === currentOffset
+          && (
+            (attemptedDelta < 0 && currentOffset <= bounds.min)
+            || (attemptedDelta > 0 && currentOffset >= bounds.max)
+          );
+
+        return isBlockedAttempt
           ? recordBlockedPlateLinkingObservation(current, index, attemptedDelta)
-          : updatePlateLinkingObservation(current, index, nextOffset)
-      ));
+          : updatePlateLinkingObservation(current, index, nextOffset);
+      });
       return;
     }
 
