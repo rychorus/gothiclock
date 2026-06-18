@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MaterialIcon } from "../../lib/icons";
+import { playPlateClick } from "../../lib/plateClick";
 import { formatSolutionStepInstruction } from "../../lib/solution";
 import { LockStage } from "../shared/LockStage";
 import { SolutionSequence } from "./SolutionSequence";
@@ -73,7 +74,10 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
           <div className="controls-heading bottom-panel-heading">
             <div className="solution-step-header">
               <div className="solution-progress-nav" aria-label="Solution step navigation">
-                <button className="solution-nav-button" type="button" aria-label="Previous solution step" disabled={(appState.solution?.index ?? 0) <= 0} onClick={() => actions.setSolutionStep((appState.solution?.index ?? 0) - 1)}>
+                <button className="solution-nav-button" type="button" aria-label="Previous solution step" data-sound="plate" disabled={(appState.solution?.index ?? 0) <= 0} onClick={() => {
+                  playPlateClick();
+                  actions.setSolutionStep((appState.solution?.index ?? 0) - 1);
+                }}>
                   <MaterialIcon name="chevron_left" />
                 </button>
                 <p className="controls-title is-solution">{currentStep} of {solutionChunks.length || 1}</p>
@@ -83,8 +87,10 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
                     className={`solution-nav-button${shouldShowNextHint ? " is-next-emphasized" : ""}`}
                     type="button"
                     aria-label="Next solution step"
+                    data-sound="plate"
                     disabled={(appState.solution?.index ?? 0) >= solutionChunks.length - 1}
                     onClick={() => {
+                      playPlateClick();
                       if (shouldShowNextHint) {
                         app.incrementSolutionNextHintClickCount();
                       }
@@ -100,7 +106,7 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
               </p>
             </div>
             <div ref={solutionMenuRef} className="solution-menu-wrap">
-              <button className="solution-toggle-icon" type="button" aria-label="Solution actions" aria-expanded={isSolutionMenuOpen} onClick={() => setIsSolutionMenuOpen((current) => !current)}>
+                <button className="solution-toggle-icon" type="button" aria-label="Solution actions" aria-expanded={isSolutionMenuOpen} onClick={() => setIsSolutionMenuOpen((current) => !current)}>
                 <MaterialIcon name="more_vert" />
               </button>
               {solutionMenu}

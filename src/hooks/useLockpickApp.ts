@@ -4,6 +4,7 @@ import { createInitialAppState, getUnknownPlates, isTrivialCenteredLock } from "
 import { resetTestingMode } from "../lib/appState";
 import { syncFinalLockProgress } from "../lib/lockStorage";
 import { getModalAnalyticsName, getScreenAnalyticsName, trackButtonClick, trackModalView, trackScreenView } from "../lib/analytics";
+import { playUiClick } from "../lib/uiClick";
 import { buildShareUrl, parseShareUrl } from "../screens/shared/shareUrl";
 import { useAppNavigation } from "../screens/shared/useAppNavigation";
 import { useMainMenuState } from "../screens/main-menu/useMainMenuState";
@@ -235,6 +236,7 @@ export function useLockpickApp() {
         return;
       }
 
+      const soundKind = button.getAttribute("data-sound");
       const rawLabel = button.getAttribute("aria-label")
         || button.getAttribute("data-analytics-label")
         || button.textContent
@@ -242,6 +244,11 @@ export function useLockpickApp() {
       const label = rawLabel.trim().replace(/\s+/g, " ");
       if (!label) {
         return;
+      }
+
+      const suppressUiClick = button.hasAttribute("data-no-ui-click");
+      if (soundKind !== "plate" && !suppressUiClick) {
+        playUiClick();
       }
 
       if (plateLinkingResetTooltipBlockCount > 0 && plateLinkingResetTooltipBlockCount <= PLATE_LINKING_RESET_TOOLTIP_MAX_TRIGGER_COUNT) {

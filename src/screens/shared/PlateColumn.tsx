@@ -311,6 +311,7 @@ export function PlateColumn({
       <button
         className={`plate-button${leftSuggested ? " is-suggested" : ""}${leftObserved ? " is-observed-left" : ""}`}
         type="button"
+        data-sound="plate"
         data-direction="left"
         aria-label="Move plate left"
         hidden={hideMoveButtons}
@@ -362,6 +363,7 @@ export function PlateColumn({
       <button
         className={`plate-button${rightSuggested ? " is-suggested" : ""}${rightObserved ? " is-observed-right" : ""}`}
         type="button"
+        data-sound="plate"
         data-direction="right"
         aria-label="Move plate right"
         hidden={hideMoveButtons}

@@ -1,6 +1,7 @@
 import "./solution.css";
 import { MaterialIcon } from "../../lib/icons";
 import { getVisiblePlateLabel } from "../../lib/notation";
+import { playPlateClicks } from "../../lib/plateClick";
 
 export function SolutionSequence({ chunks, currentIndex, onSelect, className = "solution-sequence is-collapsed" }) {
   if (!Array.isArray(chunks) || !chunks.length) {
@@ -23,7 +24,14 @@ export function SolutionSequence({ chunks, currentIndex, onSelect, className = "
             className={classes.join(" ")}
             type="button"
             data-solution-step={index}
-            onClick={() => onSelect(index)}
+            onClick={() => {
+              const clickCount = Math.min(3, Math.abs(index - currentIndex));
+              if (clickCount > 0) {
+                playPlateClicks(clickCount);
+              }
+
+              onSelect(index);
+            }}
           >
             <span className="solution-step-label">{chunk.type === "move" && chunk.move ? getVisiblePlateLabel(chunk.move.plate, chunk.offsets.length) : chunk.label}</span>
             {chunk.type === "move" && chunk.move ? (
