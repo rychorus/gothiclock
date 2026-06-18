@@ -5,8 +5,13 @@ import { returnToSolutionView } from "../../lib/appState";
 import { startFreshPlateLinkingProcedure, startPlateLinkingProcedure } from "../plate-linking/procedure/plateLinkingProcedure";
 import type { AppStateData, ModalState } from "../../lib/types";
 
-function snapshotNavigation(nextAppState: AppStateData, nextModal: ModalState) {
-  return { appState: nextAppState, modal: nextModal };
+type NavigationSnapshot = {
+  appState: AppStateData;
+  modal: ModalState;
+};
+
+function createSnapshotId(counter: number) {
+  return `nav-${counter}`;
 }
 
 function getNavigationKey(nextAppState: AppStateData, nextModal: ModalState) {
@@ -64,7 +69,25 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
 }) {
   const historyReadyRef = useRef(false);
   const historyKeyRef = useRef("");
+  const historySnapshotIdRef = useRef("");
+  const historySnapshotCounterRef = useRef(0);
+  const navigationSnapshotsRef = useRef(new Map<string, NavigationSnapshot>());
   const restoringHistoryRef = useRef(false);
+
+  function storeNavigationSnapshot(nextAppState: AppStateData, nextModal: ModalState, snapshotId: string) {
+    navigationSnapshotsRef.current.set(snapshotId, {
+      appState: nextAppState,
+      modal: nextModal,
+    });
+  }
+
+  function readNavigationSnapshot(snapshotId: string | undefined | null) {
+    if (!snapshotId) {
+      return null;
+    }
+
+    return navigationSnapshotsRef.current.get(snapshotId) || null;
+  }
 
   function setModal(nextModal: ModalState) {
     setModalState(nextModal);
@@ -206,8 +229,16 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
 
     function handlePopState(event: PopStateEvent) {
       restoringHistoryRef.current = true;
-      setAppState(event.state?.appState || createInitialAppState());
-      setModalState(event.state?.modal || { type: null });
+      const snapshot = readNavigationSnapshot(event.state?.snapshotId);
+      if (!snapshot) {
+        setAppState(createInitialAppState());
+        setModalState({ type: null });
+        return;
+      }
+
+      historySnapshotIdRef.current = event.state?.snapshotId || historySnapshotIdRef.current;
+      setAppState(snapshot.appState);
+      setModalState(snapshot.modal);
     }
 
     window.addEventListener("popstate", handlePopState);
@@ -221,9 +252,16 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
 
     const nextKey = getNavigationKey(appState, modal);
     const nextUrl = getNavigationUrl(Boolean(appState.sharedLinkMetadata));
+    const shouldCreateNewSnapshot = !historyReadyRef.current || historyKeyRef.current !== nextKey || !historySnapshotIdRef.current;
+    const snapshotId = shouldCreateNewSnapshot
+      ? createSnapshotId(++historySnapshotCounterRef.current)
+      : historySnapshotIdRef.current;
+    historySnapshotIdRef.current = snapshotId;
+    storeNavigationSnapshot(appState, modal, snapshotId);
+    const historyState = { snapshotId };
 
     if (!historyReadyRef.current) {
-      window.history.replaceState(snapshotNavigation(appState, modal), "", nextUrl);
+      window.history.replaceState(historyState, "", nextUrl);
       historyKeyRef.current = nextKey;
       historyReadyRef.current = true;
       return;
@@ -236,12 +274,12 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
     }
 
     if (historyKeyRef.current !== nextKey) {
-      window.history.pushState(snapshotNavigation(appState, modal), "", nextUrl);
+      window.history.pushState(historyState, "", nextUrl);
       historyKeyRef.current = nextKey;
       return;
     }
 
-    window.history.replaceState(snapshotNavigation(appState, modal), "", nextUrl);
+    window.history.replaceState(historyState, "", nextUrl);
   }, [appState, modal]);
 
   return {

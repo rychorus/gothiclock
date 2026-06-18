@@ -128,6 +128,116 @@ export function buildSolutionChunks(
   return chunks;
 }
 
+function invertMove(move: SolutionMoveData): SolutionMoveData {
+  return {
+    plate: move.plate,
+    delta: -move.delta,
+    direction: move.direction === "up" ? "down" : "up",
+  };
+}
+
+function getOffsetsKey(offsets: Offsets) {
+  return offsets.join(",");
+}
+
+function reconstructSolutionPlan(
+  meetKey: string,
+  startKey: string,
+  targetKey: string,
+  frontParents: Map<string, string | null>,
+  frontMoves: Map<string, SolutionMoveData>,
+  backParents: Map<string, string | null>,
+  backMoves: Map<string, SolutionMoveData>,
+  startOffsets: Offsets,
+  links: PlateLinks,
+): SolutionPlanData {
+  const moves: SolutionMoveData[] = [];
+
+  let traceKey: string | null = meetKey;
+  while (traceKey && traceKey !== startKey) {
+    const move = frontMoves.get(traceKey);
+    const parentKey = frontParents.get(traceKey) ?? null;
+    if (!move || !parentKey) {
+      break;
+    }
+
+    moves.unshift(move);
+    traceKey = parentKey;
+  }
+
+  traceKey = meetKey;
+  while (traceKey && traceKey !== targetKey) {
+    const move = backMoves.get(traceKey);
+    const parentKey = backParents.get(traceKey) ?? null;
+    if (!move || !parentKey) {
+      break;
+    }
+
+    moves.push(move);
+    traceKey = parentKey;
+  }
+
+  return {
+    moves,
+    chunks: buildSolutionChunks(moves, startOffsets, links),
+    index: 0,
+    startOffsets,
+  };
+}
+
+function expandSolutionFrontier(
+  frontier: Array<{ key: string; offsets: Offsets }>,
+  visited: Map<string, string | null>,
+  otherVisited: Map<string, string | null>,
+  links: PlateLinks,
+  plateCount: number,
+  storeMove: (key: string, move: SolutionMoveData) => void,
+): { meetKey: string | null; nextFrontier: Array<{ key: string; offsets: Offsets }> } {
+  const nextFrontier: Array<{ key: string; offsets: Offsets }> = [];
+
+  for (const node of frontier) {
+    if (otherVisited.has(node.key)) {
+      return { meetKey: node.key, nextFrontier };
+    }
+
+    for (let plate = 0; plate < plateCount; plate += 1) {
+      const normalizedLink = links[plate];
+      if (!normalizedLink) {
+        continue;
+      }
+
+      for (const delta of [-1, 1] as const) {
+        const nextOffsets = node.offsets.map((value, index) => value + (normalizedLink[index] * delta));
+
+        if (nextOffsets.some((value) => value < -CENTER_INDEX || value > CENTER_INDEX)) {
+          continue;
+        }
+
+        const nextKey = getOffsetsKey(nextOffsets);
+        if (visited.has(nextKey)) {
+          continue;
+        }
+
+        visited.set(nextKey, node.key);
+        const move: SolutionMoveData = {
+          plate,
+          delta,
+          direction: delta === -1 ? "up" : "down",
+        };
+        storeMove(nextKey, move);
+
+        if (otherVisited.has(nextKey)) {
+          return { meetKey: nextKey, nextFrontier };
+        }
+
+        nextFrontier.push({ key: nextKey, offsets: nextOffsets });
+      }
+    }
+  }
+
+  return { meetKey: null, nextFrontier };
+}
+
 export function buildSolutionPlanForApp(
   state: Pick<AppStateData, "plateCount" | "links">,
   startOffsets: Offsets | null | undefined,
@@ -136,7 +246,8 @@ export function buildSolutionPlanForApp(
   const start = Array.isArray(startOffsets)
     ? cloneOffsets(startOffsets)
     : Array.from({ length: plateCount }, () => 0);
-  const targetKey = Array.from({ length: plateCount }, () => 0).join(",");
+  const target = Array.from({ length: plateCount }, () => 0);
+  const targetKey = getOffsetsKey(target);
   const startKey = start.join(",");
 
   if (startKey === targetKey) {
@@ -144,60 +255,46 @@ export function buildSolutionPlanForApp(
     return { moves, chunks: buildSolutionChunks(moves, start, links), index: 0, startOffsets: start };
   }
 
-  const queue = [start];
-  const parents = new Map<string, string | null>([[startKey, null]]);
-  const moves = new Map<string, SolutionMoveData>();
+  const frontParents = new Map<string, string | null>([[startKey, null]]);
+  const frontMoves = new Map<string, SolutionMoveData>();
+  const backParents = new Map<string, string | null>([[targetKey, null]]);
+  const backMoves = new Map<string, SolutionMoveData>();
+  let frontFrontier = [{ key: startKey, offsets: start }];
+  let backFrontier = [{ key: targetKey, offsets: target }];
 
-  while (queue.length) {
-    const current = queue.shift();
-    const currentKey = current.join(",");
+  while (frontFrontier.length && backFrontier.length) {
+    if (frontFrontier.length <= backFrontier.length) {
+      const { meetKey, nextFrontier } = expandSolutionFrontier(
+        frontFrontier,
+        frontParents,
+        backParents,
+        links,
+        plateCount,
+        (key, move) => frontMoves.set(key, move),
+      );
 
-    for (let plate = 0; plate < plateCount; plate += 1) {
-      const normalizedLink = links[plate];
-      if (!normalizedLink) {
-        continue;
+      if (meetKey) {
+        return reconstructSolutionPlan(meetKey, startKey, targetKey, frontParents, frontMoves, backParents, backMoves, start, links);
       }
 
-      for (const delta of [-1, 1]) {
-        const change = getActionDelta(normalizedLink, delta);
-        const next = current.map((value, index) => value + change[index]);
-
-        if (next.some((value) => value < -CENTER_INDEX || value > CENTER_INDEX)) {
-          continue;
-        }
-
-        const nextKey = next.join(",");
-        if (parents.has(nextKey)) {
-          continue;
-        }
-
-        parents.set(nextKey, currentKey);
-        moves.set(nextKey, {
-          plate,
-          delta,
-          direction: delta === -1 ? "up" : "down",
-        });
-
-        if (nextKey === targetKey) {
-          const plan: SolutionMoveData[] = [];
-          let traceKey = nextKey;
-
-          while (traceKey !== startKey) {
-            plan.unshift(moves.get(traceKey));
-            traceKey = parents.get(traceKey);
-          }
-
-          return {
-            moves: plan,
-            chunks: buildSolutionChunks(plan, start, links),
-            index: 0,
-            startOffsets: start,
-          };
-        }
-
-        queue.push(next);
-      }
+      frontFrontier = nextFrontier;
+      continue;
     }
+
+    const { meetKey, nextFrontier } = expandSolutionFrontier(
+      backFrontier,
+      backParents,
+      frontParents,
+      links,
+      plateCount,
+      (key, move) => backMoves.set(key, invertMove(move)),
+    );
+
+    if (meetKey) {
+      return reconstructSolutionPlan(meetKey, startKey, targetKey, frontParents, frontMoves, backParents, backMoves, start, links);
+    }
+
+    backFrontier = nextFrontier;
   }
 
   return {
