@@ -43,6 +43,10 @@
   text-transform: none;
   line-height: 1.05;
   white-space: nowrap;
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: calc(100vw - 7.4rem);
 }
 
 .hero-title-line {
@@ -390,6 +394,8 @@ body.is-solution-mode .hero-title {
   color: rgba(244, 234, 216, 0.82);
   font-size: 1rem;
   letter-spacing: 0.04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 body.is-manual-linking-mode .hero-title {
