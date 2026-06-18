@@ -4,12 +4,12 @@ type AnalyticsParams = Record<string, string | number | boolean | null | undefin
 
 declare global {
   interface Window {
-    gtag?: (command: string, eventName: string, params?: AnalyticsParams) => void;
+    gtag?: (...args: any[]) => void;
   }
 }
 
 function sendAnalyticsEvent(eventName: string, params: AnalyticsParams) {
-  if (typeof window === "undefined" || typeof window.gtag !== "function") {
+  if (import.meta.env.DEV || typeof window === "undefined" || typeof window.gtag !== "function") {
     return;
   }
 
@@ -121,8 +121,12 @@ export function getModalAnalyticsName(modal: ModalState) {
 }
 
 export function trackScreenView(screenName: string) {
-  const screenSlug = slugifyAnalyticsValue(screenName);
-  sendAnalyticsEvent(`screen_view_${screenSlug}`, { screen_name: screenName });
+  sendAnalyticsEvent("page_view", {
+    page_title: screenName,
+    screen_name: screenName,
+    page_location: window.location.href,
+    page_path: window.location.pathname,
+  });
 }
 
 export function trackModalView(modalName: string | null) {
