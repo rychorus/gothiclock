@@ -83,12 +83,13 @@ export function recordBlockedManualLinkRelation(current: AppStateData, targetInd
   };
 }
 
-export function startManualLinkingMode(current: AppStateData): AppStateData {
+export function startManualLinkingMode(current: AppStateData, returnState: AppStateData | null = null): AppStateData {
   return {
     ...current,
     mode: "manual_linking",
     linkingPromptTask: null,
     plateLinkingProcedure: null,
+    manualLinkingReturnState: returnState,
     manualLinkingState: createManualLinkingState(current),
     solution: null,
   };

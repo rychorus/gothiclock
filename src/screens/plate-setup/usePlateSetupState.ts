@@ -1,5 +1,6 @@
 import { setPlateCount, startNewLock, startOver } from "./plateSetupState";
 import { startFreshPlateLinkingProcedure } from "../plate-linking/procedure/plateLinkingProcedure";
+import { startManualLinkingMode as startManualLinkingModeState } from "../plate-linking/manual/useManualPlateLinkingState";
 import type { AppStateData, ModalState } from "../../lib/types";
 import type { Dispatch, SetStateAction } from "react";
 import { findSavedLockMatchingSetup } from "../../lib/lockStorage";
@@ -25,6 +26,9 @@ export function usePlateSetupState({ appState, setAppState, setModal }: {
       }
 
       setAppState(startFreshPlateLinkingProcedure);
+    },
+    startSetupManualLinkingMode: () => {
+      setAppState((current) => startManualLinkingModeState(current, { ...current, manualLinkingState: null, manualLinkingReturnState: null }));
     },
     continueLinkingMode: () => setAppState(startFreshPlateLinkingProcedure),
   };

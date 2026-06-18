@@ -35,6 +35,9 @@ export function LockpickAppView({ app, appVersion }) {
   const loadSearchRef = useRef(null);
   const loadActionsRef = useRef(null);
   const sharedSolutionName = appState.sharedLinkMetadata?.name;
+  const manualBackLabel = appState.mode === "manual_linking" && appState.manualLinkingReturnState?.mode === "setup"
+    ? "Back to plates setup"
+    : "Back to guided mode";
   const heroTitle = appState.mode === "solution" && currentSavedLock && !currentSavedLock.isDraft
     ? `${currentSavedLock.name} Solution`
     : appState.mode === "solution" && sharedSolutionName
@@ -222,7 +225,7 @@ export function LockpickAppView({ app, appVersion }) {
             <button
               className="hero-back"
               type="button"
-              aria-label={appState.mode === "testing" ? "Back to solution" : appState.mode === "solution" || appState.mode === "ready_to_solve" ? "Back to plates linking" : appState.mode === "manual_linking" ? "Back to guided mode" : appState.mode === "linking" ? "Back to plates setup" : "Back to main menu"}
+              aria-label={appState.mode === "testing" ? "Back to solution" : appState.mode === "solution" || appState.mode === "ready_to_solve" ? "Back to plates linking" : appState.mode === "manual_linking" ? manualBackLabel : appState.mode === "linking" ? "Back to plates setup" : "Back to main menu"}
               hidden={appState.mode === "menu"}
               onClick={actions.goBackHeader}
             >

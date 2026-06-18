@@ -71,6 +71,7 @@ export function createInitialAppState(): AppStateData {
     mode: "menu",
     solutionOrigin: null,
     solutionReturnState: null,
+    manualLinkingReturnState: null,
     linkingStartOffsets: null,
     links: createEmptyLinks(START_COUNT),
     linkDeltas: createEmptyLinkDeltas(START_COUNT),

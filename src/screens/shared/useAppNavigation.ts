@@ -130,6 +130,15 @@ export function useAppNavigation({ appState, modal, setAppState, setModalState }
     }
 
     if (appState.mode === "manual_linking") {
+      if (appState.manualLinkingReturnState) {
+        setAppState({
+          ...appState.manualLinkingReturnState,
+          manualLinkingState: null,
+          manualLinkingReturnState: null,
+        });
+        return;
+      }
+
       setAppState((current) => {
         const manual = current.manualLinkingState;
         const mergedState = manual

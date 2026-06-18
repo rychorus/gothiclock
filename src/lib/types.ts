@@ -103,6 +103,7 @@ export interface AppStateData {
   mode: AppMode;
   solutionOrigin: "load" | null;
   solutionReturnState: AppStateData | null;
+  manualLinkingReturnState: AppStateData | null;
   linkingStartOffsets: Offsets | null;
   links: PlateLinks;
   linkDeltas: LinkDeltas;

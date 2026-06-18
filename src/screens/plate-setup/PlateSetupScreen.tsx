@@ -33,8 +33,14 @@ export function PlateSetupScreen({ appState, currentSolutionChunk, testingFeedba
         instructionClassName="is-setup-mode"
       />
 
-      <div className="footer-actions" hidden={false} data-mode={appState.mode} data-count="1">
-        <button className="action-button primary" type="button" disabled={appState.offsets.every((offset) => offset === 0)} onClick={actions.startLinkingMode}>Start Linking</button>
+      <div className="footer-actions" hidden={false} data-mode="linking" data-count="2">
+        <button className="action-button secondary" type="button" disabled={appState.offsets.every((offset) => offset === 0)} onClick={actions.startSetupManualLinkingMode}>
+          Manually Link
+        </button>
+        <button className="action-button primary" type="button" disabled={appState.offsets.every((offset) => offset === 0)} onClick={actions.startLinkingMode}>
+          <span className="action-button-row"><span>Start Linking</span></span>
+          <span className="action-button-subtitle">Guided</span>
+        </button>
       </div>
     </>
   );

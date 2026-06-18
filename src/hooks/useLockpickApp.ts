@@ -254,6 +254,7 @@ export function useLockpickApp() {
       setPlateCount: plateSetup.setPlateCount,
       startOver: plateSetup.startOver,
       startLinkingMode: plateSetup.startLinkingMode,
+      startSetupManualLinkingMode: plateSetup.startSetupManualLinkingMode,
       continueLinkingMode: plateSetup.continueLinkingMode,
       startManualLinkingMode: plateLinking.startManualLinkingMode,
       selectManualDriver: plateLinking.selectManualDriver,
