@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { buildSolutionCommandString, buildWasdSequence, setSolutionStep, enterTestingMode, returnToSolutionView } from "../../lib/appState";
+import { playPlateClicks } from "../../lib/plateClick";
 import type { AppStateData, SolutionChunkData } from "../../lib/types";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -14,7 +15,14 @@ export function useSolutionState({ appState, setAppState }: {
     currentSolutionChunk,
     powershellCode,
     wasdSequence: buildWasdSequence(appState.solution?.chunks),
-    setSolutionStep: (index: number) => setAppState((current) => setSolutionStep(current, index)),
+    setSolutionStep: (index: number) => {
+      const stepCount = Math.min(Math.abs(index - (appState.solution?.index ?? 0)), 3);
+      if (stepCount > 0) {
+        playPlateClicks(stepCount);
+      }
+
+      setAppState((current) => setSolutionStep(current, index));
+    },
     enterTestingMode: () => setAppState(enterTestingMode),
     returnToSolutionView: () => setAppState(returnToSolutionView),
     goToMainMenu: () => setAppState((current) => ({

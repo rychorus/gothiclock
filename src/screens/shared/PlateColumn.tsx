@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { playPlateClicks } from "../../lib/plateClick";
 import { getVisiblePlateLabel } from "../../lib/notation";
 
 function getTransformValue(offset, dragPixels) {
@@ -196,6 +197,7 @@ export function PlateColumn({
       startX: event.clientX,
       lastClientX: event.clientX,
       startOffset: isManualPickMode ? 0 : offset,
+      lastSnappedOffset: isManualPickMode ? 0 : offset,
       stepSize,
     };
     viewportRef.current.setPointerCapture(event.pointerId);
@@ -213,7 +215,16 @@ export function PlateColumn({
     const nextPixels = dragState.startOffset * dragState.stepSize + deltaPixels;
     const minPixels = bounds.min * dragState.stepSize;
     const maxPixels = bounds.max * dragState.stepSize;
-    setDragPixels(Math.max(minPixels, Math.min(maxPixels, nextPixels)));
+    const clampedPixels = Math.max(minPixels, Math.min(maxPixels, nextPixels));
+    const snappedOffset = Math.max(bounds.min, Math.min(bounds.max, dragState.startOffset + Math.round(deltaPixels / dragState.stepSize)));
+    const previousSnappedOffset = dragState.lastSnappedOffset;
+
+    if (snappedOffset !== previousSnappedOffset) {
+      playPlateClicks(Math.abs(snappedOffset - previousSnappedOffset));
+      dragState.lastSnappedOffset = snappedOffset;
+    }
+
+    setDragPixels(clampedPixels);
   }
 
   function handlePointerFinish(event) {

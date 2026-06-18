@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { applyTestingMove } from "../../lib/appState";
 import { cloneOffsets } from "../../lib/lockData";
+import { playPlateClick, playPlateClicks } from "../../lib/plateClick";
 import { canMove, getOffsetBounds, getPlateObservation, hasPlateObservation } from "../../lib/plateMath";
 import type { AppStateData, Direction } from "../../lib/types";
 import {
@@ -48,25 +49,32 @@ export function usePlateLinkingState({
     }
 
     if (appState.mode === "manual_linking") {
+      const manual = appState.manualLinkingState;
+      if (!manual) {
+        return;
+      }
+
+      if (manual.phase === "choose-driver") {
+        if (direction) {
+          playPlateClick();
+        }
+        setAppState((current) => selectManualDriverState(current, index, direction));
+        return;
+      }
+
+      if (manual.phase !== "define-links") {
+        return;
+      }
+
+      const currentOffset = manual.offsets[index] ?? 0;
+      const nextOffset = Math.max(-1, Math.min(1, currentOffset + delta));
+      if (nextOffset === currentOffset) {
+        setAppState((current) => recordBlockedManualLinkRelation(current, index, delta));
+        return;
+      }
+
+      playPlateClick();
       setAppState((current) => {
-        const manual = current.manualLinkingState;
-        if (!manual) {
-          return current;
-        }
-
-        if (manual.phase === "choose-driver") {
-          return selectManualDriverState(current, index, direction);
-        }
-
-        if (manual.phase !== "define-links") {
-          return current;
-        }
-
-        const currentOffset = manual.offsets[index] ?? 0;
-        const nextOffset = Math.max(-1, Math.min(1, currentOffset + delta));
-        if (nextOffset === currentOffset) {
-          return recordBlockedManualLinkRelation(current, index, delta);
-        }
         return setManualLinkRelation(current, index, nextOffset);
       });
       return;
@@ -81,10 +89,12 @@ export function usePlateLinkingState({
         setAppState((current) => recordBlockedPlateLinkingObservation(current, index, delta));
         return;
       }
+      playPlateClicks(Math.abs(nextOffset - viewState.offsets[index]));
       setAppState((current) => updatePlateLinkingObservation(current, index, nextOffset));
       return;
     }
 
+    playPlateClick();
     setAppState((current) => {
       const offsets = cloneOffsets(current.offsets);
       offsets[index] = current.offsets[index] + delta;
@@ -102,21 +112,21 @@ export function usePlateLinkingState({
     }
 
     if (appState.mode === "manual_linking") {
+      const manual = appState.manualLinkingState;
+      if (!manual || manual.phase !== "define-links") {
+        return;
+      }
+
+      const currentOffset = manual.offsets[index] ?? 0;
+      const bounds = getManualOffsetBounds(appState, index);
+      const isBlockedAttempt = attemptedDelta !== 0
+        && nextOffset === currentOffset
+        && (
+          (attemptedDelta < 0 && currentOffset <= bounds.min)
+          || (attemptedDelta > 0 && currentOffset >= bounds.max)
+        );
+
       setAppState((current) => {
-        const manual = current.manualLinkingState;
-        if (manual?.phase !== "define-links") {
-          return current;
-        }
-
-        const currentOffset = manual.offsets[index] ?? 0;
-        const bounds = getManualOffsetBounds(current, index);
-        const isBlockedAttempt = attemptedDelta !== 0
-          && nextOffset === currentOffset
-          && (
-            (attemptedDelta < 0 && currentOffset <= bounds.min)
-            || (attemptedDelta > 0 && currentOffset >= bounds.max)
-          );
-
         return isBlockedAttempt
           ? recordBlockedManualLinkRelation(current, index, attemptedDelta)
           : setManualLinkRelation(current, index, nextOffset);
@@ -135,11 +145,11 @@ export function usePlateLinkingState({
         );
 
       onPlateLinkingInteraction?.();
-      setAppState((current) => {
-        return isBlockedAttempt
+      setAppState((current) => (
+        isBlockedAttempt
           ? recordBlockedPlateLinkingObservation(current, index, attemptedDelta)
-          : updatePlateLinkingObservation(current, index, nextOffset);
-      });
+          : updatePlateLinkingObservation(current, index, nextOffset)
+      ));
       return;
     }
 
@@ -184,18 +194,25 @@ export function usePlateLinkingState({
     resetManualLinking,
     cancelManualLinkingSelection,
     stepBackPlateLinkingPrompt: () => setAppState(stepBackPlateLinkingPrompt),
-    resetPlateLinkingPrompt: () => setAppState((current) => (
-      current.linkingPromptTask?.phase === "reset"
-        ? advancePlateLinkingResetPrompt(current)
-        : resetPlateLinkingProcedure(current)
-    )),
-    advancePlateLinkingPrompt: () => setAppState((current) => (
-      current.linkingPromptTask?.phase === "center"
-        ? advancePlateLinkingCenterPrompt(current)
-        : current.linkingPromptTask?.phase === "reset"
-          ? advancePlateLinkingResetPrompt(current)
-          : advancePlateLinkingPrompt(current)
-    )),
+    resetPlateLinkingPrompt: () => {
+      if (appState.linkingPromptTask?.phase === "reset") {
+        playPlateClick();
+        setAppState(advancePlateLinkingResetPrompt);
+        return;
+      }
+
+      setAppState(resetPlateLinkingProcedure);
+    },
+    advancePlateLinkingPrompt: () => {
+      playPlateClick();
+      setAppState((current) => (
+        current.linkingPromptTask?.phase === "center"
+          ? advancePlateLinkingCenterPrompt(current)
+          : current.linkingPromptTask?.phase === "reset"
+            ? advancePlateLinkingResetPrompt(current)
+            : advancePlateLinkingPrompt(current)
+      ));
+    },
     completePlateLinkingPrompt: () => setAppState(completePlateLinkingObservation),
     selectors: {
       canMove: (index, direction) => {
