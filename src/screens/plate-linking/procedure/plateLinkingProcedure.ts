@@ -7,7 +7,12 @@ import {
 } from "../../../lib/lockData";
 import { buildSolutionPlanForApp } from "../../../lib/solution";
 import type { AppStateData, PlateLink } from "../../../lib/types";
-import { createPlateLinkingCenterPromptTask, createPlateLinkingPromptTask } from "../prompt/plateLinkingPromptState";
+import {
+  createPlateLinkingCenterPromptTask,
+  createPlateLinkingPromptTask,
+  createPlateLinkingResetPromptTask,
+  createPlateLinkingStalledPromptTask,
+} from "../prompt/plateLinkingPromptState";
 import type {
   DeferredPlateLink,
   PlateLinkingProcedureState,
@@ -26,6 +31,7 @@ function createProcedureState(state: AppStateData): PlateLinkingProcedureState {
     deferredDrivers: [],
     partialLinks: {},
     lastTriedDeltas: {},
+    seenPromptKeys: [],
     history: [],
   };
 }
@@ -173,10 +179,8 @@ function getProbeDelta(offset: number, lastTriedDelta?: number): number {
 function isBlockerResolved(
   blocker: number,
   state: AppStateData,
-  procedure: PlateLinkingProcedureState,
 ): boolean {
-  return procedure.completedDrivers.includes(blocker)
-    || Math.abs(state.offsets[blocker]) < CENTER_INDEX;
+  return Math.abs(state.offsets[blocker]) < CENTER_INDEX;
 }
 
 function isDeferredWhileBlockersAreAtEdge(
@@ -187,7 +191,7 @@ function isDeferredWhileBlockersAreAtEdge(
   const deferred = procedure.deferredDrivers.find((entry) => entry.driver === driver);
   return Boolean(
     deferred
-    && deferred.blockedBy.some((blocker) => !isBlockerResolved(blocker, state, procedure)),
+    && deferred.blockedBy.some((blocker) => !isBlockerResolved(blocker, state)),
   );
 }
 
@@ -236,6 +240,124 @@ function getDependencyCycleDrivers(
     : [];
 }
 
+function countEdgeBlockers(
+  offsets: number[],
+  procedure: PlateLinkingProcedureState,
+): number {
+  return unique(procedure.deferredDrivers.flatMap((entry) => entry.blockedBy))
+    .filter((blocker) => Math.abs(offsets[blocker]) === CENTER_INDEX)
+    .length;
+}
+
+function findKnownRecoveryMove(
+  state: AppStateData,
+  procedure: PlateLinkingProcedureState,
+): { driver: number; delta: number } | null {
+  const currentBlockerCount = countEdgeBlockers(state.offsets, procedure);
+  if (currentBlockerCount === 0) {
+    return null;
+  }
+
+  const candidates = state.links.flatMap((link, driver) => {
+    if (!link) {
+      return [];
+    }
+
+    return [-1, 1]
+      .filter((delta) => canApplyLinkedDelta(state.offsets, link, delta))
+      .map((delta) => {
+        const nextOffsets = applyLinkedDelta(state.offsets, link, delta);
+        return {
+          driver,
+          delta,
+          blockerCount: countEdgeBlockers(nextOffsets, procedure),
+          centeringScore: scoreLinkedCentering(nextOffsets, link),
+        };
+      })
+      .filter(({ blockerCount }) => blockerCount < currentBlockerCount);
+  });
+
+  candidates.sort((left, right) => (
+    left.blockerCount - right.blockerCount
+    || compareCenteringScores(left.centeringScore, right.centeringScore)
+    || left.driver - right.driver
+    || left.delta - right.delta
+  ));
+
+  return candidates[0] || null;
+}
+
+function findDeferredEscapeProbe(
+  state: AppStateData,
+  procedure: PlateLinkingProcedureState,
+): { driver: number; delta: number } | null {
+  const candidates = procedure.deferredDrivers.flatMap((entry) => {
+    const lastDelta = procedure.lastTriedDeltas[entry.driver];
+    const partialLink = procedure.partialLinks[entry.driver];
+    if (!lastDelta || !partialLink || procedure.completedDrivers.includes(entry.driver)) {
+      return [];
+    }
+
+    const delta = -lastDelta;
+    if (!canApplyLinkedDelta(state.offsets, partialLink, delta)) {
+      return [];
+    }
+
+    const currentBlocked = entry.blockedBy
+      .filter((blocker) => Math.abs(state.offsets[blocker]) === CENTER_INDEX)
+      .length;
+    const nextOffsets = applyLinkedDelta(state.offsets, partialLink, delta);
+    const nextBlocked = entry.blockedBy
+      .filter((blocker) => Math.abs(nextOffsets[blocker]) === CENTER_INDEX)
+      .length;
+
+    return nextBlocked < currentBlocked
+      ? [{ driver: entry.driver, delta, improvement: currentBlocked - nextBlocked }]
+      : [];
+  });
+
+  candidates.sort((left, right) => (
+    right.improvement - left.improvement
+    || Math.abs(state.offsets[left.driver]) - Math.abs(state.offsets[right.driver])
+    || left.driver - right.driver
+  ));
+
+  return candidates[0] || null;
+}
+
+function findResetEscapeProbe(
+  state: AppStateData,
+  procedure: PlateLinkingProcedureState,
+): { driver: number; delta: number } | null {
+  if (!state.linkingStartOffsets) {
+    return null;
+  }
+
+  const candidates = procedure.deferredDrivers.flatMap((entry) => {
+    const partialLink = procedure.partialLinks[entry.driver];
+    if (!partialLink || procedure.completedDrivers.includes(entry.driver)) {
+      return [];
+    }
+
+    return [-1, 1]
+      .filter((delta) => canApplyLinkedDelta(state.linkingStartOffsets!, partialLink, delta))
+      .map((delta) => ({
+        driver: entry.driver,
+        delta,
+        changesDirection: delta !== procedure.lastTriedDeltas[entry.driver],
+      }));
+  });
+
+  candidates.sort((left, right) => (
+    Number(right.changesDirection) - Number(left.changesDirection)
+    || Math.abs(state.linkingStartOffsets![right.driver]) - Math.abs(state.linkingStartOffsets![left.driver])
+    || left.driver - right.driver
+    || left.delta - right.delta
+  ));
+
+  return candidates[0] || null;
+}
+
 function takePendingDriver(
   state: AppStateData,
   procedure: PlateLinkingProcedureState,
@@ -265,7 +387,7 @@ export function selectNextPlateLinkingDriver(
   state: AppStateData,
   procedure: PlateLinkingProcedureState,
   currentDriver?: number,
-): { driver: number | null; procedure: PlateLinkingProcedureState } {
+): { driver: number | null; delta?: number; procedure: PlateLinkingProcedureState } {
   const cycleDrivers = getDependencyCycleDrivers(procedure, currentDriver);
   const pendingResult = takePendingDriver(state, procedure, cycleDrivers, currentDriver);
   const nextProcedure = {
@@ -281,7 +403,7 @@ export function selectNextPlateLinkingDriver(
     entry.driver !== currentDriver
     && !cycleDrivers.includes(entry.driver)
     && !nextProcedure.completedDrivers.includes(entry.driver)
-    && entry.blockedBy.every((blocker) => isBlockerResolved(blocker, state, nextProcedure))
+    && entry.blockedBy.every((blocker) => isBlockerResolved(blocker, state))
   ));
   if (readyDeferred) {
     return { driver: readyDeferred.driver, procedure: nextProcedure };
@@ -303,8 +425,13 @@ export function selectNextPlateLinkingDriver(
     return { driver: farthest, procedure: nextProcedure };
   }
 
-  // If every unfinished plate belongs to the same blocked cycle, there is no
-  // unrelated probe available. Alternate one member's direction as a last resort.
+  const escapeProbe = findDeferredEscapeProbe(state, nextProcedure);
+  if (escapeProbe) {
+    return { ...escapeProbe, procedure: nextProcedure };
+  }
+
+  // The prompt guard will stop this fallback if it cannot change the procedure
+  // state. It remains useful when an incomplete observation can still add data.
   return {
     driver: findFarthestPlate(
       state.offsets,
@@ -312,6 +439,101 @@ export function selectNextPlateLinkingDriver(
       currentDriver === undefined ? [] : [currentDriver],
     ) ?? findFarthestPlate(state.offsets, nextProcedure.completedDrivers),
     procedure: nextProcedure,
+  };
+}
+
+function getPromptKey(
+  state: AppStateData,
+  procedure: PlateLinkingProcedureState,
+  phase: "move" | "center" | "reset",
+  driver: number,
+  delta: number,
+): string {
+  return JSON.stringify({
+    phase,
+    driver,
+    delta,
+    offsets: state.offsets,
+    links: state.links,
+    completedDrivers: procedure.completedDrivers,
+    pendingDrivers: procedure.pendingDrivers,
+    deferredDrivers: procedure.deferredDrivers,
+    partialLinks: procedure.partialLinks,
+    lastTriedDeltas: procedure.lastTriedDeltas,
+  });
+}
+
+function beginGuardedPrompt(
+  state: AppStateData,
+  procedure: PlateLinkingProcedureState,
+  phase: "move" | "center" | "reset",
+  driver: number,
+  delta: number,
+  isRecovery = false,
+): AppStateData {
+  const key = getPromptKey(state, procedure, phase, driver, delta);
+  if ((procedure.seenPromptKeys || []).includes(key)) {
+    const startOffsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
+    const returnState: AppStateData = {
+      ...state,
+      solutionReturnState: null,
+    };
+    const solutionState: AppStateData = {
+      ...state,
+      mode: "solution",
+      offsets: startOffsets,
+      linkingPromptTask: null,
+      plateLinkingProcedure: procedure,
+      solutionReturnState: state.solutionReturnState ?? returnState,
+    };
+    const solution = buildSolutionPlanForApp(solutionState, startOffsets);
+    if (solution.moves !== null) {
+      return {
+        ...solutionState,
+        solution,
+      };
+    }
+
+    if (phase !== "reset") {
+      const resetEscape = findResetEscapeProbe(state, procedure);
+      if (resetEscape) {
+        return beginGuardedPrompt(
+          state,
+          procedure,
+          "reset",
+          resetEscape.driver,
+          resetEscape.delta,
+          true,
+        );
+      }
+    }
+
+    return {
+      ...state,
+      mode: "linking",
+      linkingPromptTask: createPlateLinkingStalledPromptTask(
+        state,
+        `The same ${phase} instruction for plate ${state.plateCount - driver} was reached twice. Use manual linking or go back and change an earlier observation.`,
+      ),
+      plateLinkingProcedure: procedure,
+      solution: null,
+    };
+  }
+
+  const nextProcedure = {
+    ...procedure,
+    seenPromptKeys: [...(procedure.seenPromptKeys || []), key],
+  };
+  return {
+    ...state,
+    mode: "linking",
+    linkingPromptTask: phase === "center"
+      ? createPlateLinkingCenterPromptTask(state, driver, delta, isRecovery)
+      : phase === "reset"
+        ? createPlateLinkingResetPromptTask(state, driver, delta)
+        : createPlateLinkingPromptTask(state, driver, delta),
+    plateLinkingProcedure: nextProcedure,
+    solution: null,
   };
 }
 
@@ -354,13 +576,19 @@ function beginNextPrompt(
       state.offsets[preferredDriver],
       procedure.lastTriedDeltas[preferredDriver],
     );
-    return {
-      ...state,
-      mode: "linking",
-      linkingPromptTask: createPlateLinkingPromptTask(state, preferredDriver, delta),
-      plateLinkingProcedure: procedure,
-      solution: null,
-    };
+    return beginGuardedPrompt(state, procedure, "move", preferredDriver, delta);
+  }
+
+  const recoveryMove = findKnownRecoveryMove(state, procedure);
+  if (recoveryMove) {
+    return beginGuardedPrompt(
+      state,
+      procedure,
+      "center",
+      recoveryMove.driver,
+      recoveryMove.delta,
+      true,
+    );
   }
 
   const selection = selectNextPlateLinkingDriver(state, procedure, currentDriver);
@@ -384,17 +612,11 @@ function beginNextPrompt(
     };
   }
 
-  const delta = getProbeDelta(
+  const delta = selection.delta ?? getProbeDelta(
     state.offsets[selection.driver],
     selection.procedure.lastTriedDeltas[selection.driver],
   );
-  return {
-    ...state,
-    mode: "linking",
-    linkingPromptTask: createPlateLinkingPromptTask(state, selection.driver, delta),
-    plateLinkingProcedure: selection.procedure,
-    solution: null,
-  };
+  return beginGuardedPrompt(state, selection.procedure, "move", selection.driver, delta);
 }
 
 function beginCenteringPromptOrNext(
@@ -411,13 +633,7 @@ function beginCenteringPromptOrNext(
     return beginNextPrompt(state, procedure, completedDriver);
   }
 
-  return {
-    ...state,
-    mode: "linking",
-    linkingPromptTask: createPlateLinkingCenterPromptTask(state, completedDriver, delta),
-    plateLinkingProcedure: procedure,
-    solution: null,
-  };
+  return beginGuardedPrompt(state, procedure, "center", completedDriver, delta);
 }
 
 export function advancePlateLinkingCenterPrompt(state: AppStateData): AppStateData {
@@ -440,10 +656,43 @@ export function advancePlateLinkingCenterPrompt(state: AppStateData): AppStateDa
     procedure,
   );
 
-  return beginCenteringPromptOrNext(
+  return task.isRecovery
+    ? beginNextPrompt(nextState, nextState.plateLinkingProcedure!, task.driver)
+    : beginCenteringPromptOrNext(
+        nextState,
+        nextState.plateLinkingProcedure!,
+        task.driver,
+      );
+}
+
+export function advancePlateLinkingResetPrompt(state: AppStateData): AppStateData {
+  const task = state.linkingPromptTask;
+  const procedure = state.plateLinkingProcedure;
+  if (
+    state.mode !== "linking"
+    || task?.phase !== "reset"
+    || !procedure
+    || !state.linkingStartOffsets
+    || task.retryDriver === undefined
+    || task.retryDelta === undefined
+  ) {
+    return state;
+  }
+
+  const nextState = pushProcedureHistory(
+    {
+      ...state,
+      offsets: cloneOffsets(state.linkingStartOffsets),
+    },
+    procedure,
+  );
+
+  return beginGuardedPrompt(
     nextState,
     nextState.plateLinkingProcedure!,
-    task.driver,
+    "move",
+    task.retryDriver,
+    task.retryDelta,
   );
 }
 
@@ -609,7 +858,9 @@ export function resetPlateLinkingProcedure(state: AppStateData): AppStateData {
   }
 
   const offsets = cloneOffsets(state.linkingStartOffsets);
-  const procedure = state.plateLinkingProcedure || createProcedureState(state);
+  const procedure = state.plateLinkingProcedure
+    ? { ...state.plateLinkingProcedure, seenPromptKeys: [], history: [] }
+    : createProcedureState(state);
   return beginNextPrompt(
     {
       ...state,

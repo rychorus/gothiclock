@@ -11,5 +11,6 @@ export interface PlateLinkingProcedureState {
   deferredDrivers: DeferredPlateLink[];
   partialLinks: Record<number, PlateLink>;
   lastTriedDeltas: Record<number, number>;
+  seenPromptKeys: string[];
   history: AppStateData[];
 }

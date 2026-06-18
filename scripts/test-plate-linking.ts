@@ -10,6 +10,7 @@ import {
 } from "../src/screens/plate-linking/prompt/plateLinkingPromptState";
 import {
   advancePlateLinkingCenterPrompt,
+  advancePlateLinkingResetPrompt,
   completePlateLinkingObservation,
   startFreshPlateLinkingProcedure,
 } from "../src/screens/plate-linking/procedure/plateLinkingProcedure";
@@ -272,8 +273,18 @@ function simulateFixture(fixture: LockFixture): SimulationResult {
         if (state.mode === "linking") {
           assertOffsetsMatch(state, physicalOffsets, description);
         }
+      } else if (task.phase === "reset") {
+        const description = "reset to starting positions";
+        trace.push({ step: steps, action: description, offsets: [...physicalOffsets] });
+        physicalOffsets = [...initialOffsets];
+        state = advancePlateLinkingResetPrompt(state);
+        assertOffsetsMatch(state, physicalOffsets, description);
       } else {
-        throw new Error(`Unsupported prompt phase: ${task.phase}.`);
+        throw new Error(
+          task.phase === "stalled"
+            ? `Guided linking stalled: ${task.stalledReason || "no reason provided"}; ${describeProcedure(state)}.`
+            : `Unsupported prompt phase: ${task.phase}.`,
+        );
       }
       steps += 1;
     }

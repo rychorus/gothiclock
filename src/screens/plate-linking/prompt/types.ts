@@ -1,6 +1,6 @@
 import type { Direction, Offsets } from "../../../lib/types";
 
-export type PlateLinkingPromptPhase = "move" | "observe" | "center" | "complete";
+export type PlateLinkingPromptPhase = "move" | "observe" | "center" | "reset" | "complete" | "stalled";
 
 export interface PlateLinkingPromptTask {
   phase: PlateLinkingPromptPhase;
@@ -12,6 +12,10 @@ export interface PlateLinkingPromptTask {
   observations: Offsets;
   blockedObservations: Offsets;
   blockedObservationCounts: number[];
+  isRecovery?: boolean;
+  stalledReason?: string;
+  retryDriver?: number;
+  retryDelta?: number;
 }
 
 export interface PlateLinkingPrompt {

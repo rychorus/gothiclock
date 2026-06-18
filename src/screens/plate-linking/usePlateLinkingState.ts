@@ -12,6 +12,7 @@ import {
 } from "./prompt/plateLinkingPromptState";
 import {
   advancePlateLinkingCenterPrompt,
+  advancePlateLinkingResetPrompt,
   completePlateLinkingObservation,
   resetPlateLinkingProcedure,
 } from "./procedure/plateLinkingProcedure";
@@ -176,11 +177,17 @@ export function usePlateLinkingState({ appState, setAppState }: {
     resetManualLinking,
     cancelManualLinkingSelection,
     stepBackPlateLinkingPrompt: () => setAppState(stepBackPlateLinkingPrompt),
-    resetPlateLinkingPrompt: () => setAppState(resetPlateLinkingProcedure),
+    resetPlateLinkingPrompt: () => setAppState((current) => (
+      current.linkingPromptTask?.phase === "reset"
+        ? advancePlateLinkingResetPrompt(current)
+        : resetPlateLinkingProcedure(current)
+    )),
     advancePlateLinkingPrompt: () => setAppState((current) => (
       current.linkingPromptTask?.phase === "center"
         ? advancePlateLinkingCenterPrompt(current)
-        : advancePlateLinkingPrompt(current)
+        : current.linkingPromptTask?.phase === "reset"
+          ? advancePlateLinkingResetPrompt(current)
+          : advancePlateLinkingPrompt(current)
     )),
     completePlateLinkingPrompt: () => setAppState(completePlateLinkingObservation),
     selectors: {

@@ -16,6 +16,8 @@ export function PlateLinkingPromptActions({
   onComplete: () => void;
 }) {
   const isObserve = task?.phase === "observe";
+  const isStalled = task?.phase === "stalled";
+  const isReset = task?.phase === "reset";
 
   return (
     <div className="footer-actions" data-mode="linking" data-count="2">
@@ -28,10 +30,14 @@ export function PlateLinkingPromptActions({
       <button
         className="action-button primary"
         type="button"
-        disabled={!task}
+        disabled={!task || isStalled || isReset}
         onClick={isObserve ? onComplete : onAdvance}
       >
-        {isObserve && !hasObservation ? (
+        {isReset ? (
+          "Press Reset"
+        ) : isStalled ? (
+          "Guided linking stalled"
+        ) : isObserve && !hasObservation ? (
           <>
             <span className="action-button-row"><span>Next</span></span>
             <span className="action-button-subtitle">nothing else moved</span>
