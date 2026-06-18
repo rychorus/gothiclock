@@ -21,6 +21,7 @@ export function LockStage({
   const isManualPicking = selectionMode === "manual-pick";
   const isManualDefining = selectionMode === "manual-define";
   const manualState = appState.manualLinkingState;
+  const shouldEmphasizeReset = appState.mode === "linking" && appState.linkingPromptTask?.phase === "reset";
   const visibleOffsets = appState.mode === "manual_linking" && manualState
     ? manualState.phase === "choose-driver"
       ? manualState.initialOffsets
@@ -69,7 +70,11 @@ export function LockStage({
             </button>
           ) : null}
           {showResetButton ? (
-            <button className="stage-reset" type="button" onClick={appState.mode === "testing" ? actions.resetTestingMode : actions.resetPlateLinkingPrompt}>
+            <button
+              className={`stage-reset${shouldEmphasizeReset ? " is-emphasized" : ""}`}
+              type="button"
+              onClick={appState.mode === "testing" ? actions.resetTestingMode : actions.resetPlateLinkingPrompt}
+            >
               <span className="stage-reset-content">
                 <MaterialIcon name="restart_alt" />
                 <span>Reset</span>
