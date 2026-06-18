@@ -52,6 +52,7 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
   return (
     <>
       <LockStage
+        app={app}
         appState={appState}
         currentSolutionChunk={currentSolutionChunk}
         testingFeedback={testingFeedback}

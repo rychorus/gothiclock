@@ -166,6 +166,90 @@ body.is-testing-mode .lock-stage {
   gap: 0.38rem;
 }
 
+.stage-reset-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.stage-reset-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.55rem);
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.58rem 0.42rem 0.68rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(227, 167, 77, 0.34);
+  background: rgba(26, 18, 13, 0.98);
+  color: #f8e8c8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  box-shadow: 0 0.75rem 1.4rem rgba(0, 0, 0, 0.26);
+  pointer-events: auto;
+  z-index: 3;
+  animation: stageResetTooltipPulse 1.2s ease-in-out infinite;
+}
+
+.stage-reset-tooltip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  border-left: 0.38rem solid transparent;
+  border-right: 0.38rem solid transparent;
+  border-top: 0.42rem solid rgba(26, 18, 13, 0.98);
+  filter: drop-shadow(0 1px 0 rgba(227, 167, 77, 0.28));
+}
+
+.stage-reset-tooltip-copy {
+  display: inline-block;
+}
+
+.stage-reset-tooltip-dismiss {
+  flex: none;
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8e8c8;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.stage-reset-tooltip-dismiss:hover,
+.stage-reset-tooltip-dismiss:focus-visible {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff6df;
+  outline: none;
+}
+
+.stage-reset-tooltip-dismiss .material-icon {
+  width: 0.78rem;
+  height: 0.78rem;
+}
+
+@keyframes stageResetTooltipPulse {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+    box-shadow: 0 0.75rem 1.4rem rgba(0, 0, 0, 0.26);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-1px);
+    box-shadow: 0 0.95rem 1.65rem rgba(0, 0, 0, 0.3);
+  }
+}
+
 .stage-reset .material-icon {
   width: 0.92rem;
   height: 0.92rem;

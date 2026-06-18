@@ -268,6 +268,7 @@ export function LockpickAppView({ app, appVersion }) {
             />
           ) : appState.mode === "setup" ? (
             <PlateSetupScreen
+              app={app}
               appState={appState}
               currentSolutionChunk={currentSolutionChunk}
               testingFeedback={testingFeedback}
@@ -276,6 +277,7 @@ export function LockpickAppView({ app, appVersion }) {
             />
           ) : appState.mode === "manual_linking" ? (
             <ManualPlateLinkingScreen
+              app={app}
               appState={appState}
               currentSolutionChunk={currentSolutionChunk}
               testingFeedback={testingFeedback}
@@ -284,6 +286,7 @@ export function LockpickAppView({ app, appVersion }) {
             />
           ) : appState.mode === "linking" ? (
             <PlateLinkingScreen
+              app={app}
               appState={appState}
               currentSolutionChunk={currentSolutionChunk}
               testingFeedback={testingFeedback}

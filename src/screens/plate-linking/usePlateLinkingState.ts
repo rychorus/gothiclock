@@ -30,9 +30,14 @@ import {
   startManualLinkingMode as startManualLinkingModeState,
 } from "./manual/useManualPlateLinkingState";
 
-export function usePlateLinkingState({ appState, setAppState }: {
+export function usePlateLinkingState({
+  appState,
+  setAppState,
+  onPlateLinkingInteraction,
+}: {
   appState: AppStateData;
   setAppState: Dispatch<SetStateAction<AppStateData>>;
+  onPlateLinkingInteraction?: () => void;
 }) {
   function movePlate(index: number, direction: Direction) {
     const delta = direction === "up" ? -1 : 1;
@@ -68,6 +73,7 @@ export function usePlateLinkingState({ appState, setAppState }: {
     }
 
     if (appState.mode === "linking") {
+      onPlateLinkingInteraction?.();
       const viewState = getManualViewState(appState);
       const bounds = getOffsetBounds(viewState, index);
       const nextOffset = viewState.offsets[index] + delta;
@@ -119,16 +125,17 @@ export function usePlateLinkingState({ appState, setAppState }: {
     }
 
     if (appState.mode === "linking") {
-      setAppState((current) => {
-        const currentOffset = current.offsets[index] ?? 0;
-        const bounds = getOffsetBounds(getManualViewState(current), index);
-        const isBlockedAttempt = attemptedDelta !== 0
-          && nextOffset === currentOffset
-          && (
-            (attemptedDelta < 0 && currentOffset <= bounds.min)
-            || (attemptedDelta > 0 && currentOffset >= bounds.max)
-          );
+      const currentOffset = appState.offsets[index] ?? 0;
+      const bounds = getOffsetBounds(getManualViewState(appState), index);
+      const isBlockedAttempt = attemptedDelta !== 0
+        && nextOffset === currentOffset
+        && (
+          (attemptedDelta < 0 && currentOffset <= bounds.min)
+          || (attemptedDelta > 0 && currentOffset >= bounds.max)
+        );
 
+      onPlateLinkingInteraction?.();
+      setAppState((current) => {
         return isBlockedAttempt
           ? recordBlockedPlateLinkingObservation(current, index, attemptedDelta)
           : updatePlateLinkingObservation(current, index, nextOffset);
@@ -208,5 +215,5 @@ export function usePlateLinkingState({ appState, setAppState }: {
       getPlateObservation: (index) => getPlateObservation(appState, index),
       hasPlateObservation: () => hasPlateObservation(appState),
     },
-  }), [appState, setAppState]);
+  }), [appState, setAppState, onPlateLinkingInteraction]);
 }

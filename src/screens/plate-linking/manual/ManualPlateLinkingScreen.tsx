@@ -2,7 +2,7 @@ import { MaterialIcon } from "../../../lib/icons";
 import { LockStage } from "../../shared/LockStage";
 import { getVisiblePlateLabel } from "../../../lib/notation";
 
-export function ManualPlateLinkingScreen({ appState, currentSolutionChunk, testingFeedback, selectors, actions }) {
+export function ManualPlateLinkingScreen({ app, appState, currentSolutionChunk, testingFeedback, selectors, actions }) {
   const manualState = appState.manualLinkingState;
   const isPickingDriver = manualState?.phase !== "define-links";
   const selectedDriver = manualState?.selectedDriver ?? null;
@@ -19,6 +19,7 @@ export function ManualPlateLinkingScreen({ appState, currentSolutionChunk, testi
   return (
     <>
       <LockStage
+        app={app}
         appState={appState}
         currentSolutionChunk={currentSolutionChunk}
         testingFeedback={testingFeedback}

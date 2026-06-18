@@ -2,15 +2,24 @@ import { LockStage } from "../shared/LockStage";
 import { PlateLinkingPromptActions } from "./prompt/PlateLinkingPromptActions";
 import { createPlateLinkingPrompt } from "./prompt/createPlateLinkingPrompt";
 
-export function PlateLinkingScreen({ appState, currentSolutionChunk, testingFeedback, selectors, actions }) {
+export function PlateLinkingScreen({ app, appState, currentSolutionChunk, testingFeedback, selectors, actions }) {
   const prompt = appState.linkingPromptTask
     ? createPlateLinkingPrompt(appState.linkingPromptTask, appState.plateCount)
     : null;
   const isFirstLinkingStep = appState.linkingPromptTask?.phase === "move" && (appState.plateLinkingProcedure?.history.length ?? 0) === 0;
+  const handleAdvance = () => {
+    app.commitPlateLinkingResetTooltipIfNeeded(appState.linkingPromptTask);
+    actions.advancePlateLinkingPrompt();
+  };
+  const handleComplete = () => {
+    app.commitPlateLinkingResetTooltipIfNeeded(appState.linkingPromptTask);
+    actions.completePlateLinkingPrompt();
+  };
 
   return (
     <>
       <LockStage
+        app={app}
         appState={appState}
         currentSolutionChunk={currentSolutionChunk}
         testingFeedback={testingFeedback}
@@ -27,8 +36,8 @@ export function PlateLinkingScreen({ appState, currentSolutionChunk, testingFeed
         hasObservation={selectors.hasPlateObservation()}
         isFirstStep={isFirstLinkingStep}
         onBack={actions.stepBackPlateLinkingPrompt}
-        onAdvance={actions.advancePlateLinkingPrompt}
-        onComplete={actions.completePlateLinkingPrompt}
+        onAdvance={handleAdvance}
+        onComplete={handleComplete}
       />
     </>
   );

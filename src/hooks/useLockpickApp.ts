@@ -11,9 +11,12 @@ import { useLoadScreenState } from "../screens/load-screen/useLoadScreenState";
 import { usePlateSetupState } from "../screens/plate-setup/usePlateSetupState";
 import { usePlateLinkingState } from "../screens/plate-linking/usePlateLinkingState";
 import { useSolutionState } from "../screens/solution/useSolutionState";
+import type { PlateLinkingPromptTask } from "../screens/plate-linking/prompt/types";
 import type { AppStateData, ModalState } from "../lib/types";
 
 const SOLUTION_NEXT_HINT_CLICK_COUNT_STORAGE_KEY = "gothic-lockpick.solution-next-hint-click-count";
+const PLATE_LINKING_RESET_TOOLTIP_BLOCK_COUNT_STORAGE_KEY = "gothic-lockpick.plate-linking-reset-tooltip-block-count";
+const PLATE_LINKING_RESET_TOOLTIP_MAX_TRIGGER_COUNT = 4;
 
 function getCleanUrl(url: string) {
   const cleanUrl = new URL(url);
@@ -67,6 +70,27 @@ function getPersistedSolutionNextHintClickCount() {
   }
 }
 
+function getPersistedPlateLinkingResetTooltipBlockCount() {
+  if (typeof window === "undefined") {
+    return 0;
+  }
+
+  try {
+    const value = Number(window.localStorage.getItem(PLATE_LINKING_RESET_TOOLTIP_BLOCK_COUNT_STORAGE_KEY));
+    return Number.isFinite(value) && value > 0 ? Math.min(Math.floor(value), PLATE_LINKING_RESET_TOOLTIP_MAX_TRIGGER_COUNT) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function hasBlockedEdgeAttempt(task: PlateLinkingPromptTask | null) {
+  return Boolean(
+    task
+    && task.phase === "observe"
+    && task.blockedObservationCounts.some((count) => count > 0),
+  );
+}
+
 export function useLockpickApp() {
   const [appState, setAppState] = useState<AppStateData>(getInitialAppState);
   const [modal, setModalState] = useState<ModalState>({ type: null });
@@ -75,6 +99,8 @@ export function useLockpickApp() {
   const currentScreenRef = useRef(getScreenAnalyticsName(appState.mode));
   const currentModalRef = useRef(getModalAnalyticsName(modal));
   const [solutionNextHintClickCount, setSolutionNextHintClickCount] = useState(getPersistedSolutionNextHintClickCount);
+  const [plateLinkingResetTooltipBlockCount, setPlateLinkingResetTooltipBlockCount] = useState(getPersistedPlateLinkingResetTooltipBlockCount);
+  const [plateLinkingResetTooltipDismissedCount, setPlateLinkingResetTooltipDismissedCount] = useState(0);
 
   const navigation = useAppNavigation({ appState, modal, setAppState, setModalState });
   const mainMenu = useMainMenuState({
@@ -99,7 +125,19 @@ export function useLockpickApp() {
   const loadScreen = useLoadScreenState({ appState, setAppState, setModal: navigation.setModal });
   const savedLocks = loadScreen.savedLocks;
   const plateSetup = usePlateSetupState({ appState, setAppState, setModal: navigation.setModal });
-  const plateLinking = usePlateLinkingState({ appState, setAppState });
+  const plateLinking = usePlateLinkingState({
+    appState,
+    setAppState,
+    onPlateLinkingInteraction: () => {
+      setPlateLinkingResetTooltipDismissedCount((currentDismissedCount) => {
+        if (currentDismissedCount === plateLinkingResetTooltipBlockCount) {
+          return currentDismissedCount;
+        }
+
+        return plateLinkingResetTooltipBlockCount;
+      });
+    },
+  });
   const solution = useSolutionState({ appState, setAppState });
 
   useEffect(() => {
@@ -172,6 +210,21 @@ export function useLockpickApp() {
 
   useEffect(() => {
     if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        PLATE_LINKING_RESET_TOOLTIP_BLOCK_COUNT_STORAGE_KEY,
+        String(plateLinkingResetTooltipBlockCount),
+      );
+    } catch {
+      // Ignore storage failures and keep the hint count in memory only.
+    }
+  }, [plateLinkingResetTooltipBlockCount]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
       return undefined;
     }
 
@@ -191,6 +244,14 @@ export function useLockpickApp() {
         return;
       }
 
+      if (plateLinkingResetTooltipBlockCount > 0 && plateLinkingResetTooltipBlockCount <= PLATE_LINKING_RESET_TOOLTIP_MAX_TRIGGER_COUNT) {
+        setPlateLinkingResetTooltipDismissedCount((currentDismissedCount) => (
+          currentDismissedCount === plateLinkingResetTooltipBlockCount
+            ? currentDismissedCount
+            : plateLinkingResetTooltipBlockCount
+        ));
+      }
+
       trackButtonClick({
         label,
         screen: currentScreenRef.current,
@@ -201,7 +262,29 @@ export function useLockpickApp() {
 
     document.addEventListener("click", handleClick, true);
     return () => document.removeEventListener("click", handleClick, true);
-  }, []);
+  }, [plateLinkingResetTooltipBlockCount]);
+
+  const shouldShowPlateLinkingResetTooltip = appState.mode === "linking"
+    && plateLinkingResetTooltipBlockCount >= 2
+    && plateLinkingResetTooltipBlockCount <= PLATE_LINKING_RESET_TOOLTIP_MAX_TRIGGER_COUNT
+    && plateLinkingResetTooltipBlockCount % 2 === 0
+    && plateLinkingResetTooltipDismissedCount !== plateLinkingResetTooltipBlockCount;
+
+  function commitPlateLinkingResetTooltipIfNeeded(task: PlateLinkingPromptTask | null) {
+    if (!hasBlockedEdgeAttempt(task)) {
+      return;
+    }
+
+    setPlateLinkingResetTooltipBlockCount((current) => Math.min(current + 1, PLATE_LINKING_RESET_TOOLTIP_MAX_TRIGGER_COUNT));
+  }
+
+  function dismissPlateLinkingResetTooltip() {
+    if (!shouldShowPlateLinkingResetTooltip) {
+      return;
+    }
+
+    setPlateLinkingResetTooltipDismissedCount(plateLinkingResetTooltipBlockCount);
+  }
 
   const notationSource = appState.mode === "manual_linking" && appState.manualLinkingState
     ? {
@@ -245,6 +328,10 @@ export function useLockpickApp() {
     persistWithName: loadScreen.persistWithName,
     solutionNextHintClickCount,
     incrementSolutionNextHintClickCount: () => setSolutionNextHintClickCount((current) => current + 1),
+    plateLinkingResetTooltipBlockCount,
+    shouldShowPlateLinkingResetTooltip,
+    commitPlateLinkingResetTooltipIfNeeded,
+    dismissPlateLinkingResetTooltip,
     setAppState,
     setModal: navigation.setModal,
     goBackScreen: navigation.goBackScreen,

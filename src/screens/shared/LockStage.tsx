@@ -3,6 +3,7 @@ import { MaterialIcon } from "../../lib/icons";
 import { PlateColumn } from "./PlateColumn";
 
 export function LockStage({
+  app,
   appState,
   currentSolutionChunk,
   testingFeedback,
@@ -22,6 +23,7 @@ export function LockStage({
   const isManualDefining = selectionMode === "manual-define";
   const manualState = appState.manualLinkingState;
   const shouldEmphasizeReset = appState.mode === "linking" && appState.linkingPromptTask?.phase === "reset";
+  const shouldShowResetTooltip = appState.mode === "linking" && app.shouldShowPlateLinkingResetTooltip;
   const visibleOffsets = appState.mode === "manual_linking" && manualState
     ? manualState.phase === "choose-driver"
       ? manualState.initialOffsets
@@ -29,7 +31,15 @@ export function LockStage({
     : appState.offsets;
   return (
       <>
-      <section className={`lock-stage${appState.mode === "setup" ? " is-setup-mode" : ""}${appState.mode === "solution" || appState.mode === "ready_to_solve" ? " is-solution-compact" : ""}${hasStageControls ? " has-stage-controls" : ""}${instruction ? " has-bottom-instruction" : ""}${isManualPicking ? " is-manual-picking" : ""}${isManualDefining ? " is-manual-defining" : ""}`} hidden={appState.mode === "menu" || appState.mode === "load" || appState.mode === "import"}>
+      <section
+        className={`lock-stage${appState.mode === "setup" ? " is-setup-mode" : ""}${appState.mode === "solution" || appState.mode === "ready_to_solve" ? " is-solution-compact" : ""}${hasStageControls ? " has-stage-controls" : ""}${instruction ? " has-bottom-instruction" : ""}${isManualPicking ? " is-manual-picking" : ""}${isManualDefining ? " is-manual-defining" : ""}`}
+        hidden={appState.mode === "menu" || appState.mode === "load" || appState.mode === "import"}
+        onClickCapture={() => {
+          if (shouldShowResetTooltip) {
+            app.dismissPlateLinkingResetTooltip();
+          }
+        }}
+      >
         {instruction ? <div className={`stage-instruction${appState.mode === "linking" || appState.mode === "manual_linking" ? " is-linking-mode" : ""}${appState.mode === "manual_linking" ? " is-manual-mode" : ""}${instructionClassName ? ` ${instructionClassName}` : ""}`} aria-live="polite">{instruction}</div> : null}
         <div className="plates-row" aria-label="Lock plates">
           {visibleOffsets.map((offset, index) => (
@@ -70,16 +80,34 @@ export function LockStage({
             </button>
           ) : null}
           {showResetButton ? (
-            <button
-              className={`stage-reset${shouldEmphasizeReset ? " is-emphasized" : ""}`}
-              type="button"
-              onClick={appState.mode === "testing" ? actions.resetTestingMode : actions.resetPlateLinkingPrompt}
-            >
-              <span className="stage-reset-content">
-                <MaterialIcon name="restart_alt" />
-                <span>Reset</span>
-              </span>
-            </button>
+            <div className="stage-reset-wrap">
+              {shouldShowResetTooltip ? (
+                <div className="stage-reset-tooltip" role="status" aria-live="polite">
+                  <span className="stage-reset-tooltip-copy">If your lockpick broke and the lock reset, do reset</span>
+                  <button
+                    className="stage-reset-tooltip-dismiss"
+                    type="button"
+                    aria-label="Dismiss reset hint"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      app.dismissPlateLinkingResetTooltip();
+                    }}
+                  >
+                    <MaterialIcon name="close" />
+                  </button>
+                </div>
+              ) : null}
+              <button
+                className={`stage-reset${shouldEmphasizeReset ? " is-emphasized" : ""}`}
+                type="button"
+                onClick={appState.mode === "testing" ? actions.resetTestingMode : actions.resetPlateLinkingPrompt}
+              >
+                <span className="stage-reset-content">
+                  <MaterialIcon name="restart_alt" />
+                  <span>Reset</span>
+                </span>
+              </button>
+            </div>
           ) : null}
         </div>
       ) : null}
