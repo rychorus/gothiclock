@@ -1,0 +1,115 @@
+Fisk Hut Chest 1
+https://rychorus.github.io/gothiclock/?notation=P5%3D2+P4%3D3+P3%3D1+P2%3D7+P1%3D1%0A%0AP5%3EP3+P4%3EP2-%2CP3%2CP5+P3%3EP2-%2CP4+P2%3EP1%2CP3%2CP4+P1%3EP4&name=Fisk+Hut+Chest+1
+
+Fisk Storage Chest 4
+https://rychorus.github.io/gothiclock/?notation=P6%3D1+P5%3D2+P4%3D1+P3%3D6+P2%3D6+P1%3D7%0A%0AP6%3EP1-+P5%3EP1-+P4%3EP3-%2CP6-+P3%3EP6-+P2%3EP1-%2CP3-%2CP5%2CP6+P1%3EP4-&name=Fisk+Storage+Chest+4
+
+Fisk Storage Chest 3
+https://rychorus.github.io/gothiclock/?notation=P4%3D1+P3%3D1+P2%3D1+P1%3D2%0A%0AP4%3EP1-+P3%3EP2%2CP4-+P2%3E+P1%3EP2%2CP3-%2CP4&name=Fisk+Storage+Chest+3
+
+Fisk Storage Chest 2
+https://rychorus.github.io/gothiclock/?notation=P6%3D7+P5%3D1+P4%3D2+P3%3D3+P2%3D4+P1%3D3%0A%0AP6%3EP4%2CP5+P5%3EP1%2CP2%2CP3-%2CP6+P4%3E+P3%3EP5+P2%3E+P1%3E&name=Fisk+Storage+Chest+2
+
+Fisk Storage Chest 1
+https://rychorus.github.io/gothiclock/?notation=P6%3D6+P5%3D1+P4%3D5+P3%3D2+P2%3D1+P1%3D2%0A%0AP6%3EP1-%2CP2+P5%3EP4-+P4%3EP6+P3%3EP5-+P2%3EP4-+P1%3EP5&name=Fisk+Storage+Chest+1
+
+Fisk Storage Door
+https://rychorus.github.io/gothiclock/?notation=P6%3D7+P5%3D1+P4%3D1+P3%3D7+P2%3D2+P1%3D7%0A%0AP6%3EP1-+P5%3EP2-+P4%3EP2-+P3%3E+P2%3EP1-%2CP3-%2CP4%2CP5-%2CP6-+P1%3EP2%2CP5-&name=Fisk+Storage+Door
+
+Fisk Door
+https://rychorus.github.io/gothiclock/?notation=P6%3D7+P5%3D1+P4%3D7+P3%3D2+P2%3D1+P1%3D7%0A%0AP6%3E+P5%3EP3+P4%3EP1%2CP3-+P3%3EP6+P2%3EP1-%2CP3%2CP4+P1%3EP5-&name=Fisk+Door
+
+Mordrag Hut Chest
+Old Camp
+https://rychorus.github.io/gothiclock/?notation=P6%3D1+P5%3D2+P4%3D5+P3%3D1+P2%3D2+P1%3D1%0A%0AP6%3E+P5%3EP2+P4%3EP5-%2CP6+P3%3EP1-%2CP5-+P2%3EP1+P1%3EP2-%2CP5-&name=Mordrag+Hut+Chest&description=Old+Camp
+
+Fisk Hut Chest 4
+https://rychorus.github.io/gothiclock/?notation=P6%3D6+P5%3D2+P4%3D3+P3%3D3+P2%3D7+P1%3D6%0A%0AP6%3EP2%2CP3%2CP5-+P5%3E+P4%3E+P3%3EP1+P2%3EP6-+P1%3EP3%2CP6-&name=Fisk+Hut+Chest+4
+
+Fisk Hut Chest 3
+https://rychorus.github.io/gothiclock/?notation=P5%3D1+P4%3D6+P3%3D2+P2%3D3+P1%3D2%0A%0AP5%3EP1-%2CP2%2CP3-+P4%3EP3+P3%3EP2-%2CP5+P2%3EP5-+P1%3EP2-&name=Fisk+Hut+Chest+3
+
+Fisk Hut Chest 2
+https://rychorus.github.io/gothiclock/?notation=P5%3D7+P4%3D6+P3%3D1+P2%3D2+P1%3D1%0A%0AP5%3E+P4%3EP1%2CP5-+P3%3EP1-%2CP2-%2CP4+P2%3EP1-+P1%3E&name=Fisk+Hut+Chest+2
+
+North Gate Guard House Chest
+Old Camp
+https://rychorus.github.io/gothiclock/?notation=P6%3D7+P5%3D6+P4%3D6+P3%3D4+P2%3D3+P1%3D2%0A%0AP6%3EP4-+P5%3EP1%2CP2-%2CP4-+P4%3EP5-+P2%3EP4+P1%3E&name=North+Gate+Guard+House+Chest&description=Old+Camp
+
+Guard house
+https://rychorus.github.io/gothiclock/?notation=P6%3D7+P5%3D6+P4%3D6+P3%3D4+P2%3D3+P1%3D2%0A%0AP6%3EP4-+P5%3EP1%2CP2-%2CP4-+P4%3EP5-+P2%3EP4-+P1%3E&name=Guard+house
+
+Gomez Door 2F
+https://rychorus.github.io/gothiclock/?notation=P6%3D1+P5%3D3+P4%3D4+P3%3D5+P2%3D1+P1%3D2%0A%0AP6%3E+P5%3EP2-+P4%3EP6-+P3%3EP2%2CP6+P2%3EP1-%2CP3%2CP4-%2CP5-%2CP6+P1%3EP4-&name=Gomez+Door+2F
+
+Gomez Chest 1
+https://rychorus.github.io/gothiclock/?notation=P5%3D7+P4%3D1+P3%3D2+P2%3D1+P1%3D6%0A%0AP5%3EP1%2CP3+P4%3E+P3%3EP1-%2CP2-%2CP4-%2CP5+P2%3EP5+P1%3EP2-%2CP5-&name=Gomez+Chest+1
+
+Door 1 2f
+https://rychorus.github.io/gothiclock/?notation=P6%3D5+P5%3D6+P4%3D7+P3%3D7+P2%3D2+P1%3D1%0A%0AP6%3EP3%2CP5+P5%3EP1-+P4%3E+P3%3EP2%2CP6-+P2%3EP4%2CP6+P1%3EP2-%2CP3-%2CP5-&name=Door+1+2f
+
+Scar's Chest
+Ore Baron's house 2f, Door 1, Chest 1
+https://rychorus.github.io/gothiclock/?notation=P6%3D7+P5%3D7+P4%3D7+P3%3D3+P2%3D6+P1%3D3%0A%0AP6%3E+P5%3EP1%2CP6-+P4%3EP1%2CP2-+P3%3EP2+P2%3EP1%2CP5-%2CP6-+P1%3E&name=Scar%27s+Chest&description=Ore+Baron%27s+house+2f%2C+Door+1%2C+Chest+1
+
+Arto's Chest
+Ore Baron House 2F, Door 3, Chest 1
+https://rychorus.github.io/gothiclock/?notation=P6%3D7+P5%3D5+P4%3D6+P3%3D5+P2%3D6+P1%3D2%0A%0AP6%3EP4%2CP5-+P5%3EP1%2CP2-+P4%3EP3-+P3%3E+P2%3EP1%2CP5%2CP6-+P1%3E&name=Arto%27s+Chest&description=Ore+Baron+House+2F%2C+Door+3%2C+Chest+1
+
+Arto's Door
+Ore Baron's House 2F, Door 4 (right)
+https://rychorus.github.io/gothiclock/?notation=P5%3D2+P4%3D7+P3%3D7+P2%3D7+P1%3D7%0A%0AP5%3EP2-%2CP4+P4%3EP1-%2CP2+P3%3EP1-%2CP2-%2CP4%2CP5+P2%3E+P1%3EP2-&name=Arto%27s+Door&description=Ore+Baron%27s+House+2F%2C+Door+4+%28right%29
+
+Raven's Door within Door
+https://rychorus.github.io/gothiclock/?notation=P6%3D7+P5%3D2+P4%3D4+P3%3D7+P2%3D2+P1%3D1%0A%0AP6%3EP1%2CP2-+P5%3E+P4%3EP1-%2CP5-%2CP6-+P3%3EP4+P2%3E+P1%3EP2%2CP3%2CP4-%2CP5&name=Raven%27s+Door+within+Door
+
+Raven Room Chest
+https://rychorus.github.io/gothiclock/?notation=P7%3D5+P6%3D7+P5%3D2+P4%3D7+P3%3D4+P2%3D6+P1%3D7%0A%0AP7%3E+P6%3EP4-%2CP5+P5%3EP1%2CP3-%2CP4%2CP6%2CP7-+P4%3E+P3%3EP1+P2%3E+P1%3EP4-%2CP6-&name=Raven+Room+Chest
+
+Ore baron 2f Door 3
+https://rychorus.github.io/gothiclock/?notation=P6%3D1+P5%3D2+P4%3D1+P3%3D7+P2%3D1+P1%3D3%0A%0AP6%3E+P5%3EP2-%2CP3+P4%3EP3+P3%3EP4-%2CP5+P2%3EP1-%2CP3-+P1%3EP4-%2CP5-%2CP6-&name=Ore+baron+2f+Door+3
+
+Old Camp Tower Chest 1
+https://rychorus.github.io/gothiclock/?notation=P6%3D4+P5%3D5+P4%3D5+P3%3D4+P2%3D6+P1%3D7%0A%0AP6%3EP1%2CP2%2CP3-+P5%3E+P4%3EP1-%2CP2+P3%3EP6+P2%3E+P1%3EP4-%2CP5-%2CP6&name=Old+Camp+Tower+Chest+1
+
+Old Camp Tower 2F Chest 2
+https://rychorus.github.io/gothiclock/?notation=P6%3D7+P5%3D3+P4%3D1+P3%3D2+P2%3D2+P1%3D7%0A%0AP6%3E+P5%3EP4+P4%3EP1%2CP5-%2CP6+P3%3EP2%2CP5%2CP6+P2%3E+P1%3EP3-%2CP5-%2CP6-&name=Old+Camp+Tower+2F+Chest+2
+
+Old Camp Tower 3F Chest 3
+https://rychorus.github.io/gothiclock/?notation=P6%3D1+P5%3D6+P4%3D7+P3%3D5+P2%3D3+P1%3D2%0A%0AP6%3E+P5%3EP1-%2CP4-+P4%3EP5-+P3%3E+P2%3EP1-%2CP3-+P1%3EP2%2CP3%2CP4&name=Old+Camp+Tower+3F+Chest+3
+
+Old Camp Tower 3F Chest 4
+https://rychorus.github.io/gothiclock/?notation=P5%3D7+P4%3D6+P3%3D5+P2%3D7+P1%3D2%0A%0AP5%3EP1-%2CP2-%2CP3+P4%3EP3+P3%3EP1-%2CP5+P2%3EP3+P1%3EP3&name=Old+Camp+Tower+3F+Chest+4
+
+Old Camp Tower 4F Chest 5
+https://rychorus.github.io/gothiclock/?notation=P5%3D7+P4%3D5+P3%3D6+P2%3D2+P1%3D2%0A%0AP5%3EP2+P4%3E+P3%3EP5-+P2%3EP1%2CP3%2CP4+P1%3EP2-%2CP3%2CP5-&name=Old+Camp+Tower+4F+Chest+5
+
+Old Camp Tower 4F Chest 6
+https://rychorus.github.io/gothiclock/?notation=P5%3D1+P4%3D3+P3%3D1+P2%3D7+P1%3D3%0A%0AP5%3E+P4%3EP5+P3%3EP1%2CP4-%2CP5-+P2%3EP1-%2CP3%2CP4-%2CP5+P1%3EP4-&name=Old+Camp+Tower+4F+Chest+6
+
+Old Camp Tower 5F Chest 7
+https://rychorus.github.io/gothiclock/?notation=P7%3D4+P6%3D7+P5%3D1+P4%3D7+P3%3D6+P2%3D6+P1%3D4%0A%0AP6%3EP4%2CP5+P5%3EP3%2CP4-+P4%3EP1-%2CP3+P3%3EP2-+P2%3E+P1%3EP5-%2CP6-&name=Old+Camp+Tower+5F+Chest+7
+
+Old Camp Tower 5F Chest 8
+https://rychorus.github.io/gothiclock/?notation=P6%3D7+P5%3D5+P4%3D3+P3%3D2+P2%3D7+P1%3D5%0A%0AP6%3EP3+P5%3EP2-+P4%3EP1-+P3%3EP1-+P2%3EP4+P1%3EP3-%2CP5-&name=Old+Camp+Tower+5F+Chest+8
+
+Old Camp Tower Top Chest
+https://rychorus.github.io/gothiclock/?notation=P6%3D2+P5%3D6+P4%3D1+P3%3D1+P2%3D4+P1%3D5%0A%0AP6%3E+P5%3EP1-+P4%3EP1%2CP5%2CP6+P3%3EP2%2CP4-+P2%3E+P1%3EP2-%2CP3-%2CP4&name=Old+Camp+Tower+Top+Chest
+
+Whistler's Chest
+https://rychorus.github.io/gothiclock/?notation=P4%3D5+P3%3D7+P2%3D7+P1%3D7%0A%0AP4%3EP2-+P3%3E+P2%3EP3-+P1%3EP2-%2CP3-%2CP4&name=Whistler%27s+Chest
+
+Bartholo Chest
+https://rychorus.github.io/gothiclock/?notation=P5%3D7+P4%3D7+P3%3D7+P2%3D5+P1%3D4%0A%0AP5%3EP3-+P4%3EP2-%2CP5-+P3%3EP2-%2CP4%2CP5-+P2%3EP1-%2CP3-%2CP4+P1%3EP4-&name=Bartholo+Chest
+
+Arto's Chest
+https://rychorus.github.io/gothiclock/?notation=P6%3D7+P5%3D5+P4%3D6+P3%3D5+P2%3D6+P1%3D2%0A%0AP6%3EP4%2CP5-+P5%3EP1%2CP2-%2CP4+P4%3EP3-+P3%3E+P2%3EP1%2CP5%2CP6-+P1%3E&name=Arto%27s+Chest
+
+Chest on bed near arto's bed
+https://rychorus.github.io/gothiclock/?notation=P6%3D6+P5%3D1+P4%3D2+P3%3D3+P2%3D3+P1%3D4%0A%0AP6%3EP4-%2CP5+P5%3EP2-%2CP4-+P4%3EP6+P3%3EP5-+P2%3E&name=Chest+on+bed+near+arto%27s+bed
+
+Stone's Chest 1
+https://rychorus.github.io/gothiclock/?notation=P5%3D6+P4%3D6+P3%3D7+P2%3D4+P1%3D5%0A%0AP5%3EP4+P4%3EP1-%2CP5-+P3%3EP1-+P2%3E+P1%3EP2-%2CP3-%2CP5&name=Stone%27s+Chest+1
+
+Stone's Chest 2
+https://rychorus.github.io/gothiclock/?notation=P6%3D7+P5%3D4+P4%3D1+P3%3D7+P2%3D3+P1%3D1%0A%0AP6%3EP1+P5%3EP3-+P4%3EP6+P3%3EP1-+P2%3EP6+P1%3EP2-%2CP4-%2CP5%2CP6-&name=Stone%27s+Chest+2

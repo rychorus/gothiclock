@@ -9,6 +9,8 @@
     "start:lan": "vite --host 0.0.0.0 --port 8080",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
+    "test": "npm run typecheck && npm run test:plate-linking -- test-data/gothic-locks-rychorus.txt",
+    "test:plate-linking": "tsx scripts/test-plate-linking.ts",
     "preview": "vite preview",
     "deploy": "./scripts/deploy-pages.sh"
   },
@@ -20,6 +22,7 @@
     "@vitejs/plugin-react": "^4.3.1",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.5",
+    "tsx": "^4.22.4",
     "typescript": "^5.8.3",
     "vite": "^5.4.10"
   }
