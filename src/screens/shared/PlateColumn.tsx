@@ -195,7 +195,7 @@ export function PlateColumn({
       pointerId: event.pointerId,
       startX: event.clientX,
       lastClientX: event.clientX,
-      startOffset: offset,
+      startOffset: isManualPickMode ? 0 : offset,
       stepSize,
     };
     viewportRef.current.setPointerCapture(event.pointerId);
@@ -223,9 +223,7 @@ export function PlateColumn({
     }
 
     const finalX = typeof event.clientX === "number" && event.clientX !== 0 ? event.clientX : dragState.lastClientX;
-    const snappedDelta = Math.round((finalX - dragState.startX) / dragState.stepSize);
-    const snappedOffset = Math.max(bounds.min, Math.min(bounds.max, dragState.startOffset + snappedDelta));
-    const attemptedDirection = finalX === dragState.startX ? 0 : finalX < dragState.startX ? -1 : 1;
+    const dragDistance = finalX - dragState.startX;
 
     viewportRef.current.classList.remove("is-dragging");
     viewportRef.current.releasePointerCapture?.(dragState.pointerId);
@@ -233,21 +231,21 @@ export function PlateColumn({
     setDragPixels(null);
 
     if (isManualPickMode) {
-      const selectedDirection = snappedOffset < dragState.startOffset
+      const selectedDirection = dragDistance < 0
         ? "up"
-        : snappedOffset > dragState.startOffset
+        : dragDistance > 0
           ? "down"
-          : attemptedDirection < 0
-            ? "up"
-            : attemptedDirection > 0
-              ? "down"
-              : null;
+          : null;
 
       if (selectedDirection) {
         onMove(index, selectedDirection);
       }
       return;
     }
+
+    const snappedDelta = Math.round(dragDistance / dragState.stepSize);
+    const snappedOffset = Math.max(bounds.min, Math.min(bounds.max, dragState.startOffset + snappedDelta));
+    const attemptedDirection = dragDistance < 0 ? -1 : 1;
 
     onCommitDrag(index, snappedOffset, snappedOffset !== dragState.startOffset ? 0 : attemptedDirection);
   }
