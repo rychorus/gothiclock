@@ -91,6 +91,7 @@ export function createManualLinkingState(state: Pick<AppStateData, "plateCount" 
     phase: "choose-driver" as const,
     selectedDriver: null,
     selectedDirection: null,
+    initialOffsets: cloneOffsets(state.offsets),
     offsets: Array.from({ length: state.plateCount }, () => 0),
     blockedObservations: Array.from({ length: state.plateCount }, () => 0),
     links: state.links.map((link) => resizeLink(link, state.plateCount)),

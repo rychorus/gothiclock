@@ -23,7 +23,7 @@ export function LockStage({
   const manualState = appState.manualLinkingState;
   const visibleOffsets = appState.mode === "manual_linking" && manualState
     ? manualState.phase === "choose-driver"
-      ? Array.from({ length: appState.plateCount }, () => 0)
+      ? manualState.initialOffsets
       : manualState.offsets
     : appState.offsets;
   return (

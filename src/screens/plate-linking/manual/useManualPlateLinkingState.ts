@@ -227,10 +227,13 @@ export function solveManualLinking(current: AppStateData): AppStateData {
     return current;
   }
 
+  const startOffsets = cloneOffsets(manual.initialOffsets);
+
   const nextState: AppStateData = {
     ...current,
     mode: "linking",
-    offsets: cloneOffsets(manual.offsets),
+    offsets: startOffsets,
+    linkingStartOffsets: startOffsets,
     links: manual.links.map((link) => (link ? [...link] : null)),
     linkDeltas: [...manual.linkDeltas],
     linkingPromptTask: null,
@@ -247,12 +250,14 @@ export function resetManualLinking(current: AppStateData): AppStateData {
     return current;
   }
 
+  const manual = current.manualLinkingState;
   const blankState = createManualLinkingState(current);
 
   return {
     ...current,
     manualLinkingState: {
       ...blankState,
+      initialOffsets: cloneOffsets(manual.initialOffsets),
       links: Array.from({ length: current.plateCount }, () => null),
       linkDeltas: Array.from({ length: current.plateCount }, () => null),
       completedDrivers: [],

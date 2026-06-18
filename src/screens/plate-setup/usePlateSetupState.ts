@@ -10,6 +10,10 @@ export function usePlateSetupState({ appState, setAppState, setModal }: {
   setAppState: Dispatch<SetStateAction<AppStateData>>;
   setModal: (modal: ModalState) => void;
 }) {
+  function startManualLinkingWithoutMatch() {
+    setAppState((current) => startManualLinkingModeState(current, { ...current, manualLinkingState: null, manualLinkingReturnState: null }));
+  }
+
   return {
     startNewLock: () => setAppState(startNewLock),
     setPlateCount: (count: number) => {
@@ -21,15 +25,22 @@ export function usePlateSetupState({ appState, setAppState, setModal }: {
     startLinkingMode: () => {
       const matchingLock = findSavedLockMatchingSetup(appState);
       if (matchingLock) {
-        setModal({ type: "start-linking-match", lockId: matchingLock.id });
+        setModal({ type: "start-linking-match", lockId: matchingLock.id, source: "guided" });
         return;
       }
 
       setAppState(startFreshPlateLinkingProcedure);
     },
     startSetupManualLinkingMode: () => {
-      setAppState((current) => startManualLinkingModeState(current, { ...current, manualLinkingState: null, manualLinkingReturnState: null }));
+      const matchingLock = findSavedLockMatchingSetup(appState);
+      if (matchingLock) {
+        setModal({ type: "start-linking-match", lockId: matchingLock.id, source: "manual" });
+        return;
+      }
+
+      startManualLinkingWithoutMatch();
     },
+    continueSetupManualLinkingMode: startManualLinkingWithoutMatch,
     continueLinkingMode: () => setAppState(startFreshPlateLinkingProcedure),
   };
 }

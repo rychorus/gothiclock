@@ -313,18 +313,22 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
         actionsClassName="modal-actions--fit"
         actions={[
           {
-            label: "Open save",
-            className: "primary",
+            label: "Continue linking",
+            className: "secondary",
             onClick: () => {
-              app.loadSavedLock(matchingLock.id);
+              if (modal.source === "manual") {
+                app.actions.continueSetupManualLinkingMode();
+              } else {
+                app.actions.continueLinkingMode();
+              }
               app.setModal({ type: null });
             },
           },
           {
-            label: "Continue linking",
-            className: "secondary",
+            label: "Open save",
+            className: "primary",
             onClick: () => {
-              app.actions.continueLinkingMode();
+              app.loadSavedLock(matchingLock.id);
               app.setModal({ type: null });
             },
           },
@@ -333,7 +337,12 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
         <div className="modal-form-stack modal-form-stack--share">
           <div className="modal-field">
             <span className="modal-field-label">Name</span>
-            <p className="modal-note modal-note--emphasis modal-note--boxed">{matchingLock.name}</p>
+            <p className="modal-note modal-note--emphasis modal-note--boxed">
+              <span className="saved-lock-name-row">
+                <span className="saved-lock-name">{matchingLock.name}</span>
+                {matchingLock.isDraft ? <span className="saved-lock-badge">Draft</span> : null}
+              </span>
+            </p>
           </div>
           {matchingLock.description ? (
             <div className="modal-field modal-field--spaced-top">

@@ -14,6 +14,7 @@ export interface ManualLinkingState {
   phase: ManualLinkingPhase;
   selectedDriver: number | null;
   selectedDirection: Direction | null;
+  initialOffsets: Offsets;
   offsets: Offsets;
   blockedObservations: number[];
   links: PlateLinks;
@@ -95,7 +96,7 @@ export type ModalState =
   | { type: "import-locks" }
   | { type: "delete-all-saved" }
   | { type: "share"; lockId?: string }
-  | { type: "start-linking-match"; lockId: string };
+  | { type: "start-linking-match"; lockId: string; source: "guided" | "manual" };
 
 export interface AppStateData {
   plateCount: number;

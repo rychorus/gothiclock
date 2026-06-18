@@ -133,6 +133,28 @@
   background: rgba(227, 167, 77, 0.07);
 }
 
+.saved-lock-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.saved-lock-name {
+  color: var(--text);
+}
+
+.saved-lock-badge {
+  border-radius: 999px;
+  border: 1px solid rgba(227, 167, 77, 0.32);
+  background: rgba(227, 167, 77, 0.12);
+  color: #f6dfb2;
+  padding: 0.16rem 0.48rem;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .modal-field--share-url {
   padding-bottom: 0.35rem;
 }
