@@ -447,12 +447,30 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
           offsets: shareLock.currentOffsets,
           links: shareLock.links,
         }),
-        { name: shareName, description: shareDescription },
+        {
+          name: shareName,
+          description: shareDescription,
+          compactState: {
+            plateCount: shareLock.plateCount,
+            offsets: shareLock.currentOffsets,
+            links: shareLock.links,
+          },
+        },
       )
       : buildShareUrl(
         typeof window !== "undefined" ? window.location.href : "",
         app.notationText,
-        { name: shareName, description: shareDescription },
+        {
+          name: shareName,
+          description: shareDescription,
+          compactState: app.appState.mode === "manual_linking" && app.appState.manualLinkingState
+            ? {
+                plateCount: app.appState.plateCount,
+                offsets: app.appState.manualLinkingState.offsets,
+                links: app.appState.manualLinkingState.links,
+              }
+            : app.appState,
+        },
       );
     const shareCopyText = shareLink;
 

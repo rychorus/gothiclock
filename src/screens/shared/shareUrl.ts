@@ -1,7 +1,17 @@
+import { decodeCompactLock, encodeCompactLock } from "../../lib/compactNotation";
+import { buildNotationString } from "../../lib/notation";
+import type { Offsets, PlateLinks } from "../../lib/types";
+
+type CompactShareState = {
+  plateCount: number;
+  offsets: Offsets;
+  links: PlateLinks;
+};
+
 export function buildShareUrl(
   baseUrl: string,
   notationText: string,
-  { name, description }: { name?: string; description?: string } = {},
+  { name, description, compactState }: { name?: string; description?: string; compactState?: CompactShareState } = {},
 ) {
   if (typeof window === "undefined") {
     return "";
@@ -11,16 +21,25 @@ export function buildShareUrl(
   shareUrl.search = "";
   shareUrl.hash = "";
 
-  if (notationText) {
+  const compactToken = compactState ? encodeCompactLock(compactState) : "";
+  if (compactToken) {
+    const hashParams = new URLSearchParams();
+    if (name) {
+      hashParams.set("name", name);
+    }
+    if (description) {
+      hashParams.set("description", description);
+    }
+    const hashParamsText = hashParams.toString();
+    shareUrl.hash = hashParamsText ? `${compactToken}?${hashParamsText}` : compactToken;
+  } else if (notationText) {
     shareUrl.searchParams.set("notation", notationText);
-  }
-
-  if (name) {
-    shareUrl.searchParams.set("name", name);
-  }
-
-  if (description) {
-    shareUrl.searchParams.set("description", description);
+    if (name) {
+      shareUrl.searchParams.set("name", name);
+    }
+    if (description) {
+      shareUrl.searchParams.set("description", description);
+    }
   }
 
   return shareUrl.toString();
@@ -28,10 +47,15 @@ export function buildShareUrl(
 
 export function parseShareUrl(url: string) {
   const sharedUrl = new URL(url);
+  const hashText = sharedUrl.hash.replace(/^#/, "").trim();
+  const [compactToken, hashQuery = ""] = hashText.split("?", 2);
+  const hashParams = new URLSearchParams(hashQuery);
+  const compactLock = compactToken ? decodeCompactLock(compactToken) : null;
+
   return {
-    notation: sharedUrl.searchParams.get("notation") || "",
-    name: sharedUrl.searchParams.get("name") || "",
-    description: sharedUrl.searchParams.get("description") || "",
+    notation: sharedUrl.searchParams.get("notation") || (compactLock ? buildNotationString(compactLock) : ""),
+    name: sharedUrl.searchParams.get("name") || hashParams.get("name") || "",
+    description: sharedUrl.searchParams.get("description") || hashParams.get("description") || "",
   };
 }
 
@@ -86,6 +110,16 @@ export function parseImportedNotationInput(input: string) {
       };
     }
   } catch {
+    const compactLock = decodeCompactLock(text);
+    if (compactLock) {
+      return {
+        notation: buildNotationString(compactLock),
+        name: "",
+        description: "",
+        isShareUrl: true,
+      };
+    }
+
     // Not a share URL. Fall through and treat the input as raw notation.
   }
 

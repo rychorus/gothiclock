@@ -315,8 +315,19 @@ export function useLockpickApp() {
       typeof window !== "undefined" ? window.location.href : "",
       notationText,
       currentSavedLock
-        ? { name: currentSavedLock.name, description: currentSavedLock.description }
-        : appState.sharedLinkMetadata || {},
+        ? {
+            name: currentSavedLock.name,
+            description: currentSavedLock.description,
+            compactState: {
+              plateCount: currentSavedLock.plateCount,
+              offsets: currentSavedLock.currentOffsets,
+              links: currentSavedLock.links,
+            },
+          }
+        : {
+            ...(appState.sharedLinkMetadata || {}),
+            compactState: notationSource,
+          },
     ),
     currentSavedLock,
     wasdSequence: solution.wasdSequence,

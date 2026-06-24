@@ -108,7 +108,15 @@ export function buildSavedLocksExportText(locks: SavedLockRecord[], baseUrl: str
         offsets: lock.currentOffsets,
         links: lock.links,
       }),
-      { name: lock.name, description: lock.description },
+      {
+        name: lock.name,
+        description: lock.description,
+        compactState: {
+          plateCount: lock.plateCount,
+          offsets: lock.currentOffsets,
+          links: lock.links,
+        },
+      },
     );
 
     return [
