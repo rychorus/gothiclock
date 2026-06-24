@@ -264,6 +264,12 @@
   height: 1.2rem;
 }
 
+.solution-toggle-icon svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: currentColor;
+}
+
 .solution-menu-wrap {
   --solution-control-size: 2.5rem;
   grid-column: 3;

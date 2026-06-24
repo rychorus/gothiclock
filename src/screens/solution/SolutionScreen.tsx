@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MaterialIcon } from "../../lib/icons";
 import { playPlateClick } from "../../lib/plateClick";
 import { formatSolutionStepInstruction } from "../../lib/solution";
@@ -30,25 +30,11 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [isSolutionMenuOpen]);
 
-  const solutionMenu = useMemo(
-    () => (
-      <div className="saved-lock-menu solution-toggle-menu" hidden={!isSolutionMenuOpen}>
-        <button className="saved-lock-menu-item" type="button" onClick={() => { setIsSolutionMenuOpen(false); actions.enterTestingMode(); }}>
-          <MaterialIcon name="play_arrow" />
-          <span>Testing mode</span>
-        </button>
-        <button className="saved-lock-menu-item" type="button" onClick={() => { setIsSolutionMenuOpen(false); app.setModal({ type: "notation" }); }}>
-          <MaterialIcon name="description" />
-          <span>Show plates setup notation</span>
-        </button>
-        <button className="saved-lock-menu-item" type="button" onClick={() => { setIsSolutionMenuOpen(false); app.setModal({ type: "powershell" }); }}>
-          <MaterialIcon name="code" />
-          <span>Generate powershell code</span>
-        </button>
-      </div>
-    ),
-    [actions, app, isSolutionMenuOpen],
-  );
+  useEffect(() => {
+    if (appState.mode !== "solution") {
+      setIsSolutionMenuOpen(false);
+    }
+  }, [appState.mode]);
 
   return (
     <>
@@ -106,10 +92,23 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
               </p>
             </div>
             <div ref={solutionMenuRef} className="solution-menu-wrap">
-                <button className="solution-toggle-icon" type="button" aria-label="Solution actions" aria-expanded={isSolutionMenuOpen} onClick={() => setIsSolutionMenuOpen((current) => !current)}>
-                <MaterialIcon name="more_vert" />
+              <button
+                className="solution-toggle-icon"
+                type="button"
+                aria-label="Auto-type solution actions"
+                aria-expanded={isSolutionMenuOpen}
+                onClick={() => setIsSolutionMenuOpen((current) => !current)}
+              >
+                <svg viewBox="0 -960 960 960" focusable="false" aria-hidden="true">
+                  <path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H160v400Zm140-40-56-56 103-104-104-104 57-56 160 160-160 160Zm180 0v-80h240v80H480Z" />
+                </svg>
               </button>
-              {solutionMenu}
+              <div className="saved-lock-menu hero-menu solution-toggle-menu" hidden={!isSolutionMenuOpen}>
+                <button className="saved-lock-menu-item" type="button" onClick={() => { setIsSolutionMenuOpen(false); app.setModal({ type: "powershell" }); }}>
+                  <MaterialIcon name="code" />
+                  <span>Auto-type the solution</span>
+                </button>
+              </div>
             </div>
           </div>
           <div className="solution-sequence-wrap">

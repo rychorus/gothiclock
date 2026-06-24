@@ -27,11 +27,13 @@ function getPersistedShowDrafts() {
 export function LockpickAppView({ app, appVersion }) {
   const { appState, modal, savedLocks, currentSavedLock, currentSolutionChunk, testingFeedback, powershellCode, actions, selectors } = app;
   const [isTopMenuOpen, setIsTopMenuOpen] = useState(false);
+  const [isSolutionMenuOpen, setIsSolutionMenuOpen] = useState(false);
   const [isLoadSearchOpen, setIsLoadSearchOpen] = useState(false);
   const [isLoadActionsOpen, setIsLoadActionsOpen] = useState(false);
   const [showDrafts, setShowDrafts] = useState(getPersistedShowDrafts);
   const [loadSearchQuery, setLoadSearchQuery] = useState("");
   const topMenuRef = useRef(null);
+  const solutionMenuRef = useRef(null);
   const loadSearchRef = useRef(null);
   const loadActionsRef = useRef(null);
   const sharedSolutionName = appState.sharedLinkMetadata?.name;
@@ -137,6 +139,46 @@ export function LockpickAppView({ app, appVersion }) {
       );
     }
 
+    if (appState.mode === "solution") {
+      return (
+        <div ref={solutionMenuRef} className="hero-menu-wrap">
+          <button
+            className="solution-toggle-icon hero-menu-toggle"
+            type="button"
+            aria-label="Solution actions"
+            aria-expanded={isSolutionMenuOpen}
+            onClick={() => setIsSolutionMenuOpen((current) => !current)}
+          >
+            <MaterialIcon name="more_vert" />
+          </button>
+          <div className="saved-lock-menu hero-menu" hidden={!isSolutionMenuOpen}>
+            <button
+              className="saved-lock-menu-item"
+              type="button"
+              onClick={() => {
+                setIsSolutionMenuOpen(false);
+                actions.enterTestingMode();
+              }}
+            >
+              <MaterialIcon name="play_arrow" />
+              <span>Testing mode</span>
+            </button>
+            <button
+              className="saved-lock-menu-item"
+              type="button"
+              onClick={() => {
+                setIsSolutionMenuOpen(false);
+                app.setModal({ type: "notation" });
+              }}
+            >
+              <MaterialIcon name="description" />
+              <span>Show plates setup notation</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return null;
   })();
 
@@ -171,6 +213,21 @@ export function LockpickAppView({ app, appVersion }) {
   }, [isTopMenuOpen]);
 
   useEffect(() => {
+    if (!isSolutionMenuOpen) {
+      return undefined;
+    }
+
+    function handlePointerDown(event) {
+      if (!solutionMenuRef.current?.contains(event.target)) {
+        setIsSolutionMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [isSolutionMenuOpen]);
+
+  useEffect(() => {
     if (appState.mode === "load") {
       return undefined;
     }
@@ -179,6 +236,12 @@ export function LockpickAppView({ app, appVersion }) {
     setIsLoadActionsOpen(false);
     setLoadSearchQuery("");
     return undefined;
+  }, [appState.mode]);
+
+  useEffect(() => {
+    if (appState.mode !== "solution") {
+      setIsSolutionMenuOpen(false);
+    }
   }, [appState.mode]);
 
   useEffect(() => {

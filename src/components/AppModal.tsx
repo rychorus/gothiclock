@@ -388,7 +388,7 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
 
     return (
       <Modal
-        title="Powershell code"
+        title="Auto-type the solution"
         onClose={app.closeModal}
         actions={[
           {
@@ -403,7 +403,7 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
           },
         ]}
       >
-        <p className="modal-note modal-note--compact">Let powershell auto-input the solution for you.</p>
+        <p className="modal-note modal-note--compact">Paste this on Windows Powershell to auto-type the solution</p>
         <pre className="modal-code-block modal-code-block--spaced-top">{powershellCode}</pre>
         <div className="modal-inline-actions modal-inline-actions--after-code">
           <button type="button" className="modal-text-button" onClick={() => setShowPowershellHelp((current) => !current)}>
