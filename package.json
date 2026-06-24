@@ -13,7 +13,7 @@
     "test:plate-linking": "tsx scripts/test-plate-linking.ts",
     "test:compact-notation": "node scripts/test-compact-notation.mjs",
     "preview": "vite preview",
-    "deploy": "./scripts/deploy-pages.sh"
+    "deploy": "node scripts/deploy-pages.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
