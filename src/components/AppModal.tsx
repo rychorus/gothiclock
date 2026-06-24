@@ -179,6 +179,22 @@ function getStartLinkingMatch(app, modal, savedLocks): SavedLockRecord | null {
   return savedLocks.find((lock) => lock.id === modal.lockId) || null;
 }
 
+function renderShareUrlPreview(shareUrlText) {
+  const [prefix, fragment = ""] = String(shareUrlText || "").split("#", 2);
+  if (!fragment) {
+    return <span>{shareUrlText}</span>;
+  }
+
+  const [token, suffix = ""] = fragment.split("?", 2);
+  return (
+    <>
+      <span>{`${prefix}#`}</span>
+      <span className="share-url-token">{token}</span>
+      {suffix ? <span>{`?${suffix}`}</span> : null}
+    </>
+  );
+}
+
 export function AppModal({ app, modal, savedLocks, solutionChunks, currentSolutionIndex, powershellCode, shareUrl }) {
   const [didCopyPowershell, setDidCopyPowershell] = useState(false);
   const [didCopyNotation, setDidCopyNotation] = useState(false);
@@ -514,7 +530,7 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
         </div>
         <div className="modal-field modal-field--share-url">
           <span className="modal-field-label">Link</span>
-          <pre className="modal-code-block">{shareCopyText}</pre>
+          <pre className="modal-code-block modal-code-block--share-url">{renderShareUrlPreview(shareCopyText)}</pre>
         </div>
       </Modal>
     );
