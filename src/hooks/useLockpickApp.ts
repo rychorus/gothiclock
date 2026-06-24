@@ -316,7 +316,7 @@ export function useLockpickApp() {
       notationText,
       currentSavedLock
         ? {
-            name: currentSavedLock.name,
+            name: currentSavedLock.hasCustomName ? currentSavedLock.name : undefined,
             description: currentSavedLock.description,
             compactState: {
               plateCount: currentSavedLock.plateCount,

@@ -35,12 +35,13 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
           mode: hasLinks ? "linking" : "setup",
         };
 
-        upsertSavedLock(buildSavedLockRecord(importedState, {
-          id: createLockId(),
-          name: sharedUrl.name.trim() || getDefaultLockName(),
-          description: sharedUrl.description.trim(),
-          isDraft: !allLinksKnown,
-        }));
+      upsertSavedLock(buildSavedLockRecord(importedState, {
+        id: createLockId(),
+        name: sharedUrl.name.trim() || getDefaultLockName(),
+        description: sharedUrl.description.trim(),
+        hasCustomName: Boolean(sharedUrl.name.trim()),
+        isDraft: !allLinksKnown,
+      }));
       });
 
       setAppState((current) => ({

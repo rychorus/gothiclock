@@ -8,10 +8,12 @@ function getStorage() {
 }
 
 function normalizeSavedLock(lock: Partial<SavedLockRecord>): SavedLockRecord {
+  const name = lock.name || "Untitled lock";
   return {
     id: lock.id || createLockId(),
-    name: lock.name || "Untitled lock",
+    name,
     description: lock.description || "",
+    hasCustomName: typeof lock.hasCustomName === "boolean" ? lock.hasCustomName : /^((Draft - )?Lock \d+)$/.test(name) ? false : Boolean(name),
     isDraft: Boolean(lock.isDraft),
     savedAt: lock.savedAt || new Date().toISOString(),
     plateCount: lock.plateCount || 0,
@@ -77,6 +79,10 @@ function stripLegacyDraftPrefix(name) {
   return name?.replace(/^Draft - /, "") || "";
 }
 
+function isDefaultTemplateName(name: string) {
+  return /^((Draft - )?Lock \d+)$/.test(name.trim());
+}
+
 export function persistCurrentLock(
   state: AppStateData,
   { isDraft, nameOverride, descriptionOverride }: { isDraft?: boolean; nameOverride?: string; descriptionOverride?: string } = {},
@@ -94,8 +100,15 @@ export function persistCurrentLock(
   const name = nameOverride?.trim() || fallbackName;
   const description = descriptionOverride?.trim() || existingLock?.description || "";
   const lockId = normalizedState.currentSaveId || createLockId();
+  const hasCustomName = Boolean(existingLock?.hasCustomName) || !isDefaultTemplateName(name);
 
-  upsertSavedLock(buildSavedLockRecord(normalizedState, { id: lockId, name, description, isDraft }));
+  upsertSavedLock(buildSavedLockRecord(normalizedState, {
+    id: lockId,
+    name,
+    description,
+    isDraft,
+    hasCustomName,
+  }));
   return lockId;
 }
 
@@ -109,7 +122,7 @@ export function buildSavedLocksExportText(locks: SavedLockRecord[], baseUrl: str
         links: lock.links,
       }),
       {
-        name: lock.name,
+        name: lock.hasCustomName ? lock.name : undefined,
         description: lock.description,
         compactState: {
           plateCount: lock.plateCount,
@@ -143,6 +156,7 @@ export function renameSavedLock(lockId: string, nextName: string, nextDescriptio
       ...lock,
       name: trimmedName,
       description: trimmedDescription,
+      hasCustomName: lock.hasCustomName || !isDefaultTemplateName(trimmedName),
       isDraft: false,
       savedAt: new Date().toISOString(),
     };

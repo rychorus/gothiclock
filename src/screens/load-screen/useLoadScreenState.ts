@@ -129,6 +129,7 @@ export function useLoadScreenState({ appState, setAppState, setModal }: {
         id: createLockId(),
         name: sharedUrl.name.trim() || getDefaultLockName(),
         description: sharedUrl.description.trim(),
+        hasCustomName: Boolean(sharedUrl.name.trim()),
         isDraft: !allLinksKnown,
       }));
     });

@@ -74,6 +74,7 @@ export interface SavedLockRecord {
   id: string;
   name: string;
   description: string;
+  hasCustomName?: boolean;
   isDraft: boolean;
   savedAt: string;
   plateCount: number;

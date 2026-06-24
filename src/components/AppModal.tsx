@@ -464,7 +464,7 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
           links: shareLock.links,
         }),
         {
-          name: shareName,
+          name: shareLock.hasCustomName || shareName.trim() !== shareLock.name ? shareName : undefined,
           description: shareDescription,
           compactState: {
             plateCount: shareLock.plateCount,
@@ -477,7 +477,7 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
         typeof window !== "undefined" ? window.location.href : "",
         app.notationText,
         {
-          name: shareName,
+          name: shareLock ? undefined : shareName,
           description: shareDescription,
           compactState: app.appState.mode === "manual_linking" && app.appState.manualLinkingState
             ? {
