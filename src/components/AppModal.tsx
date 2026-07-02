@@ -4,7 +4,7 @@ import { Modal } from "./Modal";
 import { SolutionSequence } from "../screens/solution/SolutionSequence";
 import { buildNotationString } from "../lib/notation";
 import { buildShareUrl } from "../screens/shared/shareUrl";
-import { isBackgroundSubmissionEnabled, PRODUCTION_BACKGROUND_SUBMISSION_ENABLED } from "../lib/developerSettings";
+import { isBackgroundSubmissionEnabled } from "../lib/developerSettings";
 import type { SavedLockRecord } from "../lib/types";
 
 function getPowershellStartDelaySeconds(powershellCode) {
@@ -397,6 +397,34 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
               <span className="developer-setting-switch-thumb"></span>
             </span>
           </label>
+          <label className="developer-setting-row">
+            <span className="developer-setting-label">Submit all past saved solutions</span>
+            <input
+              className="developer-setting-checkbox"
+              type="checkbox"
+              checked={app.developerSettings.pastSavesSubmissionEnabled}
+              onChange={(event) => app.setPastSavesSubmissionEnabled(event.target.checked)}
+            />
+            <span className="developer-setting-switch" aria-hidden="true">
+              <span className="developer-setting-switch-thumb"></span>
+            </span>
+          </label>
+          <div className="modal-actions modal-actions--fit">
+            <button
+              type="button"
+              className="action-button secondary"
+              onClick={() => app.markCurrentSavesSubmitted()}
+            >
+              Mark saves submitted
+            </button>
+            <button
+              type="button"
+              className="action-button secondary"
+              onClick={() => app.markCurrentSavesNotSubmitted()}
+            >
+              Mark saves not submitted
+            </button>
+          </div>
           <div className="modal-actions">
             <button
               type="button"

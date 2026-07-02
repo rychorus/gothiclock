@@ -1,7 +1,22 @@
 import { encodeCompactLock } from "./compactNotation";
 import type { SavedLockRecord, SolutionPlanData } from "./types";
 
+type FingerprintSource = {
+  userAgent: string;
+  language: string;
+  languages: readonly string[];
+  platform: string;
+  hardwareConcurrency: number;
+  maxTouchPoints: number;
+  colorDepth: number | null;
+  screenWidth: number | null;
+  screenHeight: number | null;
+  pixelRatio: number;
+  timezone: string;
+};
+
 type SubmissionPayload = {
+  submissionMode: "live" | "batch";
   lockId: string;
   saveType: "named" | "draft";
   appVersion: string;
@@ -31,39 +46,44 @@ type SubmissionPayload = {
   };
 };
 
-type SubmissionWorkerRequest = {
-  type: "submit";
-  payload: {
-    endpoint: string;
-    proofOfWorkDifficulty: number;
-    appVersion: string;
-    savedLock: SavedLockRecord;
-    solution: SolutionPlanData | null;
-    fingerprintSource: {
-      userAgent: string;
-      language: string;
-      languages: readonly string[];
-      platform: string;
-      hardwareConcurrency: number;
-      maxTouchPoints: number;
-      colorDepth: number | null;
-      screenWidth: number | null;
-      screenHeight: number | null;
-      pixelRatio: number;
-      timezone: string;
-    };
+type BatchSubmissionEntry = Omit<SubmissionPayload, "submissionMode" | "fingerprintHash" | "clientSubmittedAt" | "source" | "userAgent" | "proofOfWork">;
+
+type BatchSubmissionPayload = {
+  submissionMode: "batch";
+  appVersion: string;
+  fingerprintHash: string;
+  clientSubmittedAt: string;
+  source: string;
+  userAgent: string;
+  entries: BatchSubmissionEntry[];
+  proofOfWork: {
+    difficulty: number;
+    nonce: string;
+    hash: string;
   };
 };
 
-type SubmissionWorkerResponse =
+type SubmissionWorkerRequest =
   | {
-      type: "submitted";
-      lockId: string;
+      type: "submit-single";
+      payload: {
+        endpoint: string;
+        proofOfWorkDifficulty: number;
+        appVersion: string;
+        savedLock: SavedLockRecord;
+        solution: SolutionPlanData | null;
+        fingerprintSource: FingerprintSource;
+      };
     }
   | {
-      type: "failed";
-      lockId: string;
-      error: string;
+      type: "submit-batch";
+      payload: {
+        endpoint: string;
+        proofOfWorkDifficulty: number;
+        appVersion: string;
+        savedLocks: SavedLockRecord[];
+        fingerprintSource: FingerprintSource;
+      };
     };
 
 let fingerprintHashPromise: Promise<string> | null = null;
@@ -210,7 +230,7 @@ function buildSetupString(savedLock: SavedLockRecord): string {
   });
 }
 
-async function getFingerprintHash(fingerprintSource: SubmissionWorkerRequest["payload"]["fingerprintSource"]): Promise<string> {
+async function getFingerprintHash(fingerprintSource: FingerprintSource): Promise<string> {
   if (fingerprintHashPromise) {
     return fingerprintHashPromise;
   }
@@ -248,9 +268,43 @@ async function computeProofOfWork(
   };
 }
 
-async function buildSubmissionPayload(args: SubmissionWorkerRequest["payload"]): Promise<SubmissionPayload> {
+async function computeBatchProofOfWork(
+  args: {
+    appVersion: string;
+    fingerprintHash: string;
+    entries: BatchSubmissionEntry[];
+  },
+  difficulty: number,
+): Promise<BatchSubmissionPayload["proofOfWork"]> {
+  const batchHash = await sha256Hex(stableStringify(args.entries));
+  const prefix = "0".repeat(difficulty);
+  const powMessage = `gothic-lockpick|batch|${args.appVersion}|${args.fingerprintHash}|${batchHash}`;
+  let nonce = 0;
+  let hash = "";
+
+  while (!hash.startsWith(prefix)) {
+    nonce += 1;
+    hash = await sha256Hex(`${powMessage}|${nonce}`);
+  }
+
+  return {
+    difficulty,
+    nonce: String(nonce),
+    hash,
+  };
+}
+
+async function buildSubmissionPayload(args: {
+  submissionMode: "live" | "batch";
+  appVersion: string;
+  savedLock: SavedLockRecord;
+  solution: SolutionPlanData | null;
+  proofOfWorkDifficulty: number;
+  fingerprintSource: FingerprintSource;
+}): Promise<SubmissionPayload> {
   const setupString = buildSetupString(args.savedLock);
   const payloadBase = {
+    submissionMode: args.submissionMode,
     lockId: args.savedLock.id,
     saveType: args.savedLock.isDraft ? "draft" as const : "named" as const,
     appVersion: args.appVersion,
@@ -283,7 +337,46 @@ async function buildSubmissionPayload(args: SubmissionWorkerRequest["payload"]):
   };
 }
 
-async function submitInBackground(endpoint: string, payload: SubmissionPayload) {
+async function buildBatchSubmissionPayload(args: SubmissionWorkerRequest["payload"] & { savedLocks: SavedLockRecord[] }): Promise<BatchSubmissionPayload> {
+  const fingerprintHash = await getFingerprintHash(args.fingerprintSource);
+  const clientSubmittedAt = new Date().toISOString();
+  const entries = args.savedLocks.map((savedLock) => {
+    const setupString = buildSetupString(savedLock);
+    return {
+      lockId: savedLock.id,
+      saveType: savedLock.isDraft ? "draft" as const : "named" as const,
+      appVersion: args.appVersion,
+      setupString,
+      savedLock: {
+        id: savedLock.id,
+        name: savedLock.name,
+        description: savedLock.description,
+        isDraft: savedLock.isDraft,
+        plateCount: savedLock.plateCount,
+        mode: savedLock.mode,
+        setupString,
+      },
+      solution: null,
+    };
+  });
+
+  return {
+    submissionMode: "batch",
+    appVersion: args.appVersion,
+    fingerprintHash,
+    clientSubmittedAt,
+    source: "gothic-lockpick-app",
+    userAgent: args.fingerprintSource.userAgent,
+    entries,
+    proofOfWork: await computeBatchProofOfWork({
+      appVersion: args.appVersion,
+      fingerprintHash,
+      entries,
+    }, args.proofOfWorkDifficulty),
+  };
+}
+
+async function submitPayload(endpoint: string, payload: unknown) {
   await fetch(endpoint, {
     method: "POST",
     mode: "no-cors",
@@ -295,24 +388,24 @@ async function submitInBackground(endpoint: string, payload: SubmissionPayload) 
 }
 
 self.addEventListener("message", (event: MessageEvent<SubmissionWorkerRequest>) => {
-  if (event.data.type !== "submit") {
+  if (event.data.type === "submit-single") {
+    void buildSubmissionPayload({
+      submissionMode: "live",
+      appVersion: event.data.payload.appVersion,
+      savedLock: event.data.payload.savedLock,
+      solution: event.data.payload.solution,
+      proofOfWorkDifficulty: event.data.payload.proofOfWorkDifficulty,
+      fingerprintSource: event.data.payload.fingerprintSource,
+    }).then((payload) => submitPayload(event.data.payload.endpoint, payload));
     return;
   }
 
-  void buildSubmissionPayload(event.data.payload)
-    .then((payload) => submitInBackground(event.data.payload.endpoint, payload).then(() => payload.lockId))
-    .then((lockId) => {
-      const response: SubmissionWorkerResponse = { type: "submitted", lockId };
-      self.postMessage(response);
-    })
-    .catch((error) => {
-      const response: SubmissionWorkerResponse = {
-        type: "failed",
-        lockId: event.data.payload.savedLock.id,
-        error: error instanceof Error ? error.message : String(error),
-      };
-      self.postMessage(response);
-    });
+  if (event.data.type !== "submit-batch") {
+    return;
+  }
+
+  void buildBatchSubmissionPayload(event.data.payload)
+    .then((payload) => submitPayload(event.data.payload.endpoint, payload));
 });
 
 export {};

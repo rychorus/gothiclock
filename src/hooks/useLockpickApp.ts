@@ -11,9 +11,17 @@ import {
   getPersistedDeveloperSettings,
   isBackgroundSubmissionEnabled,
   setBackgroundSubmissionEnabled as persistBackgroundSubmissionEnabled,
+  setPastSavesSubmissionEnabled as persistPastSavesSubmissionEnabled,
   unlockDeveloperSettings as persistDeveloperSettingsUnlock,
 } from "../lib/developerSettings";
-import { queueBackgroundSubmission } from "../lib/backgroundSubmission";
+import { queueBackgroundSubmission, queueBackgroundSubmissionBatch } from "../lib/backgroundSubmission";
+import {
+  clearSubmittedSaveSignatures,
+  getSavedLockSubmissionSignature,
+  hasSavedLockBeenSubmitted,
+  markSavedLockSubmitted,
+  markSavedLocksSubmitted,
+} from "../lib/submissionTracking";
 import { useAppNavigation } from "../screens/shared/useAppNavigation";
 import { useMainMenuState } from "../screens/main-menu/useMainMenuState";
 import { useLoadScreenState } from "../screens/load-screen/useLoadScreenState";
@@ -100,22 +108,6 @@ function hasBlockedEdgeAttempt(task: PlateLinkingPromptTask | null) {
   );
 }
 
-function getSavedLockSubmissionSignature(savedLock) {
-  return JSON.stringify({
-    id: savedLock.id,
-    name: savedLock.name,
-    description: savedLock.description,
-    isDraft: savedLock.isDraft,
-    savedAt: savedLock.savedAt,
-    plateCount: savedLock.plateCount,
-    mode: savedLock.mode,
-    linkingStartOffsets: savedLock.linkingStartOffsets,
-    currentOffsets: savedLock.currentOffsets,
-    links: savedLock.links,
-    linkDeltas: savedLock.linkDeltas,
-  });
-}
-
 export function useLockpickApp() {
   const [appState, setAppState] = useState<AppStateData>(getInitialAppState);
   const [modal, setModalState] = useState<ModalState>({ type: null });
@@ -123,6 +115,8 @@ export function useLockpickApp() {
   const suppressDraftAutosaveRef = useRef(false);
   const savedLockSubmissionSignaturesRef = useRef(new Map());
   const queuedSubmissionTimestampsRef = useRef(new Map());
+  const initialPastSaveIdsRef = useRef<Set<string> | null>(null);
+  const didSubmitPastSavesRef = useRef(false);
   const didSeedSavedLockSubmissionSignaturesRef = useRef(false);
   const currentScreenRef = useRef(getScreenAnalyticsName(appState.mode));
   const currentModalRef = useRef(getModalAnalyticsName(modal));
@@ -170,12 +164,69 @@ export function useLockpickApp() {
       return;
     }
 
-    queuedSubmissionTimestampsRef.current.set(signature, now);
-    void queueBackgroundSubmission({
+    if (hasSavedLockBeenSubmitted(savedLock)) {
+      return;
+    }
+
+    const didDispatch = queueBackgroundSubmission({
       appVersion: APP_VERSION,
       savedLock,
       solution: currentSolution,
     });
+    if (!didDispatch) {
+      return;
+    }
+
+    queuedSubmissionTimestampsRef.current.set(signature, now);
+    markSavedLockSubmitted(savedLock);
+  }
+
+  function submitAllPastSavedSolutions() {
+    const initialPastSaveIds = initialPastSaveIdsRef.current;
+    if (!initialPastSaveIds || !initialPastSaveIds.size) {
+      return true;
+    }
+
+    const unsentSavedLocks = savedLocks.filter((savedLock) => (
+      initialPastSaveIds.has(savedLock.id) && !hasSavedLockBeenSubmitted(savedLock)
+    ));
+    if (!unsentSavedLocks.length) {
+      return true;
+    }
+
+    const didDispatch = queueBackgroundSubmissionBatch({
+      appVersion: APP_VERSION,
+      savedLocks: unsentSavedLocks,
+    });
+    if (!didDispatch) {
+      return false;
+    }
+
+    markSavedLocksSubmitted(unsentSavedLocks);
+    unsentSavedLocks.forEach((savedLock) => {
+      savedLockSubmissionSignaturesRef.current.set(savedLock.id, getSavedLockSubmissionSignature(savedLock));
+    });
+    return true;
+  }
+
+  function setPastSavesSubmissionEnabled(enabled: boolean) {
+    setDeveloperSettings((current) => persistPastSavesSubmissionEnabled(current, enabled));
+    if (!enabled) {
+      didSubmitPastSavesRef.current = false;
+    }
+  }
+
+  function markCurrentSavesSubmitted() {
+    markSavedLocksSubmitted(savedLocks);
+    savedLocks.forEach((savedLock) => {
+      savedLockSubmissionSignaturesRef.current.set(savedLock.id, getSavedLockSubmissionSignature(savedLock));
+    });
+    didSubmitPastSavesRef.current = false;
+  }
+
+  function markCurrentSavesNotSubmitted() {
+    clearSubmittedSaveSignatures();
+    didSubmitPastSavesRef.current = false;
   }
 
   const loadScreen = useLoadScreenState({
@@ -257,6 +308,7 @@ export function useLockpickApp() {
     const currentSignatures = savedLockSubmissionSignaturesRef.current;
 
     if (!didSeedSavedLockSubmissionSignaturesRef.current) {
+      initialPastSaveIdsRef.current = new Set(savedLocks.map((savedLock) => savedLock.id));
       savedLocks.forEach((savedLock) => {
         currentSignatures.set(savedLock.id, getSavedLockSubmissionSignature(savedLock));
       });
@@ -285,6 +337,19 @@ export function useLockpickApp() {
       }
     });
   }, [developerSettings, savedLocks]);
+
+  useEffect(() => {
+    if (!developerSettings.pastSavesSubmissionEnabled) {
+      return;
+    }
+
+    if (didSubmitPastSavesRef.current) {
+      return;
+    }
+
+    const didDispatch = submitAllPastSavedSolutions();
+    didSubmitPastSavesRef.current = didDispatch;
+  }, [developerSettings.pastSavesSubmissionEnabled, savedLocks]);
 
   useEffect(() => {
     const nextScreenName = getScreenAnalyticsName(appState.mode);
@@ -446,8 +511,12 @@ export function useLockpickApp() {
     exportAllSavedLocks: loadScreen.exportAllSavedLocks,
     importLocks: loadScreen.importLocks,
     persistWithName: loadScreen.persistWithName,
+    submitAllPastSavedSolutions,
+    markCurrentSavesSubmitted,
+    markCurrentSavesNotSubmitted,
     disableDeveloperSettings: () => setDeveloperSettings(persistDeveloperSettingsDisable()),
     setBackgroundSubmissionEnabled: (enabled) => setDeveloperSettings((current) => persistBackgroundSubmissionEnabled(current, enabled)),
+    setPastSavesSubmissionEnabled,
     solutionNextHintClickCount,
     incrementSolutionNextHintClickCount: () => setSolutionNextHintClickCount((current) => current + 1),
     plateLinkingResetTooltipBlockCount,
