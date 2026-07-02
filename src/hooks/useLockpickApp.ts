@@ -108,6 +108,10 @@ function hasBlockedEdgeAttempt(task: PlateLinkingPromptTask | null) {
   );
 }
 
+function isSavedLockEligibleForSubmission(savedLock: { mode: AppStateData["mode"] }) {
+  return savedLock.mode === "solution";
+}
+
 export function useLockpickApp() {
   const [appState, setAppState] = useState<AppStateData>(getInitialAppState);
   const [modal, setModalState] = useState<ModalState>({ type: null });
@@ -149,6 +153,10 @@ export function useLockpickApp() {
     const signature = getSavedLockSubmissionSignature(savedLock);
     savedLockSubmissionSignaturesRef.current.set(savedLock.id, signature);
 
+    if (!isSavedLockEligibleForSubmission(savedLock)) {
+      return;
+    }
+
     if (!isBackgroundSubmissionEnabled(developerSettings)) {
       return;
     }
@@ -188,7 +196,9 @@ export function useLockpickApp() {
     }
 
     const unsentSavedLocks = savedLocks.filter((savedLock) => (
-      initialPastSaveIds.has(savedLock.id) && !hasSavedLockBeenSubmitted(savedLock)
+      initialPastSaveIds.has(savedLock.id)
+      && isSavedLockEligibleForSubmission(savedLock)
+      && !hasSavedLockBeenSubmitted(savedLock)
     ));
     if (!unsentSavedLocks.length) {
       return true;
