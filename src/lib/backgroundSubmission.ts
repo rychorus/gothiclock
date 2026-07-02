@@ -1,4 +1,5 @@
 import { encodeCompactLock } from "./compactNotation";
+import { buildNotationString } from "./notation";
 import type { SavedLockRecord, SolutionPlanData } from "./types";
 import { BACKGROUND_SUBMISSION_ENDPOINT, PRODUCTION_PROOF_OF_WORK_DIFFICULTY } from "./developerSettings";
 
@@ -46,6 +47,7 @@ type SubmissionPayload = {
   appVersion: string;
   fingerprintHash: string;
   setupString: string;
+  setupNotation: string;
   clientSubmittedAt: string;
   source: string;
   userAgent: string;
@@ -57,6 +59,7 @@ type SubmissionPayload = {
     plateCount: number;
     mode: string;
     setupString: string;
+    setupNotation: string;
   };
   solution: null | {
     moves: SolutionPlanData["moves"];
@@ -235,6 +238,14 @@ function buildSetupString(savedLock: SavedLockRecord): string {
   });
 }
 
+function buildSetupNotation(savedLock: SavedLockRecord): string {
+  return buildNotationString({
+    plateCount: savedLock.plateCount,
+    offsets: savedLock.currentOffsets,
+    links: savedLock.links,
+  }).replace(/\s*\r?\n\s*/g, " ").trim();
+}
+
 async function getFingerprintHash(fingerprintSource: FingerprintSource): Promise<string> {
   if (fingerprintHashPromise) {
     return fingerprintHashPromise;
@@ -251,6 +262,7 @@ async function computeProofOfWork(
   const solutionHash = await sha256Hex(stableStringify(
     payload.solution || {
       setupString: payload.setupString,
+      setupNotation: payload.setupNotation,
       plateCount: payload.savedLock.plateCount,
       mode: payload.savedLock.mode,
       isDraft: payload.savedLock.isDraft,
@@ -322,6 +334,7 @@ async function buildSubmissionPayload(args: {
   fingerprintSource: FingerprintSource;
 }): Promise<SubmissionPayload> {
   const setupString = buildSetupString(args.savedLock);
+  const setupNotation = buildSetupNotation(args.savedLock);
   const payloadBase = {
     submissionMode: args.submissionMode,
     lockId: args.savedLock.id,
@@ -329,6 +342,7 @@ async function buildSubmissionPayload(args: {
     appVersion: args.appVersion,
     fingerprintHash: await getFingerprintHash(args.fingerprintSource),
     setupString,
+    setupNotation,
     clientSubmittedAt: new Date().toISOString(),
     source: "gothic-lockpick-app",
     userAgent: args.fingerprintSource.userAgent,
@@ -340,6 +354,7 @@ async function buildSubmissionPayload(args: {
       plateCount: args.savedLock.plateCount,
       mode: args.savedLock.mode,
       setupString,
+      setupNotation,
     },
     solution: args.solution
       ? {
@@ -366,12 +381,14 @@ async function buildBatchSubmissionPayload(args: {
   const clientSubmittedAt = new Date().toISOString();
   const entries: BatchSubmissionEntry[] = args.savedLocks.map((savedLock) => {
     const setupString = buildSetupString(savedLock);
+    const setupNotation = buildSetupNotation(savedLock);
 
     return {
       lockId: savedLock.id,
       saveType: savedLock.isDraft ? "draft" : "named",
       appVersion: args.appVersion,
       setupString,
+      setupNotation,
       savedLock: {
         id: savedLock.id,
         name: savedLock.name,
@@ -380,6 +397,7 @@ async function buildBatchSubmissionPayload(args: {
         plateCount: savedLock.plateCount,
         mode: savedLock.mode,
         setupString,
+        setupNotation,
       },
       solution: null,
     };
