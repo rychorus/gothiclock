@@ -140,9 +140,9 @@ function ImportLocksForm({ onImport, onCancel }) {
         <button
           type="button"
           className="action-button primary"
-          onClick={() => {
+          onClick={async () => {
             try {
-              onImport(importText);
+              await onImport(importText);
               setImportError("");
             } catch (error) {
               setImportError(error instanceof Error ? error.message : "Could not import locks.");
@@ -373,7 +373,7 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
   if (modal.type === "import-locks") {
     return (
       <Modal title="Import locks" onClose={app.closeModal} className="modal-card--notation modal-card--import-locks">
-        <ImportLocksForm onImport={(text) => { app.importLocks(text); app.closeModal(); }} onCancel={app.closeModal} />
+        <ImportLocksForm onImport={async (text) => { await app.importLocks(text); }} onCancel={app.closeModal} />
       </Modal>
     );
   }

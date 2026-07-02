@@ -11,7 +11,7 @@ import {
   renameSavedLock,
 } from "../../lib/lockStorage";
 import { loadSavedLockState } from "../../lib/appState";
-import { DEV_UNLOCK_TOKEN } from "../../lib/developerSettings";
+import { isDeveloperUnlockTokenInput } from "../../lib/developerSettings";
 import type { AppStateData, ModalState, SavedLockRecord } from "../../lib/types";
 import type { Dispatch, SetStateAction } from "react";
 import { startPlateLinkingProcedure } from "../plate-linking/procedure/plateLinkingProcedure";
@@ -111,10 +111,11 @@ export function useLoadScreenState({ appState, setAppState, setModal, onDevelope
     window.URL.revokeObjectURL(url);
   }
 
-  function importLocks(text: string) {
-    if (text.trim() === DEV_UNLOCK_TOKEN) {
+  async function importLocks(text: string): Promise<"developer-unlock" | void> {
+    if (await isDeveloperUnlockTokenInput(text)) {
       onDeveloperUnlock?.();
-      return;
+      setModal({ type: "developer-settings" });
+      return "developer-unlock";
     }
 
     const importedShareUrls = extractImportedShareUrls(text);
@@ -150,6 +151,8 @@ export function useLoadScreenState({ appState, setAppState, setModal, onDevelope
         submissionEligible: false,
       }));
     });
+
+    setModal({ type: null });
   }
 
   return {
