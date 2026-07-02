@@ -41,6 +41,7 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
         description: sharedUrl.description.trim(),
         hasCustomName: Boolean(sharedUrl.name.trim()),
         isDraft: !allLinksKnown,
+        submissionEligible: false,
       }));
       });
 

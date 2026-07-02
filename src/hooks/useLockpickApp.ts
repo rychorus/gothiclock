@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { buildNotationString } from "../lib/notation";
 import { APP_VERSION, createInitialAppState, getUnknownPlates, isTrivialCenteredLock } from "../lib/lockData";
 import { resetTestingMode } from "../lib/appState";
-import { getSavedLockById, syncFinalLockProgress } from "../lib/lockStorage";
+import { clearSavedLockSubmissionEligibility, getSavedLockById, syncFinalLockProgress } from "../lib/lockStorage";
 import { getModalAnalyticsName, getScreenAnalyticsName, trackButtonClick, trackModalView, trackScreenView } from "../lib/analytics";
 import { playUiClick } from "../lib/uiClick";
 import { buildShareUrl, parseShareUrl } from "../screens/shared/shareUrl";
@@ -108,8 +108,22 @@ function hasBlockedEdgeAttempt(task: PlateLinkingPromptTask | null) {
   );
 }
 
-function isSavedLockEligibleForSubmission(savedLock: { mode: AppStateData["mode"] }) {
-  return savedLock.mode === "solution";
+function isSavedLockEligibleForSubmission(savedLock: {
+  submissionEligible?: boolean;
+  isDraft: boolean;
+  mode: AppStateData["mode"];
+  linkingStartOffsets: AppStateData["linkingStartOffsets"];
+}) {
+  if (typeof savedLock.submissionEligible === "boolean") {
+    return savedLock.submissionEligible;
+  }
+
+  // Legacy saves created before explicit eligibility tracking fall back to
+  // "solved save" semantics so existing real solutions, including solved drafts,
+  // can still batch submit. Imported/incomplete drafts stay blocked because they
+  // do not persist in solution mode.
+  return savedLock.mode === "solution"
+    && Boolean(savedLock.linkingStartOffsets);
 }
 
 export function useLockpickApp() {
@@ -117,6 +131,7 @@ export function useLockpickApp() {
   const [modal, setModalState] = useState<ModalState>({ type: null });
   const appliedSharedNotationRef = useRef(false);
   const suppressDraftAutosaveRef = useRef(false);
+  const suppressSavedLockChangeSubmissionRef = useRef(false);
   const savedLockSubmissionSignaturesRef = useRef(new Map());
   const queuedSubmissionTimestampsRef = useRef(new Map());
   const initialPastSaveIdsRef = useRef<Set<string> | null>(null);
@@ -239,6 +254,13 @@ export function useLockpickApp() {
     didSubmitPastSavesRef.current = false;
   }
 
+  function clearCurrentSaveSubmissionMetadata() {
+    suppressSavedLockChangeSubmissionRef.current = true;
+    clearSavedLockSubmissionEligibility();
+    clearSubmittedSaveSignatures();
+    didSubmitPastSavesRef.current = false;
+  }
+
   const loadScreen = useLoadScreenState({
     appState,
     setAppState,
@@ -327,6 +349,7 @@ export function useLockpickApp() {
     }
 
     const activeIds = new Set();
+    const shouldSuppressSavedLockChangeSubmission = suppressSavedLockChangeSubmissionRef.current;
     savedLocks.forEach((savedLock) => {
       activeIds.add(savedLock.id);
       const nextSignature = getSavedLockSubmissionSignature(savedLock);
@@ -336,7 +359,7 @@ export function useLockpickApp() {
       }
 
       currentSignatures.set(savedLock.id, nextSignature);
-      if (isBackgroundSubmissionEnabled(developerSettings)) {
+      if (!shouldSuppressSavedLockChangeSubmission && isBackgroundSubmissionEnabled(developerSettings)) {
         submitSavedLockIfEnabled(savedLock, null);
       }
     });
@@ -346,6 +369,8 @@ export function useLockpickApp() {
         currentSignatures.delete(lockId);
       }
     });
+
+    suppressSavedLockChangeSubmissionRef.current = false;
   }, [developerSettings, savedLocks]);
 
   useEffect(() => {
@@ -524,6 +549,7 @@ export function useLockpickApp() {
     submitAllPastSavedSolutions,
     markCurrentSavesSubmitted,
     markCurrentSavesNotSubmitted,
+    clearCurrentSaveSubmissionMetadata,
     disableDeveloperSettings: () => setDeveloperSettings(persistDeveloperSettingsDisable()),
     setBackgroundSubmissionEnabled: (enabled) => setDeveloperSettings((current) => persistBackgroundSubmissionEnabled(current, enabled)),
     setPastSavesSubmissionEnabled,

@@ -113,13 +113,28 @@ export function isTrivialCenteredLock(state: Pick<AppStateData, "linkingStartOff
 
 export function buildSavedLockRecord(
   state: Pick<AppStateData, "plateCount" | "mode" | "linkingStartOffsets" | "offsets" | "links" | "linkDeltas">,
-  { id, name, description, isDraft, hasCustomName }: { id: string; name: string; description: string; isDraft?: boolean; hasCustomName?: boolean },
+  {
+    id,
+    name,
+    description,
+    isDraft,
+    hasCustomName,
+    submissionEligible,
+  }: {
+    id: string;
+    name: string;
+    description: string;
+    isDraft?: boolean;
+    hasCustomName?: boolean;
+    submissionEligible?: boolean;
+  },
 ): SavedLockRecord {
   return {
     id,
     name,
     description,
     hasCustomName: Boolean(hasCustomName),
+    submissionEligible: typeof submissionEligible === "boolean" ? submissionEligible : undefined,
     isDraft: Boolean(isDraft),
     savedAt: new Date().toISOString(),
     plateCount: state.plateCount,

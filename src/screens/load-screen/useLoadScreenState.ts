@@ -147,6 +147,7 @@ export function useLoadScreenState({ appState, setAppState, setModal, onDevelope
         description: sharedUrl.description.trim(),
         hasCustomName: Boolean(sharedUrl.name.trim()),
         isDraft: !allLinksKnown,
+        submissionEligible: false,
       }));
     });
   }

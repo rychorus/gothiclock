@@ -2,7 +2,7 @@ import type { SavedLockRecord } from "./types";
 
 const SUBMITTED_SAVE_SIGNATURES_STORAGE_KEY = "gothic-lockpick.submitted-save-signatures";
 const SUBMISSION_TRACKING_VERSION_STORAGE_KEY = "gothic-lockpick.submission-tracking-version";
-const SUBMISSION_TRACKING_VERSION = "2";
+const SUBMISSION_TRACKING_VERSION = "4";
 
 function getStorage() {
   return window.localStorage;
@@ -33,6 +33,7 @@ export function getSavedLockSubmissionSignature(savedLock: SavedLockRecord): str
     name: savedLock.name,
     description: savedLock.description,
     isDraft: savedLock.isDraft,
+    submissionEligible: savedLock.submissionEligible,
     savedAt: savedLock.savedAt,
     plateCount: savedLock.plateCount,
     mode: savedLock.mode,

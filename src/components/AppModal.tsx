@@ -424,6 +424,13 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
             >
               Mark saves not submitted
             </button>
+            <button
+              type="button"
+              className="action-button secondary"
+              onClick={() => app.clearCurrentSaveSubmissionMetadata()}
+            >
+              Clear save submission metadata
+            </button>
           </div>
           <div className="modal-actions">
             <button

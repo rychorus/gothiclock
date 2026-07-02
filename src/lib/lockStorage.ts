@@ -14,6 +14,7 @@ function normalizeSavedLock(lock: Partial<SavedLockRecord>): SavedLockRecord {
     name,
     description: lock.description || "",
     hasCustomName: typeof lock.hasCustomName === "boolean" ? lock.hasCustomName : /^((Draft - )?Lock \d+)$/.test(name) ? false : Boolean(name),
+    submissionEligible: typeof lock.submissionEligible === "boolean" ? lock.submissionEligible : undefined,
     isDraft: Boolean(lock.isDraft),
     savedAt: lock.savedAt || new Date().toISOString(),
     plateCount: lock.plateCount || 0,
@@ -101,6 +102,8 @@ export function persistCurrentLock(
   const description = descriptionOverride?.trim() || existingLock?.description || "";
   const lockId = normalizedState.currentSaveId || createLockId();
   const hasCustomName = Boolean(existingLock?.hasCustomName) || !isDefaultTemplateName(name);
+  const submissionEligible = Boolean(existingLock?.submissionEligible)
+    || (normalizedState.mode === "solution" && Boolean(normalizedState.plateLinkingProcedure));
 
   upsertSavedLock(buildSavedLockRecord(normalizedState, {
     id: lockId,
@@ -108,6 +111,7 @@ export function persistCurrentLock(
     description,
     isDraft,
     hasCustomName,
+    submissionEligible,
   }));
   return lockId;
 }
@@ -171,6 +175,14 @@ export function deleteSavedLock(lockId: string) {
 
 export function deleteAllDraftLocks() {
   setSavedLocks(getSavedLocks().filter((lock) => !lock.isDraft));
+}
+
+export function clearSavedLockSubmissionEligibility() {
+  setSavedLocks(getSavedLocks().map((lock) => {
+    const nextLock = { ...lock };
+    delete nextLock.submissionEligible;
+    return nextLock;
+  }));
 }
 
 export function syncFinalLockProgress(state: AppStateData) {
