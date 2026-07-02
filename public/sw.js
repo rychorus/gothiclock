@@ -1,27 +1,17 @@
-const CACHE_NAME = "gothic-lockpick-v" + Date.now();
-const APP_ASSETS = [
+const CACHE_NAME = "gothic-lockpick-shell-v1";
+const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css",
-  "./styles.css?v=1.5.7",
-  "./script.js",
-  "./script.js?v=1.5.7",
-  "./js/core.js",
-  "./js/core.js?v=1.5.7",
-  "./js/plate-ui.js",
-  "./js/plate-ui.js?v=1.5.7",
-  "./js/solution.js",
-  "./js/solution.js?v=1.5.7",
-  "./js/app-controller.js",
-  "./js/app-controller.js?v=1.5.7",
   "./manifest.webmanifest",
   "./icons/icon.svg",
-  "./icons/maskable.svg"
+  "./icons/maskable.svg",
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -43,16 +33,14 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      return fetch(event.request).then((networkResponse) => {
-        const responseClone = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.ok) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+        }
         return networkResponse;
-      }).catch(() => caches.match("./index.html"));
-    })
+      })
+      .catch(() => caches.match(event.request).then((cachedResponse) => cachedResponse || caches.match("./index.html")))
   );
 });

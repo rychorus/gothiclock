@@ -1,3 +1,4 @@
+import { APP_VERSION } from "./lockData";
 import type { AppMode, ModalState } from "./types";
 
 type AnalyticsParams = Record<string, string | number | boolean | null | undefined>;
@@ -15,6 +16,7 @@ function sendAnalyticsEvent(eventName: string, params: AnalyticsParams) {
 
   window.gtag("event", eventName, {
     app_name: "gothic-lockpick",
+    app_version: APP_VERSION,
     page_path: window.location.pathname,
     ...params,
   });

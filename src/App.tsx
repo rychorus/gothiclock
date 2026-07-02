@@ -139,7 +139,9 @@ function App() {
       return;
     }
 
-    navigator.serviceWorker.register(new URL("sw.js", window.location.origin + import.meta.env.BASE_URL).toString()).catch((error) => {
+    navigator.serviceWorker.register(
+      new URL(`sw.js?v=${APP_VERSION}`, window.location.origin + import.meta.env.BASE_URL).toString()
+    ).catch((error) => {
       console.error("Service worker registration failed", error);
     });
   }, []);
