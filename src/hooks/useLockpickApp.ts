@@ -34,6 +34,8 @@ import type { AppStateData, ModalState } from "../lib/types";
 const SOLUTION_NEXT_HINT_CLICK_COUNT_STORAGE_KEY = "gothic-lockpick.solution-next-hint-click-count";
 const PLATE_LINKING_RESET_TOOLTIP_BLOCK_COUNT_STORAGE_KEY = "gothic-lockpick.plate-linking-reset-tooltip-block-count";
 const PLATE_LINKING_RESET_TOOLTIP_MAX_TRIGGER_COUNT = 4;
+const ASK_TO_SAVE_ON_SOLVE_STORAGE_KEY = "gothic-lockpick.ask-to-save-on-solve";
+const SOLVED_LOCK_SIGNATURES_STORAGE_KEY = "gothic-lockpick.solved-lock-signatures";
 
 function getCleanUrl(url: string) {
   const cleanUrl = new URL(url);
@@ -100,6 +102,40 @@ function getPersistedPlateLinkingResetTooltipBlockCount() {
   }
 }
 
+function getPersistedAskToSaveOnSolve() {
+  if (typeof window === "undefined") {
+    return true;
+  }
+
+  try {
+    return window.localStorage.getItem(ASK_TO_SAVE_ON_SOLVE_STORAGE_KEY) !== "false";
+  } catch {
+    return true;
+  }
+}
+
+function getPersistedSolvedLockSignatures() {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(SOLVED_LOCK_SIGNATURES_STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed.filter((value) => typeof value === "string" && value.length > 0) : [];
+  } catch {
+    return [];
+  }
+}
+
+function getSolvedSetupSignature(state: AppStateData) {
+  const startOffsets = state.linkingStartOffsets || state.solution?.startOffsets || state.offsets;
+  return buildNotationString({
+    plateCount: state.plateCount,
+    offsets: startOffsets,
+    links: Array.from({ length: state.plateCount }, () => null),
+  });
+}
+
 function hasBlockedEdgeAttempt(task: PlateLinkingPromptTask | null) {
   return Boolean(
     task
@@ -139,10 +175,13 @@ export function useLockpickApp() {
   const didSeedSavedLockSubmissionSignaturesRef = useRef(false);
   const currentScreenRef = useRef(getScreenAnalyticsName(appState.mode));
   const currentModalRef = useRef(getModalAnalyticsName(modal));
+  const previousAppStateRef = useRef(appState);
   const [developerSettings, setDeveloperSettings] = useState(getPersistedDeveloperSettings);
   const [solutionNextHintClickCount, setSolutionNextHintClickCount] = useState(getPersistedSolutionNextHintClickCount);
   const [plateLinkingResetTooltipBlockCount, setPlateLinkingResetTooltipBlockCount] = useState(getPersistedPlateLinkingResetTooltipBlockCount);
   const [plateLinkingResetTooltipDismissedCount, setPlateLinkingResetTooltipDismissedCount] = useState(0);
+  const [askToSaveOnSolve, setAskToSaveOnSolve] = useState(getPersistedAskToSaveOnSolve);
+  const [solvedLockSignatures, setSolvedLockSignatures] = useState(getPersistedSolvedLockSignatures);
 
   const navigation = useAppNavigation({ appState, modal, setAppState, setModalState });
   const mainMenu = useMainMenuState({
@@ -332,9 +371,59 @@ export function useLockpickApp() {
       if (autoSavedLock) {
         submitSavedLockIfEnabled(autoSavedLock, appState.solution);
       }
-      setAppState((current) => (current.currentSaveId === autoSavedLockId ? current : { ...current, currentSaveId: autoSavedLockId }));
+      setAppState((current) => {
+        if (
+          current.currentSaveId === autoSavedLockId
+          && current.solutionReturnState?.currentSaveId === autoSavedLockId
+        ) {
+          return current;
+        }
+
+        return {
+          ...current,
+          currentSaveId: autoSavedLockId,
+          solutionReturnState: current.solutionReturnState
+            ? {
+                ...current.solutionReturnState,
+                currentSaveId: autoSavedLockId,
+              }
+            : current.solutionReturnState,
+        };
+      });
     }
   }, [appState, developerSettings]);
+
+  useEffect(() => {
+    const previousAppState = previousAppStateRef.current;
+    const transitionedFromSolveFlow = previousAppState.mode === "linking"
+      || previousAppState.mode === "manual_linking"
+      || previousAppState.mode === "ready_to_solve";
+
+    if (
+      transitionedFromSolveFlow
+      && appState.mode === "solution"
+      && appState.solution?.moves !== null
+    ) {
+      const solveSignature = getSolvedSetupSignature(appState);
+      const nextSolvedLockSignatures = appState.sharedLinkMetadata || solvedLockSignatures.includes(solveSignature)
+        ? solvedLockSignatures
+        : [...solvedLockSignatures, solveSignature];
+      if (nextSolvedLockSignatures !== solvedLockSignatures) {
+        setSolvedLockSignatures(nextSolvedLockSignatures);
+      }
+
+      if (
+        !appState.sharedLinkMetadata
+        && askToSaveOnSolve
+        && nextSolvedLockSignatures.length >= 3
+        && modal.type === null
+      ) {
+        loadScreen.openSaveCurrentLockDialog("solved");
+      }
+    }
+
+    previousAppStateRef.current = appState;
+  }, [appState, askToSaveOnSolve, loadScreen, modal.type, solvedLockSignatures]);
 
   useEffect(() => {
     const currentSignatures = savedLockSubmissionSignaturesRef.current;
@@ -424,6 +513,30 @@ export function useLockpickApp() {
       // Ignore storage failures and keep the hint count in memory only.
     }
   }, [plateLinkingResetTooltipBlockCount]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(ASK_TO_SAVE_ON_SOLVE_STORAGE_KEY, String(askToSaveOnSolve));
+    } catch {
+      // Ignore storage failures and keep the preference in memory only.
+    }
+  }, [askToSaveOnSolve]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(SOLVED_LOCK_SIGNATURES_STORAGE_KEY, JSON.stringify(solvedLockSignatures));
+    } catch {
+      // Ignore storage failures and keep the solved setup history in memory only.
+    }
+  }, [solvedLockSignatures]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -538,6 +651,9 @@ export function useLockpickApp() {
     openImportNotationDialog: mainMenu.openImportNotationDialog,
     importNotation: mainMenu.importNotation,
     saveCurrentLock: loadScreen.saveCurrentLock,
+    askToSaveOnSolve,
+    setAskToSaveOnSolve,
+    showAskToSaveOnSolveSetting: solvedLockSignatures.length >= 3,
     loadSavedLock: loadScreen.loadSavedLock,
     renameLock: loadScreen.renameLock,
     removeLock: loadScreen.removeLock,
@@ -581,6 +697,7 @@ export function useLockpickApp() {
       resetPlateLinkingPrompt: plateLinking.resetPlateLinkingPrompt,
       advancePlateLinkingPrompt: plateLinking.advancePlateLinkingPrompt,
       completePlateLinkingPrompt: plateLinking.completePlateLinkingPrompt,
+      enterSolutionMode: solution.enterSolutionMode,
       enterTestingMode: solution.enterTestingMode,
       returnToSolutionView: solution.returnToSolutionView,
       returnToLinking: navigation.goBackScreen,

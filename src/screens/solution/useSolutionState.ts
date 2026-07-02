@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { buildSolutionCommandString, buildWasdSequence, setSolutionStep, enterTestingMode, returnToSolutionView } from "../../lib/appState";
+import { buildSolutionCommandString, buildWasdSequence, enterSolutionMode, setSolutionStep, enterTestingMode, returnToSolutionView } from "../../lib/appState";
 import type { AppStateData, SolutionChunkData } from "../../lib/types";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -15,6 +15,13 @@ export function useSolutionState({ appState, setAppState }: {
     powershellCode,
     wasdSequence: buildWasdSequence(appState.solution?.chunks),
     setSolutionStep: (index: number) => setAppState((current) => setSolutionStep(current, index)),
+    enterSolutionMode: () => {
+      if (appState.mode !== "ready_to_solve" || appState.solution?.moves === null) {
+        return;
+      }
+
+      setAppState((current) => (current.mode === "ready_to_solve" ? enterSolutionMode(current) : current));
+    },
     enterTestingMode: () => setAppState(enterTestingMode),
     returnToSolutionView: () => setAppState(returnToSolutionView),
     goToMainMenu: () => setAppState((current) => ({

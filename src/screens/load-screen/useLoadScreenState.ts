@@ -26,7 +26,7 @@ export function useLoadScreenState({ appState, setAppState, setModal, onDevelope
   onDeveloperUnlock?: () => void;
   onSavedLockPersisted?: (savedLock: SavedLockRecord, solution: AppStateData["solution"]) => void;
 }) {
-  function saveCurrentLock() {
+  function openSaveCurrentLockDialog(source: "manual" | "solved" = "manual") {
     if (!appState.linkingStartOffsets && !appState.solution?.startOffsets) {
       return;
     }
@@ -36,7 +36,7 @@ export function useLoadScreenState({ appState, setAppState, setModal, onDevelope
       ? existingLock.name || getDefaultLockName()
       : existingLock?.name || appState.sharedLinkMetadata?.name || getDefaultLockName();
     const fallbackDescription = existingLock?.description || appState.sharedLinkMetadata?.description || "";
-    setModal({ type: "save-current", value: fallbackName, description: fallbackDescription });
+    setModal({ type: "save-current", value: fallbackName, description: fallbackDescription, source });
   }
 
   function persistWithName(name: string, description: string, isDraft = false) {
@@ -157,7 +157,8 @@ export function useLoadScreenState({ appState, setAppState, setModal, onDevelope
 
   return {
     savedLocks: getSavedLocks(),
-    saveCurrentLock,
+    saveCurrentLock: () => openSaveCurrentLockDialog("manual"),
+    openSaveCurrentLockDialog,
     persistWithName,
     loadSavedLock,
     renameLock,

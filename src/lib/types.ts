@@ -88,7 +88,7 @@ export interface SavedLockRecord {
 
 export type ModalState =
   | { type: null }
-  | { type: "save-current"; value: string; description: string }
+  | { type: "save-current"; value: string; description: string; source?: "manual" | "solved" }
   | { type: "rename-saved"; lockId: string }
   | { type: "delete-saved"; lockId: string }
   | { type: "delete-all-drafts" }

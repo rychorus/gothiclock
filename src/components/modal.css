@@ -34,6 +34,11 @@
   overflow: visible;
 }
 
+.modal-card--bottom-edge {
+  align-self: end;
+  margin-bottom: 0.75rem;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -400,6 +405,29 @@
 .developer-setting-row:focus-within .developer-setting-switch {
   outline: 2px solid rgba(227, 167, 77, 0.45);
   outline-offset: 2px;
+}
+
+.modal-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  cursor: pointer;
+}
+
+.modal-checkbox {
+  width: 1rem;
+  height: 1rem;
+  margin: 0.12rem 0 0;
+  accent-color: #e3a74d;
+  cursor: pointer;
+}
+
+.modal-checkbox-label {
+  color: var(--text);
+  font-size: 0.94rem;
+  font-weight: 600;
+  line-height: 1.35;
 }
 
 .modal-input:focus-visible {

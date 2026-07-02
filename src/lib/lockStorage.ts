@@ -7,6 +7,33 @@ function getStorage() {
   return window.localStorage;
 }
 
+function offsetsEqual(left: number[] | null | undefined, right: number[] | null | undefined) {
+  if (!left || !right || left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((value, index) => value === right[index]);
+}
+
+function linksEqual(left: Array<number[] | null> | null | undefined, right: Array<number[] | null> | null | undefined) {
+  if (!left || !right || left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((link, index) => {
+    const otherLink = right[index];
+    if (!link && !otherLink) {
+      return true;
+    }
+
+    if (!link || !otherLink || link.length !== otherLink.length) {
+      return false;
+    }
+
+    return link.every((value, linkIndex) => value === otherLink[linkIndex]);
+  });
+}
+
 function normalizeSavedLock(lock: Partial<SavedLockRecord>): SavedLockRecord {
   const name = lock.name || "Untitled lock";
   return {
@@ -84,6 +111,17 @@ function isDefaultTemplateName(name: string) {
   return /^((Draft - )?Lock \d+)$/.test(name.trim());
 }
 
+function findMatchingDraftForState(state: AppStateData) {
+  return getSavedLocks().find((lock) => (
+    lock.isDraft
+    && lock.plateCount === state.plateCount
+    && offsetsEqual(lock.linkingStartOffsets, state.linkingStartOffsets)
+    && offsetsEqual(lock.currentOffsets, state.offsets)
+    && offsetsEqual(lock.linkDeltas, state.linkDeltas)
+    && linksEqual(lock.links, state.links)
+  )) || null;
+}
+
 export function persistCurrentLock(
   state: AppStateData,
   { isDraft, nameOverride, descriptionOverride }: { isDraft?: boolean; nameOverride?: string; descriptionOverride?: string } = {},
@@ -96,7 +134,8 @@ export function persistCurrentLock(
     return null;
   }
 
-  const existingLock = getSavedLockById(normalizedState.currentSaveId);
+  const existingLock = getSavedLockById(normalizedState.currentSaveId)
+    || (isDraft ? findMatchingDraftForState(normalizedState) : null);
   const fallbackName = stripLegacyDraftPrefix(existingLock?.name) || getDefaultLockName();
   const name = nameOverride?.trim() || fallbackName;
   const description = descriptionOverride?.trim() || existingLock?.description || "";

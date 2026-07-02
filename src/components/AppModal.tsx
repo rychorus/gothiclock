@@ -32,7 +32,16 @@ function formatNotationForDisplay(notationText, isExpanded) {
     .join("\n\n");
 }
 
-function LockDetailsForm({ initialName, initialDescription, onSubmit, onCancel, showCancel = true }) {
+function LockDetailsForm({
+  initialName,
+  initialDescription,
+  onSubmit,
+  onCancel,
+  showCancel = true,
+  askToSaveOnSolve,
+  onAskToSaveOnSolveChange,
+  showAskToSaveOnSolveToggle = false,
+}) {
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
   const nameInputRef = useRef(null);
@@ -50,8 +59,19 @@ function LockDetailsForm({ initialName, initialDescription, onSubmit, onCancel, 
       </label>
       <label className="modal-field modal-field--spaced-top">
         <span className="modal-field-label">Description</span>
-        <input className="modal-input" type="text" value={description} onChange={(event) => setDescription(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit(name, description)} />
+        <input className="modal-input" type="text" value={description} placeholder="Where are you right now?" onChange={(event) => setDescription(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit(name, description)} />
       </label>
+      {showAskToSaveOnSolveToggle ? (
+        <label className="modal-checkbox-row">
+          <input
+            className="modal-checkbox"
+            type="checkbox"
+            checked={askToSaveOnSolve}
+            onChange={(event) => onAskToSaveOnSolveChange(event.target.checked)}
+          />
+          <span className="modal-checkbox-label">Always ask to save upon solving</span>
+        </label>
+      ) : null}
       <div className="modal-actions">
         {showCancel ? <button type="button" className="action-button secondary" onClick={onCancel}>Cancel</button> : null}
         <button type="button" className="action-button primary" onClick={() => onSubmit(name, description)}>Save</button>
@@ -223,10 +243,17 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
 
   if (modal.type === "save-current") {
     return (
-      <Modal title="Save lock" onClose={app.closeModal}>
+      <Modal
+        title={modal.source === "solved" ? "Lock Solved! Name this lock" : "Save Lock"}
+        onClose={app.closeModal}
+        className={modal.source === "solved" ? "modal-card--bottom-edge" : ""}
+      >
         <LockDetailsForm
           initialName={modal.value}
           initialDescription={modal.description}
+          askToSaveOnSolve={app.askToSaveOnSolve}
+          onAskToSaveOnSolveChange={app.setAskToSaveOnSolve}
+          showAskToSaveOnSolveToggle={app.showAskToSaveOnSolveSetting}
           onSubmit={(name, description) => app.persistWithName(name, description, false)}
           onCancel={app.closeModal}
           showCancel={false}
