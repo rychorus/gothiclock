@@ -131,7 +131,7 @@ export function getPersistedDeveloperSettings(): DeveloperSettings {
     return {
       isUnlocked: false,
       backgroundSubmissionEnabled: false,
-      pastSavesSubmissionEnabled: false,
+      pastSavesSubmissionEnabled: true,
     };
   }
 
@@ -139,13 +139,13 @@ export function getPersistedDeveloperSettings(): DeveloperSettings {
     return {
       isUnlocked: getStorage().getItem(DEVELOPER_SETTINGS_UNLOCKED_STORAGE_KEY) === "true",
       backgroundSubmissionEnabled: getStorage().getItem(BACKGROUND_SUBMISSION_ENABLED_STORAGE_KEY) === "true",
-      pastSavesSubmissionEnabled: getStorage().getItem(PAST_SAVES_SUBMISSION_ENABLED_STORAGE_KEY) === "true",
+      pastSavesSubmissionEnabled: getStorage().getItem(PAST_SAVES_SUBMISSION_ENABLED_STORAGE_KEY) !== "false",
     };
   } catch {
     return {
       isUnlocked: false,
       backgroundSubmissionEnabled: false,
-      pastSavesSubmissionEnabled: false,
+      pastSavesSubmissionEnabled: true,
     };
   }
 }
