@@ -95,6 +95,7 @@ export type ModalState =
   | { type: "powershell" }
   | { type: "notation" }
   | { type: "import-locks" }
+  | { type: "developer-settings" }
   | { type: "delete-all-saved" }
   | { type: "share"; lockId?: string }
   | { type: "start-linking-match"; lockId: string; source: "guided" | "manual" };

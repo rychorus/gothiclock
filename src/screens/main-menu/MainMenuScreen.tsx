@@ -1,4 +1,11 @@
-export function MainMenuScreen({ onStartNewLock, onOpenLoadLock, onOpenImportNotation, onSubmitFeedback }) {
+export function MainMenuScreen({
+  onStartNewLock,
+  onOpenLoadLock,
+  onOpenImportNotation,
+  onOpenDeveloperSettings,
+  onSubmitFeedback,
+  showDeveloperSettings = false,
+}) {
   return (
     <section className="controls-card" aria-live="polite">
       <div className="menu-actions-wrap">
@@ -6,6 +13,9 @@ export function MainMenuScreen({ onStartNewLock, onOpenLoadLock, onOpenImportNot
           <button className="action-button primary" type="button" onClick={onStartNewLock}>New lock</button>
           <button className="action-button secondary" type="button" onClick={onOpenLoadLock}>Load lock</button>
           <button className="action-button secondary" type="button" onClick={onOpenImportNotation}>Import notation</button>
+          {showDeveloperSettings ? (
+            <button className="action-button secondary" type="button" onClick={onOpenDeveloperSettings}>Developer Settings</button>
+          ) : null}
         </div>
       </div>
       <div className="menu-footer-links">

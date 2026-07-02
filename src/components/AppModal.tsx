@@ -4,6 +4,7 @@ import { Modal } from "./Modal";
 import { SolutionSequence } from "../screens/solution/SolutionSequence";
 import { buildNotationString } from "../lib/notation";
 import { buildShareUrl } from "../screens/shared/shareUrl";
+import { isBackgroundSubmissionEnabled, PRODUCTION_BACKGROUND_SUBMISSION_ENABLED } from "../lib/developerSettings";
 import type { SavedLockRecord } from "../lib/types";
 
 function getPowershellStartDelaySeconds(powershellCode) {
@@ -375,6 +376,40 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
     return (
       <Modal title="Import locks" onClose={app.closeModal} className="modal-card--notation modal-card--import-locks">
         <ImportLocksForm onImport={(text) => { app.importLocks(text); app.closeModal(); }} onCancel={app.closeModal} />
+      </Modal>
+    );
+  }
+
+  if (modal.type === "developer-settings") {
+    const backgroundSubmissionEnabled = isBackgroundSubmissionEnabled(app.developerSettings);
+    return (
+      <Modal title="Developer Settings" onClose={app.closeModal}>
+        <div className="modal-form-stack">
+          <label className="developer-setting-row">
+            <span className="developer-setting-label">Submit Solutions</span>
+            <input
+              className="developer-setting-checkbox"
+              type="checkbox"
+              checked={backgroundSubmissionEnabled}
+              onChange={(event) => app.setBackgroundSubmissionEnabled(event.target.checked)}
+            />
+            <span className="developer-setting-switch" aria-hidden="true">
+              <span className="developer-setting-switch-thumb"></span>
+            </span>
+          </label>
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="action-button secondary"
+              onClick={() => {
+                app.disableDeveloperSettings();
+                app.closeModal();
+              }}
+            >
+              Turn Off Developer Settings
+            </button>
+          </div>
+        </div>
       </Modal>
     );
   }

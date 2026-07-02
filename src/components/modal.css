@@ -334,6 +334,66 @@
   margin-top: 0.9rem;
 }
 
+.developer-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  cursor: pointer;
+}
+
+.developer-setting-label {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.developer-setting-checkbox {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.developer-setting-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 3.35rem;
+  height: 1.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.developer-setting-switch-thumb {
+  position: absolute;
+  top: 0.18rem;
+  left: 0.18rem;
+  width: 1.42rem;
+  height: 1.42rem;
+  border-radius: 999px;
+  background: #f2dfb7;
+  box-shadow: 0 0.3rem 0.8rem rgba(0, 0, 0, 0.22);
+  transition: transform 140ms ease, background 140ms ease;
+}
+
+.developer-setting-checkbox:checked + .developer-setting-switch {
+  background: rgba(227, 167, 77, 0.28);
+  border-color: rgba(227, 167, 77, 0.55);
+}
+
+.developer-setting-checkbox:checked + .developer-setting-switch .developer-setting-switch-thumb {
+  transform: translateX(1.45rem);
+  background: #ffd77a;
+}
+
+.developer-setting-row:focus-within .developer-setting-switch {
+  outline: 2px solid rgba(227, 167, 77, 0.45);
+  outline-offset: 2px;
+}
+
 .modal-input:focus-visible {
   outline: none;
   border-color: rgba(227, 167, 77, 0.55);

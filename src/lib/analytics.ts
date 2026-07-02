@@ -105,6 +105,10 @@ export function getModalAnalyticsName(modal: ModalState) {
     return "Import Locks";
   }
 
+  if (modal.type === "developer-settings") {
+    return "Developer Settings";
+  }
+
   if (modal.type === "delete-all-saved") {
     return "Delete All Saved Locks";
   }

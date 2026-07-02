@@ -11,6 +11,7 @@ import {
   renameSavedLock,
 } from "../../lib/lockStorage";
 import { loadSavedLockState } from "../../lib/appState";
+import { DEV_UNLOCK_TOKEN } from "../../lib/developerSettings";
 import type { AppStateData, ModalState, SavedLockRecord } from "../../lib/types";
 import type { Dispatch, SetStateAction } from "react";
 import { startPlateLinkingProcedure } from "../plate-linking/procedure/plateLinkingProcedure";
@@ -18,10 +19,12 @@ import { extractImportedShareUrls } from "../shared/shareUrl";
 import { buildSavedLockRecord, createEmptyLinkDeltas, createInitialAppState, createLockId } from "../../lib/lockData";
 import { parseNotationString } from "../../lib/notation";
 
-export function useLoadScreenState({ appState, setAppState, setModal }: {
+export function useLoadScreenState({ appState, setAppState, setModal, onDeveloperUnlock, onSavedLockPersisted }: {
   appState: AppStateData;
   setAppState: Dispatch<SetStateAction<AppStateData>>;
   setModal: (modal: ModalState) => void;
+  onDeveloperUnlock?: () => void;
+  onSavedLockPersisted?: (savedLock: SavedLockRecord, solution: AppStateData["solution"]) => void;
 }) {
   function saveCurrentLock() {
     if (!appState.linkingStartOffsets && !appState.solution?.startOffsets) {
@@ -39,7 +42,11 @@ export function useLoadScreenState({ appState, setAppState, setModal }: {
   function persistWithName(name: string, description: string, isDraft = false) {
     const lockId = persistCurrentLock(appState, { isDraft, nameOverride: name, descriptionOverride: description });
     if (lockId) {
+      const savedLock = getSavedLockById(lockId);
       setAppState((current) => ({ ...current, currentSaveId: lockId }));
+      if (savedLock) {
+        onSavedLockPersisted?.(savedLock, appState.solution);
+      }
     }
     setModal({ type: null });
   }
@@ -60,6 +67,10 @@ export function useLoadScreenState({ appState, setAppState, setModal }: {
 
   function renameLock(lockId: string, name: string, description?: string) {
     renameSavedLock(lockId, name, description);
+    const savedLock = getSavedLockById(lockId);
+    if (savedLock) {
+      onSavedLockPersisted?.(savedLock, appState.solution);
+    }
     setModal({ type: null });
   }
 
@@ -101,6 +112,11 @@ export function useLoadScreenState({ appState, setAppState, setModal }: {
   }
 
   function importLocks(text: string) {
+    if (text.trim() === DEV_UNLOCK_TOKEN) {
+      onDeveloperUnlock?.();
+      return;
+    }
+
     const importedShareUrls = extractImportedShareUrls(text);
     if (!importedShareUrls.length) {
       throw new Error("Paste one or more share links, or upload a text file containing them.");

@@ -1,11 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { buildNotationString } from "../lib/notation";
-import { createInitialAppState, getUnknownPlates, isTrivialCenteredLock } from "../lib/lockData";
+import { APP_VERSION, createInitialAppState, getUnknownPlates, isTrivialCenteredLock } from "../lib/lockData";
 import { resetTestingMode } from "../lib/appState";
-import { syncFinalLockProgress } from "../lib/lockStorage";
+import { getSavedLockById, syncFinalLockProgress } from "../lib/lockStorage";
 import { getModalAnalyticsName, getScreenAnalyticsName, trackButtonClick, trackModalView, trackScreenView } from "../lib/analytics";
 import { playUiClick } from "../lib/uiClick";
 import { buildShareUrl, parseShareUrl } from "../screens/shared/shareUrl";
+import {
+  disableDeveloperSettings as persistDeveloperSettingsDisable,
+  getPersistedDeveloperSettings,
+  isBackgroundSubmissionEnabled,
+  setBackgroundSubmissionEnabled as persistBackgroundSubmissionEnabled,
+  unlockDeveloperSettings as persistDeveloperSettingsUnlock,
+} from "../lib/developerSettings";
+import { queueBackgroundSubmission } from "../lib/backgroundSubmission";
 import { useAppNavigation } from "../screens/shared/useAppNavigation";
 import { useMainMenuState } from "../screens/main-menu/useMainMenuState";
 import { useLoadScreenState } from "../screens/load-screen/useLoadScreenState";
@@ -92,13 +100,33 @@ function hasBlockedEdgeAttempt(task: PlateLinkingPromptTask | null) {
   );
 }
 
+function getSavedLockSubmissionSignature(savedLock) {
+  return JSON.stringify({
+    id: savedLock.id,
+    name: savedLock.name,
+    description: savedLock.description,
+    isDraft: savedLock.isDraft,
+    savedAt: savedLock.savedAt,
+    plateCount: savedLock.plateCount,
+    mode: savedLock.mode,
+    linkingStartOffsets: savedLock.linkingStartOffsets,
+    currentOffsets: savedLock.currentOffsets,
+    links: savedLock.links,
+    linkDeltas: savedLock.linkDeltas,
+  });
+}
+
 export function useLockpickApp() {
   const [appState, setAppState] = useState<AppStateData>(getInitialAppState);
   const [modal, setModalState] = useState<ModalState>({ type: null });
   const appliedSharedNotationRef = useRef(false);
   const suppressDraftAutosaveRef = useRef(false);
+  const savedLockSubmissionSignaturesRef = useRef(new Map());
+  const queuedSubmissionTimestampsRef = useRef(new Map());
+  const didSeedSavedLockSubmissionSignaturesRef = useRef(false);
   const currentScreenRef = useRef(getScreenAnalyticsName(appState.mode));
   const currentModalRef = useRef(getModalAnalyticsName(modal));
+  const [developerSettings, setDeveloperSettings] = useState(getPersistedDeveloperSettings);
   const [solutionNextHintClickCount, setSolutionNextHintClickCount] = useState(getPersistedSolutionNextHintClickCount);
   const [plateLinkingResetTooltipBlockCount, setPlateLinkingResetTooltipBlockCount] = useState(getPersistedPlateLinkingResetTooltipBlockCount);
   const [plateLinkingResetTooltipDismissedCount, setPlateLinkingResetTooltipDismissedCount] = useState(0);
@@ -123,7 +151,43 @@ export function useLockpickApp() {
       sharedLinkMetadata: null,
     })),
   });
-  const loadScreen = useLoadScreenState({ appState, setAppState, setModal: navigation.setModal });
+  function submitSavedLockIfEnabled(savedLock, currentSolution) {
+    const signature = getSavedLockSubmissionSignature(savedLock);
+    savedLockSubmissionSignaturesRef.current.set(savedLock.id, signature);
+
+    if (!isBackgroundSubmissionEnabled(developerSettings)) {
+      return;
+    }
+
+    const now = Date.now();
+    queuedSubmissionTimestampsRef.current.forEach((timestamp, queuedSignature) => {
+      if (now - timestamp >= 15000) {
+        queuedSubmissionTimestampsRef.current.delete(queuedSignature);
+      }
+    });
+    const queuedAt = queuedSubmissionTimestampsRef.current.get(signature);
+    if (typeof queuedAt === "number" && now - queuedAt < 15000) {
+      return;
+    }
+
+    queuedSubmissionTimestampsRef.current.set(signature, now);
+    void queueBackgroundSubmission({
+      appVersion: APP_VERSION,
+      savedLock,
+      solution: currentSolution,
+    });
+  }
+
+  const loadScreen = useLoadScreenState({
+    appState,
+    setAppState,
+    setModal: navigation.setModal,
+    onDeveloperUnlock: () => {
+      setDeveloperSettings((current) => persistDeveloperSettingsUnlock(current));
+      navigation.setModal({ type: null });
+    },
+    onSavedLockPersisted: submitSavedLockIfEnabled,
+  });
   const savedLocks = loadScreen.savedLocks;
   const plateSetup = usePlateSetupState({ appState, setAppState, setModal: navigation.setModal });
   const plateLinking = usePlateLinkingState({
@@ -181,9 +245,46 @@ export function useLockpickApp() {
 
     const autoSavedLockId = syncFinalLockProgress(appState);
     if (autoSavedLockId) {
+      const autoSavedLock = getSavedLockById(autoSavedLockId);
+      if (autoSavedLock) {
+        submitSavedLockIfEnabled(autoSavedLock, appState.solution);
+      }
       setAppState((current) => (current.currentSaveId === autoSavedLockId ? current : { ...current, currentSaveId: autoSavedLockId }));
     }
-  }, [appState]);
+  }, [appState, developerSettings]);
+
+  useEffect(() => {
+    const currentSignatures = savedLockSubmissionSignaturesRef.current;
+
+    if (!didSeedSavedLockSubmissionSignaturesRef.current) {
+      savedLocks.forEach((savedLock) => {
+        currentSignatures.set(savedLock.id, getSavedLockSubmissionSignature(savedLock));
+      });
+      didSeedSavedLockSubmissionSignaturesRef.current = true;
+      return;
+    }
+
+    const activeIds = new Set();
+    savedLocks.forEach((savedLock) => {
+      activeIds.add(savedLock.id);
+      const nextSignature = getSavedLockSubmissionSignature(savedLock);
+      const previousSignature = currentSignatures.get(savedLock.id);
+      if (previousSignature === nextSignature) {
+        return;
+      }
+
+      currentSignatures.set(savedLock.id, nextSignature);
+      if (isBackgroundSubmissionEnabled(developerSettings)) {
+        submitSavedLockIfEnabled(savedLock, null);
+      }
+    });
+
+    [...currentSignatures.keys()].forEach((lockId) => {
+      if (!activeIds.has(lockId)) {
+        currentSignatures.delete(lockId);
+      }
+    });
+  }, [developerSettings, savedLocks]);
 
   useEffect(() => {
     const nextScreenName = getScreenAnalyticsName(appState.mode);
@@ -305,6 +406,7 @@ export function useLockpickApp() {
   return {
     appState,
     modal,
+    developerSettings,
     savedLocks: loadScreen.savedLocks,
     unknownPlates: getUnknownPlates(appState.links),
     currentSolutionChunk: solution.currentSolutionChunk,
@@ -344,6 +446,8 @@ export function useLockpickApp() {
     exportAllSavedLocks: loadScreen.exportAllSavedLocks,
     importLocks: loadScreen.importLocks,
     persistWithName: loadScreen.persistWithName,
+    disableDeveloperSettings: () => setDeveloperSettings(persistDeveloperSettingsDisable()),
+    setBackgroundSubmissionEnabled: (enabled) => setDeveloperSettings((current) => persistBackgroundSubmissionEnabled(current, enabled)),
     solutionNextHintClickCount,
     incrementSolutionNextHintClickCount: () => setSolutionNextHintClickCount((current) => current + 1),
     plateLinkingResetTooltipBlockCount,
