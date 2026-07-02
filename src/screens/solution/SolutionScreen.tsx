@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from "react";
 import { MaterialIcon } from "../../lib/icons";
 import { playPlateClick } from "../../lib/plateClick";
 import { formatSolutionStepInstruction } from "../../lib/solution";
@@ -6,35 +5,12 @@ import { LockStage } from "../shared/LockStage";
 import { SolutionSequence } from "./SolutionSequence";
 
 export function SolutionScreen({ app, appState, currentSolutionChunk, testingFeedback, selectors, actions }) {
-  const [isSolutionMenuOpen, setIsSolutionMenuOpen] = useState(false);
-  const solutionMenuRef = useRef(null);
   const solutionChunks = appState.solution?.chunks ?? [];
   const currentStep = Math.min((appState.solution?.index ?? 0) + 1, solutionChunks.length || 1);
   const moves = appState.solution?.moves;
   const hasSolution = moves !== null;
   const isResetStep = currentSolutionChunk?.type === "reset";
   const shouldShowNextHint = isResetStep && (appState.solution?.index ?? 0) === 0 && (app.solutionNextHintClickCount ?? 0) < 3;
-
-  useEffect(() => {
-    if (!isSolutionMenuOpen) {
-      return undefined;
-    }
-
-    function handlePointerDown(event) {
-      if (!solutionMenuRef.current?.contains(event.target)) {
-        setIsSolutionMenuOpen(false);
-      }
-    }
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [isSolutionMenuOpen]);
-
-  useEffect(() => {
-    if (appState.mode !== "solution") {
-      setIsSolutionMenuOpen(false);
-    }
-  }, [appState.mode]);
 
   return (
     <>
@@ -91,24 +67,17 @@ export function SolutionScreen({ app, appState, currentSolutionChunk, testingFee
                 {formatSolutionStepInstruction(currentSolutionChunk, appState.plateCount)}
               </p>
             </div>
-            <div ref={solutionMenuRef} className="solution-menu-wrap">
+            <div className="solution-menu-wrap">
               <button
                 className="solution-toggle-icon"
                 type="button"
-                aria-label="Auto-type solution actions"
-                aria-expanded={isSolutionMenuOpen}
-                onClick={() => setIsSolutionMenuOpen((current) => !current)}
+                aria-label="Open Auto-type the solution dialog"
+                onClick={() => app.setModal({ type: "powershell" })}
               >
                 <svg viewBox="0 -960 960 960" focusable="false" aria-hidden="true">
                   <path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H160v400Zm140-40-56-56 103-104-104-104 57-56 160 160-160 160Zm180 0v-80h240v80H480Z" />
                 </svg>
               </button>
-              <div className="saved-lock-menu hero-menu solution-toggle-menu" hidden={!isSolutionMenuOpen}>
-                <button className="saved-lock-menu-item" type="button" onClick={() => { setIsSolutionMenuOpen(false); app.setModal({ type: "powershell" }); }}>
-                  <MaterialIcon name="code" />
-                  <span>Auto-type the solution</span>
-                </button>
-              </div>
             </div>
           </div>
           <div className="solution-sequence-wrap">

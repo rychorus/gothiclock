@@ -266,6 +266,10 @@
   overflow: auto;
 }
 
+.modal-code-block--compact {
+  max-height: calc(1.55em * 3 + 1.8rem);
+}
+
 .modal-code-block--share-url {
   font-size: 0.74rem;
   line-height: 1.7;
@@ -288,12 +292,16 @@
 }
 
 .modal-code-block--spaced-top {
-  margin-top: 0.45rem;
+  margin-top: 2.0rem;
 }
 
 @media (max-width: 640px) {
   .modal-code-block {
     max-height: calc(1.45em * 5 + 1.6rem);
+  }
+
+  .modal-code-block--compact {
+    max-height: calc(1.45em * 3 + 1.6rem);
   }
 }
 

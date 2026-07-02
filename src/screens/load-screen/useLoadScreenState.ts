@@ -34,8 +34,8 @@ export function useLoadScreenState({ appState, setAppState, setModal, onDevelope
     const existingLock = getSavedLockById(appState.currentSaveId);
     const fallbackName = existingLock?.isDraft
       ? existingLock.name || getDefaultLockName()
-      : existingLock?.name || getDefaultLockName();
-    const fallbackDescription = "";
+      : existingLock?.name || appState.sharedLinkMetadata?.name || getDefaultLockName();
+    const fallbackDescription = existingLock?.description || appState.sharedLinkMetadata?.description || "";
     setModal({ type: "save-current", value: fallbackName, description: fallbackDescription });
   }
 

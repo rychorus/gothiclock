@@ -200,7 +200,6 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
   const [didCopyPowershell, setDidCopyPowershell] = useState(false);
   const [didCopyNotation, setDidCopyNotation] = useState(false);
   const [didCopyShareUrl, setDidCopyShareUrl] = useState(false);
-  const [showPowershellHelp, setShowPowershellHelp] = useState(false);
   const [isNotationExpanded, setIsNotationExpanded] = useState(true);
   const [shareName, setShareName] = useState("Solution");
   const [shareDescription, setShareDescription] = useState("");
@@ -209,7 +208,6 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
     setDidCopyPowershell(false);
     setDidCopyNotation(false);
     setDidCopyShareUrl(false);
-    setShowPowershellHelp(false);
     setIsNotationExpanded(true);
     if (modal.type === "share") {
       const shareLock = getShareLock(app, modal, savedLocks);
@@ -473,21 +471,13 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
           },
         ]}
       >
-        <p className="modal-note modal-note--compact">Paste this on Windows Powershell to auto-type the solution</p>
-        <pre className="modal-code-block modal-code-block--spaced-top">{powershellCode}</pre>
-        <div className="modal-inline-actions modal-inline-actions--after-code">
-          <button type="button" className="modal-text-button" onClick={() => setShowPowershellHelp((current) => !current)}>
-            {showPowershellHelp ? "Hide instructions" : "How to use"}
-          </button>
-        </div>
-        {showPowershellHelp ? (
-          <ol className="modal-help-list">
-            <li className="modal-note">Copy the Powershell code.</li>
-            <li className="modal-note">Press <span className="modal-keyword">Windows key</span>, type <span className="modal-keyword">Powershell</span> and press <span className="modal-keyword">Enter</span> to open it.</li>
-            <li className="modal-note">Paste the copied code and press <span className="modal-keyword">Enter</span>.</li>
-            <li className="modal-note">In {startDelaySeconds} seconds, it will start typing <span className="modal-keyword">WASD</span> keys on its own, which will solve the lock. Make sure you are on the game's screen by this point.</li>
-          </ol>
-        ) : null}
+        <ol className="modal-help-list">
+          <li className="modal-note">Copy the Powershell code.</li>
+          <li className="modal-note">Press <span className="modal-keyword">Windows key</span>, type <span className="modal-keyword">Powershell</span> and press <span className="modal-keyword">Enter</span> to open it.</li>
+          <li className="modal-note">Paste the copied code and press <span className="modal-keyword">Enter</span>.</li>
+          <li className="modal-note">In {startDelaySeconds} seconds, it will start typing <span className="modal-keyword">WASD</span> keys on its own, which will solve the lock. Make sure you are on the game's screen by this point.</li>
+        </ol>
+        <pre className="modal-code-block modal-code-block--compact modal-code-block--spaced-top">{powershellCode}</pre>
       </Modal>
     );
   }
