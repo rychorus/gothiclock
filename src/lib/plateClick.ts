@@ -13,7 +13,7 @@ const clickAudioState: ClickAudioState = {
 };
 
 const CLICK_SPACING_SECONDS = 0.032;
-const CLICK_GAIN = 0.14;
+const CLICK_GAIN = 0.2;
 const CLICK_START_LAG_SECONDS = 0.002;
 
 function getAudioContext() {

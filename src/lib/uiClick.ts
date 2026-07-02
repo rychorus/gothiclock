@@ -13,7 +13,7 @@ const uiClickAudioState: UiClickAudioState = {
 };
 
 const UI_CLICK_SPACING_SECONDS = 0.018;
-const UI_CLICK_GAIN = 0.14;
+const UI_CLICK_GAIN = 0.2;
 const UI_CLICK_START_LAG_SECONDS = 0.001;
 
 function getAudioContext() {
