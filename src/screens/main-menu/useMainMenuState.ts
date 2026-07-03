@@ -1,14 +1,15 @@
 import { buildSolutionPlanForApp } from "../../lib/solution";
-import { buildSavedLockRecord, createEmptyLinkDeltas, createInitialAppState, createLockId } from "../../lib/lockData";
+import { createEmptyLinkDeltas, createInitialAppState } from "../../lib/lockData";
 import { parseNotationString } from "../../lib/notation";
 import { enterSolutionMode } from "../../lib/appState";
-import { getDefaultLockName, upsertSavedLock } from "../../lib/lockStorage";
+import { upsertImportedLock } from "../../lib/lockStorage";
 import { startPlateLinkingProcedure } from "../plate-linking/procedure/plateLinkingProcedure";
 import { extractImportedShareUrls, parseImportedNotationInput } from "../shared/shareUrl";
 import type { AppStateData, SharedLinkMetadata } from "../../lib/types";
 import type { Dispatch, SetStateAction } from "react";
 
-export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen }: {
+export function useMainMenuState({ appState, setAppState, openLoadScreen, openImportScreen }: {
+  appState: AppStateData;
   setAppState: Dispatch<SetStateAction<AppStateData>>;
   openLoadScreen: () => void;
   openImportScreen: () => void;
@@ -35,14 +36,13 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
           mode: hasLinks ? "linking" : "setup",
         };
 
-      upsertSavedLock(buildSavedLockRecord(importedState, {
-        id: createLockId(),
-        name: sharedUrl.name.trim() || getDefaultLockName(),
-        description: sharedUrl.description.trim(),
-        hasCustomName: Boolean(sharedUrl.name.trim()),
-        isDraft: !allLinksKnown,
-        submissionEligible: false,
-      }));
+        upsertImportedLock(importedState, {
+          name: sharedUrl.name,
+          description: sharedUrl.description.trim(),
+          hasCustomName: Boolean(sharedUrl.name.trim()),
+          isDraft: !allLinksKnown,
+          submissionEligible: false,
+        });
       });
 
       setAppState((current) => ({
@@ -62,6 +62,12 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
     const hasLinks = parsed.links.some(Boolean);
     const allLinksKnown = parsed.links.every(Boolean);
     const shouldShowSolution = showSolution || imported.isShareUrl;
+    const importScreenReturnState = appState.mode === "import"
+      ? {
+          ...createInitialAppState(),
+          mode: "import" as const,
+        }
+      : null;
     const nextSharedLinkMetadata = sharedLinkMetadata ?? (imported.isShareUrl
       ? {
           name: imported.name || "",
@@ -80,6 +86,7 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
       currentSaveId: null,
       sharedLinkMetadata: nextSharedLinkMetadata,
       snapshotsByCount: {},
+      solutionReturnState: importScreenReturnState,
       mode: hasLinks ? "linking" : "setup",
     };
 
@@ -91,7 +98,7 @@ export function useMainMenuState({ setAppState, openLoadScreen, openImportScreen
     if (allLinksKnown) {
       if (shouldShowSolution) {
         setAppState(() => enterSolutionMode(baseState, {
-          returnState: imported.isShareUrl ? createInitialAppState() : undefined,
+          returnState: importScreenReturnState ?? (imported.isShareUrl ? createInitialAppState() : undefined),
           solutionOrigin: imported.isShareUrl ? "load" : null,
         }));
         return;

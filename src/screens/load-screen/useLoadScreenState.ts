@@ -7,7 +7,7 @@ import {
   getSavedLockById,
   getSavedLocks,
   persistCurrentLock,
-  upsertSavedLock,
+  upsertImportedLock,
   renameSavedLock,
 } from "../../lib/lockStorage";
 import { loadSavedLockState } from "../../lib/appState";
@@ -16,7 +16,7 @@ import type { AppStateData, ModalState, SavedLockRecord } from "../../lib/types"
 import type { Dispatch, SetStateAction } from "react";
 import { startPlateLinkingProcedure } from "../plate-linking/procedure/plateLinkingProcedure";
 import { extractImportedShareUrls } from "../shared/shareUrl";
-import { buildSavedLockRecord, createEmptyLinkDeltas, createInitialAppState, createLockId } from "../../lib/lockData";
+import { createEmptyLinkDeltas, createInitialAppState } from "../../lib/lockData";
 import { parseNotationString } from "../../lib/notation";
 
 export function useLoadScreenState({ appState, setAppState, setModal, onDeveloperUnlock, onSavedLockPersisted }: {
@@ -142,14 +142,13 @@ export function useLoadScreenState({ appState, setAppState, setModal, onDevelope
         mode: hasLinks ? "linking" : "setup",
       };
 
-      upsertSavedLock(buildSavedLockRecord(importedState, {
-        id: createLockId(),
-        name: sharedUrl.name.trim() || getDefaultLockName(),
+      upsertImportedLock(importedState, {
+        name: sharedUrl.name,
         description: sharedUrl.description.trim(),
         hasCustomName: Boolean(sharedUrl.name.trim()),
         isDraft: !allLinksKnown,
         submissionEligible: false,
-      }));
+      });
     });
 
     setModal({ type: null });

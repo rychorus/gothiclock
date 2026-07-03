@@ -136,26 +136,44 @@ function isParsedLinkTarget(value: ParsedLinkTarget | null): value is ParsedLink
 }
 
 export function parseNotationString(text: string): { plateCount: number; offsets: Offsets; links: PlateLinks } {
-  const sections = String(text || "")
+  const tokens = String(text || "")
     .trim()
-    .split(/\r?\n\s*\r?\n/)
-    .map((section) => section.trim())
-    .filter((section) => section.length > 0);
+    .split(/\s+/)
+    .filter(Boolean);
 
-  if (!sections.length) {
+  if (!tokens.length) {
     throw new Error("Paste notation first.");
   }
 
-  const setupTokens = sections[0].split(/\s+/).filter(Boolean);
-  const setupEntries = setupTokens.map(parseSetupToken);
-  if (setupEntries.some((entry) => !entry)) {
-    throw new Error("The first line must use plate positions like `P1=4`.");
+  const setupEntries: ParsedSetupToken[] = [];
+  const linkEntries: ParsedLinkToken[] = [];
+  let hasSeenLink = false;
+
+  for (const token of tokens) {
+    const setupEntry = parseSetupToken(token);
+    if (!hasSeenLink && setupEntry) {
+      setupEntries.push(setupEntry);
+      continue;
+    }
+
+    const linkEntry = parseLinkToken(token);
+    if (linkEntry) {
+      hasSeenLink = true;
+      linkEntries.push(linkEntry);
+      continue;
+    }
+
+    if (hasSeenLink && setupEntry) {
+      throw new Error("Plate positions must come before links.");
+    }
+
+    throw new Error(hasSeenLink
+      ? "The second line must use links like `P1>P2,P3-` or `P1>`."
+      : "The first line must use plate positions like `P1=4`.");
   }
 
-  const linkTokens = sections[1] ? sections[1].split(/\s+/).filter(Boolean) : [];
-  const linkEntries = linkTokens.map(parseLinkToken);
-  if (linkEntries.some((entry) => !entry)) {
-    throw new Error("The second line must use links like `P1>P2,P3-` or `P1>`.");
+  if (!setupEntries.length) {
+    throw new Error("The first line must use plate positions like `P1=4`.");
   }
 
   const plateNumbers = new Set<number>();

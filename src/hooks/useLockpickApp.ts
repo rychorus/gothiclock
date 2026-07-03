@@ -185,6 +185,7 @@ export function useLockpickApp() {
 
   const navigation = useAppNavigation({ appState, modal, setAppState, setModalState });
   const mainMenu = useMainMenuState({
+    appState,
     setAppState,
     openLoadScreen: () => setAppState((current) => ({
       ...current,

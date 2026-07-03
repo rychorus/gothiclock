@@ -33,10 +33,6 @@ function getNavigationUrl(shouldClearQuery: boolean) {
 }
 
 function getSolutionBackState(appState: AppStateData): AppStateData | null {
-  if (appState.sharedLinkMetadata) {
-    return createInitialAppState();
-  }
-
   if (appState.solutionReturnState) {
     return {
       ...appState.solutionReturnState,
@@ -56,6 +52,10 @@ function getSolutionBackState(appState: AppStateData): AppStateData | null {
       solutionReturnState: null,
       sharedLinkMetadata: null,
     };
+  }
+
+  if (appState.sharedLinkMetadata) {
+    return createInitialAppState();
   }
 
   return null;

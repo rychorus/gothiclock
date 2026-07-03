@@ -162,7 +162,7 @@ export function enterSolutionMode(
   } = {},
 ): AppStateData {
   const startOffsets = cloneOffsets(state.linkingStartOffsets || state.offsets);
-  const solutionReturnState = returnState ?? {
+  const solutionReturnState = returnState ?? state.solutionReturnState ?? {
     ...state,
     solutionReturnState: null,
   };

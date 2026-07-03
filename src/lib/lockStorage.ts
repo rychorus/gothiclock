@@ -34,6 +34,29 @@ function linksEqual(left: Array<number[] | null> | null | undefined, right: Arra
   });
 }
 
+function linksCompatible(left: Array<number[] | null> | null | undefined, right: Array<number[] | null> | null | undefined) {
+  if (!left || !right || left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((link, index) => {
+    const otherLink = right[index];
+    if (!link || !otherLink) {
+      return true;
+    }
+
+    if (link.length !== otherLink.length) {
+      return false;
+    }
+
+    return link.every((value, linkIndex) => value === otherLink[linkIndex]);
+  });
+}
+
+function getSavedLockStartOffsets(lock: SavedLockRecord) {
+  return lock.linkingStartOffsets || lock.currentOffsets;
+}
+
 function normalizeSavedLock(lock: Partial<SavedLockRecord>): SavedLockRecord {
   const name = lock.name || "Untitled lock";
   return {
@@ -112,13 +135,25 @@ function isDefaultTemplateName(name: string) {
 }
 
 function findMatchingDraftForState(state: AppStateData) {
-  return getSavedLocks().find((lock) => (
+  const savedLocks = getSavedLocks();
+  const exactMatch = savedLocks.find((lock) => (
     lock.isDraft
     && lock.plateCount === state.plateCount
     && offsetsEqual(lock.linkingStartOffsets, state.linkingStartOffsets)
     && offsetsEqual(lock.currentOffsets, state.offsets)
     && offsetsEqual(lock.linkDeltas, state.linkDeltas)
     && linksEqual(lock.links, state.links)
+  ));
+
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  return savedLocks.find((lock) => (
+    lock.isDraft
+    && lock.plateCount === state.plateCount
+    && offsetsEqual(getSavedLockStartOffsets(lock), state.linkingStartOffsets || state.offsets)
+    && linksCompatible(lock.links, state.links)
   )) || null;
 }
 
@@ -139,7 +174,7 @@ export function persistCurrentLock(
   const fallbackName = stripLegacyDraftPrefix(existingLock?.name) || getDefaultLockName();
   const name = nameOverride?.trim() || fallbackName;
   const description = descriptionOverride?.trim() || existingLock?.description || "";
-  const lockId = normalizedState.currentSaveId || createLockId();
+  const lockId = normalizedState.currentSaveId || existingLock?.id || createLockId();
   const hasCustomName = Boolean(existingLock?.hasCustomName) || !isDefaultTemplateName(name);
   const submissionEligible = Boolean(existingLock?.submissionEligible)
     || (normalizedState.mode === "solution" && Boolean(normalizedState.plateLinkingProcedure));
@@ -153,6 +188,42 @@ export function persistCurrentLock(
     submissionEligible,
   }));
   return lockId;
+}
+
+export function upsertImportedLock(
+  state: AppStateData,
+  {
+    name,
+    description,
+    isDraft,
+    hasCustomName,
+    submissionEligible,
+  }: {
+    name: string;
+    description: string;
+    isDraft?: boolean;
+    hasCustomName?: boolean;
+    submissionEligible?: boolean;
+  },
+) {
+  const existingDraft = findMatchingDraftForState(state);
+  const trimmedName = name.trim();
+  const trimmedDescription = description.trim();
+  const nextName = existingDraft?.hasCustomName
+    ? existingDraft.name
+    : trimmedName || existingDraft?.name || getDefaultLockName();
+  const nextDescription = trimmedDescription || existingDraft?.description || "";
+
+  upsertSavedLock(buildSavedLockRecord(state, {
+    id: existingDraft?.id || createLockId(),
+    name: nextName,
+    description: nextDescription,
+    isDraft,
+    hasCustomName: Boolean(existingDraft?.hasCustomName) || Boolean(hasCustomName),
+    submissionEligible: typeof submissionEligible === "boolean"
+      ? submissionEligible
+      : existingDraft?.submissionEligible,
+  }));
 }
 
 export function buildSavedLocksExportText(locks: SavedLockRecord[], baseUrl: string) {
