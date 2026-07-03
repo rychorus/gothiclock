@@ -1,4 +1,3 @@
-import { buildSolutionPlanForApp } from "../../lib/solution";
 import { createEmptyLinkDeltas, createInitialAppState } from "../../lib/lockData";
 import { parseNotationString } from "../../lib/notation";
 import { enterSolutionMode } from "../../lib/appState";
@@ -14,7 +13,7 @@ export function useMainMenuState({ appState, setAppState, openLoadScreen, openIm
   openLoadScreen: () => void;
   openImportScreen: () => void;
 }) {
-  function applyNotationText(text: string, { showSolution = false, sharedLinkMetadata = null }: { showSolution?: boolean; sharedLinkMetadata?: SharedLinkMetadata | null } = {}) {
+  function applyNotationText(text: string, { sharedLinkMetadata = null }: { showSolution?: boolean; sharedLinkMetadata?: SharedLinkMetadata | null } = {}) {
     const importedShareUrls = extractImportedShareUrls(text);
     if (importedShareUrls.length > 1) {
       importedShareUrls.forEach((sharedUrl) => {
@@ -61,7 +60,6 @@ export function useMainMenuState({ appState, setAppState, openLoadScreen, openIm
     const parsed = parseNotationString(imported.notation);
     const hasLinks = parsed.links.some(Boolean);
     const allLinksKnown = parsed.links.every(Boolean);
-    const shouldShowSolution = showSolution || imported.isShareUrl;
     const importScreenReturnState = appState.mode === "import"
       ? {
           ...createInitialAppState(),
@@ -96,18 +94,9 @@ export function useMainMenuState({ appState, setAppState, openLoadScreen, openIm
     }
 
     if (allLinksKnown) {
-      if (shouldShowSolution) {
-        setAppState(() => enterSolutionMode(baseState, {
-          returnState: importScreenReturnState ?? (imported.isShareUrl ? createInitialAppState() : undefined),
-          solutionOrigin: imported.isShareUrl ? "load" : null,
-        }));
-        return;
-      }
-
-      setAppState(() => ({
-        ...baseState,
-        mode: "ready_to_solve",
-        solution: buildSolutionPlanForApp(baseState, parsed.offsets),
+      setAppState(() => enterSolutionMode(baseState, {
+        returnState: importScreenReturnState ?? (imported.isShareUrl ? createInitialAppState() : undefined),
+        solutionOrigin: imported.isShareUrl ? "load" : null,
       }));
       return;
     }
