@@ -415,7 +415,7 @@ export function useLockpickApp() {
       if (
         !appState.sharedLinkMetadata
         && askToSaveOnSolve
-        && nextSolvedLockSignatures.length >= 3
+        && (nextSolvedLockSignatures.length >= 3 || savedLocks.length >= 3)
         && modal.type === null
       ) {
         loadScreen.openSaveCurrentLockDialog("solved");
@@ -616,6 +616,8 @@ export function useLockpickApp() {
     : appState;
   const notationText = buildNotationString(notationSource);
   const currentSavedLock = savedLocks.find((lock) => lock.id === appState.currentSaveId) || null;
+  const hasSolvedLockSavePromptThreshold = solvedLockSignatures.length >= 3
+    || savedLocks.length >= 3;
   return {
     appState,
     modal,
@@ -653,7 +655,7 @@ export function useLockpickApp() {
     saveCurrentLock: loadScreen.saveCurrentLock,
     askToSaveOnSolve,
     setAskToSaveOnSolve,
-    showAskToSaveOnSolveSetting: solvedLockSignatures.length >= 3,
+    showAskToSaveOnSolveSetting: hasSolvedLockSavePromptThreshold,
     loadSavedLock: loadScreen.loadSavedLock,
     renameLock: loadScreen.renameLock,
     removeLock: loadScreen.removeLock,
