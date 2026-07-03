@@ -3,7 +3,7 @@ import { buildNotationString } from "../lib/notation";
 import { APP_VERSION, createInitialAppState, getUnknownPlates, isTrivialCenteredLock } from "../lib/lockData";
 import { resetTestingMode } from "../lib/appState";
 import { clearSavedLockSubmissionEligibility, getSavedLockById, syncFinalLockProgress } from "../lib/lockStorage";
-import { getModalAnalyticsName, getScreenAnalyticsName, trackButtonClick, trackModalView, trackScreenView } from "../lib/analytics";
+import { getModalAnalyticsName, getScreenAnalyticsName, trackButtonClick, trackModalView, trackScreenView, trackSettingChange } from "../lib/analytics";
 import { playUiClick } from "../lib/uiClick";
 import { buildShareUrl, parseShareUrl } from "../screens/shared/shareUrl";
 import {
@@ -485,7 +485,12 @@ export function useLockpickApp() {
   useEffect(() => {
     const nextModalName = getModalAnalyticsName(modal);
     currentModalRef.current = nextModalName;
-    trackModalView(nextModalName);
+    trackModalView(
+      nextModalName,
+      modal.type === "save-current" && modal.source === "solved"
+        ? { ask_to_save_on_solve: askToSaveOnSolve }
+        : {},
+    );
   }, [modal]);
 
   useEffect(() => {
@@ -619,6 +624,17 @@ export function useLockpickApp() {
   const currentSavedLock = savedLocks.find((lock) => lock.id === appState.currentSaveId) || null;
   const hasSolvedLockSavePromptThreshold = solvedLockSignatures.length >= 3
     || savedLocks.length >= 3;
+
+  function updateAskToSaveOnSolve(enabled: boolean) {
+    setAskToSaveOnSolve(enabled);
+    trackSettingChange({
+      setting: "ask_to_save_on_solve",
+      value: enabled,
+      screen: currentScreenRef.current,
+      modal: currentModalRef.current,
+    });
+  }
+
   return {
     appState,
     modal,
@@ -655,7 +671,7 @@ export function useLockpickApp() {
     importNotation: mainMenu.importNotation,
     saveCurrentLock: loadScreen.saveCurrentLock,
     askToSaveOnSolve,
-    setAskToSaveOnSolve,
+    setAskToSaveOnSolve: updateAskToSaveOnSolve,
     showAskToSaveOnSolveSetting: hasSolvedLockSavePromptThreshold,
     loadSavedLock: loadScreen.loadSavedLock,
     renameLock: loadScreen.renameLock,

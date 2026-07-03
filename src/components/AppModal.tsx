@@ -38,6 +38,11 @@ function LockDetailsForm({
   onSubmit,
   onCancel,
   showCancel = true,
+  cancelLabel = "Cancel",
+  submitLabel = "Save",
+  requireName = false,
+  fitActions = false,
+  keepActionsSideBySide = false,
   askToSaveOnSolve,
   onAskToSaveOnSolveChange,
   showAskToSaveOnSolveToggle = false,
@@ -45,21 +50,60 @@ function LockDetailsForm({
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
   const nameInputRef = useRef(null);
+  const trimmedName = name.trim();
+  const isSubmitDisabled = requireName && !trimmedName;
+  const [shouldHighlightName, setShouldHighlightName] = useState(false);
 
-  useEffect(() => {
+  function focusNameField() {
     nameInputRef.current?.focus?.();
     nameInputRef.current?.select?.();
+  }
+
+  function handleSubmit() {
+    if (isSubmitDisabled) {
+      setShouldHighlightName(true);
+      focusNameField();
+      return;
+    }
+
+    onSubmit(name, description);
+  }
+
+  useEffect(() => {
+    focusNameField();
   }, []);
+
+  useEffect(() => {
+    if (!shouldHighlightName) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => setShouldHighlightName(false), 5000);
+    return () => window.clearTimeout(timeoutId);
+  }, [shouldHighlightName]);
 
   return (
     <div className="modal-form-stack">
-      <label className="modal-field">
+      <label className="modal-field modal-field--with-tooltip">
         <span className="modal-field-label">Lock name</span>
-        <input ref={nameInputRef} className="modal-input" type="text" value={name} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit(name, description)} />
+        <input
+          ref={nameInputRef}
+          className={`modal-input${shouldHighlightName ? " modal-input--highlighted" : ""}`}
+          type="text"
+          value={name}
+          onChange={(event) => {
+            setName(event.target.value);
+            if (shouldHighlightName && event.target.value.trim()) {
+              setShouldHighlightName(false);
+            }
+          }}
+          onKeyDown={(event) => event.key === "Enter" && handleSubmit()}
+        />
+        {shouldHighlightName ? <span className="modal-tooltip">Lock name is required to save this lock.</span> : null}
       </label>
       <label className="modal-field modal-field--spaced-top">
         <span className="modal-field-label">Description</span>
-        <input className="modal-input" type="text" value={description} placeholder="Where are you right now?" onChange={(event) => setDescription(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit(name, description)} />
+        <input className="modal-input" type="text" value={description} placeholder="Where are you right now?" onChange={(event) => setDescription(event.target.value)} onKeyDown={(event) => event.key === "Enter" && handleSubmit()} />
       </label>
       {showAskToSaveOnSolveToggle ? (
         <label className="modal-checkbox-row">
@@ -72,9 +116,16 @@ function LockDetailsForm({
           <span className="modal-checkbox-label">Always ask to save upon solving</span>
         </label>
       ) : null}
-      <div className="modal-actions">
-        {showCancel ? <button type="button" className="action-button secondary" onClick={onCancel}>Cancel</button> : null}
-        <button type="button" className="action-button primary" onClick={() => onSubmit(name, description)}>Save</button>
+      <div className={`modal-actions${fitActions ? " modal-actions--fit" : ""}${keepActionsSideBySide ? " modal-actions--keep-side-by-side" : ""}`}>
+        {showCancel ? <button type="button" className="action-button secondary" onClick={onCancel}>{cancelLabel}</button> : null}
+        <button
+          type="button"
+          className={`action-button primary${isSubmitDisabled ? " is-disabled" : ""}`}
+          onClick={handleSubmit}
+          aria-disabled={isSubmitDisabled}
+        >
+          {submitLabel}
+        </button>
       </div>
     </div>
   );
@@ -244,9 +295,10 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
   if (modal.type === "save-current") {
     return (
       <Modal
-        title={modal.source === "solved" ? "Lock Solved! Name this lock" : "Save Lock"}
+        title={modal.source === "solved" ? "Solved! Name this lock" : "Save Lock"}
         onClose={app.closeModal}
-        className={modal.source === "solved" ? "modal-card--bottom-edge" : ""}
+        className={modal.source === "solved" ? "modal-card--bottom-edge modal-card--allow-overflow" : ""}
+        bodyClassName={modal.source === "solved" ? "modal-body--allow-overflow" : ""}
       >
         <LockDetailsForm
           initialName={modal.value}
@@ -256,7 +308,11 @@ export function AppModal({ app, modal, savedLocks, solutionChunks, currentSoluti
           showAskToSaveOnSolveToggle={app.showAskToSaveOnSolveSetting}
           onSubmit={(name, description) => app.persistWithName(name, description, false)}
           onCancel={app.closeModal}
-          showCancel={false}
+          showCancel={modal.source === "solved"}
+          cancelLabel={modal.source === "solved" ? "Keep as Draft" : "Cancel"}
+          requireName={modal.source === "solved"}
+          fitActions={modal.source === "solved"}
+          keepActionsSideBySide={modal.source === "solved"}
         />
       </Modal>
     );

@@ -135,12 +135,15 @@ export function trackScreenView(screenName: string) {
   });
 }
 
-export function trackModalView(modalName: string | null) {
+export function trackModalView(modalName: string | null, params: AnalyticsParams = {}) {
   if (!modalName) {
     return;
   }
 
-  sendAnalyticsEvent("modal_view", { modal_name: modalName });
+  sendAnalyticsEvent("modal_view", {
+    modal_name: modalName,
+    ...params,
+  });
 }
 
 export function trackButtonClick(params: {
@@ -164,5 +167,19 @@ export function trackButtonClick(params: {
     screen_name: params.screen,
     modal_name: params.modal || null,
     click_context: params.context || null,
+  });
+}
+
+export function trackSettingChange(params: {
+  setting: string;
+  value: string | number | boolean;
+  screen: string;
+  modal?: string | null;
+}) {
+  sendAnalyticsEvent("setting_change", {
+    setting_name: params.setting,
+    setting_value: params.value,
+    screen_name: params.screen,
+    modal_name: params.modal || null,
   });
 }

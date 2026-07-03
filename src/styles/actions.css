@@ -210,6 +210,12 @@
   transform: none;
 }
 
+.action-button.is-disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+}
+
 .action-button.primary {
   border: 1px solid rgba(227, 167, 77, 0.5);
   background: linear-gradient(180deg, rgba(227, 167, 77, 0.24), rgba(227, 167, 77, 0.12));
