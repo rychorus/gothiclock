@@ -166,7 +166,6 @@ export function useLockpickApp() {
   const [appState, setAppState] = useState<AppStateData>(getInitialAppState);
   const [modal, setModalState] = useState<ModalState>({ type: null });
   const appliedSharedNotationRef = useRef(false);
-  const suppressDraftAutosaveRef = useRef(false);
   const suppressSavedLockChangeSubmissionRef = useRef(false);
   const savedLockSubmissionSignaturesRef = useRef(new Map());
   const queuedSubmissionTimestampsRef = useRef(new Map());
@@ -190,6 +189,7 @@ export function useLockpickApp() {
     openLoadScreen: () => setAppState((current) => ({
       ...current,
       mode: "load",
+      isImportedSession: false,
       linkingPromptTask: null,
       plateLinkingProcedure: null,
       solutionReturnState: null,
@@ -198,6 +198,7 @@ export function useLockpickApp() {
     openImportScreen: () => setAppState((current) => ({
       ...current,
       mode: "import",
+      isImportedSession: false,
       linkingPromptTask: null,
       plateLinkingProcedure: null,
       solutionReturnState: null,
@@ -339,8 +340,6 @@ export function useLockpickApp() {
       return;
     }
 
-    suppressDraftAutosaveRef.current = true;
-
     try {
       window.history.replaceState(window.history.state, "", getCleanUrl(window.location.href));
       mainMenu.importNotation(sharedUrl.notation, {
@@ -356,13 +355,7 @@ export function useLockpickApp() {
   }, [mainMenu]);
 
   useEffect(() => {
-    if (appState.sharedLinkMetadata) {
-      suppressDraftAutosaveRef.current = true;
-    } else if (appState.mode === "menu") {
-      suppressDraftAutosaveRef.current = false;
-    }
-
-    if (suppressDraftAutosaveRef.current) {
+    if (appState.isImportedSession) {
       return;
     }
 

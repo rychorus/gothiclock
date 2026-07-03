@@ -45,6 +45,7 @@ function getSolutionBackState(appState: AppStateData): AppStateData | null {
     return {
       ...appState,
       mode: "setup",
+      isImportedSession: false,
       linkingPromptTask: null,
       plateLinkingProcedure: null,
       solution: null,

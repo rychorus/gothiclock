@@ -76,6 +76,7 @@ export function useMainMenuState({ appState, setAppState, openLoadScreen, openIm
       ...createInitialAppState(),
       plateCount: parsed.plateCount,
       offsets: parsed.offsets,
+      isImportedSession: true,
       links: parsed.links,
       linkDeltas: createEmptyLinkDeltas(parsed.plateCount),
       linkingStartOffsets: parsed.offsets,

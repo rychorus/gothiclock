@@ -127,6 +127,7 @@ export function loadSavedLockState(state: AppStateData, savedLock: SavedLockReco
     ...state,
     plateCount: savedLock.plateCount,
     offsets: cloneOffsets(savedLock.currentOffsets || savedLock.linkingStartOffsets),
+    isImportedSession: false,
     solutionOrigin: "load",
     solutionReturnState: returnState,
     linkingStartOffsets: savedLock.linkingStartOffsets ? cloneOffsets(savedLock.linkingStartOffsets) : null,

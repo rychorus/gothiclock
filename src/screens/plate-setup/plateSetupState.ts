@@ -133,6 +133,7 @@ export function startOver(state: AppStateData): AppStateData {
     links: createEmptyLinks(state.plateCount),
     linkDeltas: createEmptyLinkDeltas(state.plateCount),
     mode: "setup",
+    isImportedSession: false,
     linkingStartOffsets: null,
     linkingPromptTask: null,
     plateLinkingProcedure: null,

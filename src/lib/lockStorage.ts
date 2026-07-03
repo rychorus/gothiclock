@@ -300,6 +300,7 @@ export function syncFinalLockProgress(state: AppStateData) {
     state.mode !== "solution"
     || isTrivialCenteredLock(state)
     || state.currentSaveId
+    || state.isImportedSession
     || state.sharedLinkMetadata
   ) {
     return null;

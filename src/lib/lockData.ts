@@ -69,6 +69,7 @@ export function createInitialAppState(): AppStateData {
     plateCount: START_COUNT,
     offsets: Array.from({ length: START_COUNT }, () => 0),
     mode: "menu",
+    isImportedSession: false,
     solutionOrigin: null,
     solutionReturnState: null,
     manualLinkingReturnState: null,

@@ -105,6 +105,7 @@ export interface AppStateData {
   plateCount: number;
   offsets: Offsets;
   mode: AppMode;
+  isImportedSession: boolean;
   solutionOrigin: "load" | null;
   solutionReturnState: AppStateData | null;
   manualLinkingReturnState: AppStateData | null;
