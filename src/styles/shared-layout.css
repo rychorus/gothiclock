@@ -144,6 +144,81 @@
   border-top: 1px solid var(--divider);
 }
 
+.menu-move-notice {
+  width: min(100%, 22rem);
+  margin: 0 auto;
+  padding: 0.95rem 1rem 1rem;
+  border: 0;
+  border-radius: 1.15rem;
+  background:
+    linear-gradient(180deg, rgba(227, 167, 77, 0.12), rgba(255, 255, 255, 0.03)),
+    rgba(255, 255, 255, 0.02);
+  box-shadow: 0 0.8rem 2rem rgba(0, 0, 0, 0.12);
+  display: grid;
+  gap: 0.45rem;
+  justify-items: center;
+  text-align: center;
+}
+
+.menu-move-notice-title {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.96rem;
+  line-height: 1.35;
+  letter-spacing: 0.03em;
+}
+
+.menu-move-notice-copy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.menu-move-notice-link {
+  width: min(100%, 18rem);
+  min-width: 0;
+  max-width: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.18rem;
+  text-decoration: none;
+}
+
+.menu-move-notice-domain {
+  color: #f6dfb2;
+}
+
+.menu-move-notice-subtitle {
+  margin-top: 0.1rem;
+  font-size: 0.9rem;
+  line-height: 1.25;
+  opacity: 0.92;
+}
+
+.menu-export-locks-button {
+  min-height: 0;
+}
+
+.menu-export-locks-button .action-button-subtitle {
+  white-space: normal;
+  font-size: 0.8rem;
+  line-height: 1.28;
+  opacity: 0.96;
+}
+
+.menu-export-locks-note {
+  margin: 0.15rem 0 0.1rem;
+  width: min(100%, 18rem);
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.35;
+  text-align: center;
+  opacity: 0.8;
+}
+
 .controls-card--load-screen {
   padding-top: 0.95rem;
   padding-bottom: 2.7rem;
@@ -422,6 +497,10 @@ body.is-menu-mode .controls-card {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+body.is-menu-mode .menu-move-notice {
+  margin-top: 0.4rem;
 }
 
 body.is-menu-mode .panel {

@@ -301,10 +301,9 @@ export function LockpickAppView({ app, appVersion }) {
           </header>
 
           {appState.mode === "menu" ? (
-            <MainMenuScreen
-              onStartNewLock={actions.startNewLock}
+          <MainMenuScreen
               onOpenLoadLock={app.openLoadLockDialog}
-              onOpenImportNotation={app.openImportNotationDialog}
+              onExportLocks={app.exportAllSavedLocks}
               onOpenDeveloperSettings={() => app.setModal({ type: "developer-settings" })}
               onSubmitFeedback={() => {
                 const url = new URL("https://docs.google.com/forms/d/e/1FAIpQLScd_IAOM_28xDOemnu8HFfaVpZqYZSYa64G4Pjyfj0K0ybFSQ/viewform");

@@ -52,25 +52,12 @@ function getInitialAppState(): AppStateData {
   }
 
   try {
-    const hasVisitedBefore = window.localStorage.getItem("gothic-lockpick.has-visited-before") === "true";
-    window.localStorage.setItem("gothic-lockpick.has-visited-before", "true");
-
     const sharedUrl = parseShareUrl(window.location.href);
     if (sharedUrl.notation) {
       return initialState;
     }
-
-    if (!hasVisitedBefore) {
-      return {
-        ...initialState,
-        mode: "setup",
-      };
-    }
   } catch {
-    return {
-      ...initialState,
-      mode: "setup",
-    };
+    return initialState;
   }
 
   return initialState;
